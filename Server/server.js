@@ -11,7 +11,11 @@ const app = express();
 const port = process.env.PORT || 4000;
 connectDB();
 
-const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL];
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+  "https://capstone-assignment.vercel.app/",
+];
 
 // middleware
 app.use(express.json());
