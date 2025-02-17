@@ -3,12 +3,16 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useEffect } from "react";
 
+interface UserData {
+  isAccountVerified: boolean;
+}
+
 interface AppContextProps {
-  backendUrl: any;
+  backendUrl: string;
   isLoggedin: boolean;
   setIsLoggedin: React.Dispatch<React.SetStateAction<boolean>>;
-  userData: boolean;
-  setUserData: any;
+  userData: boolean | UserData;
+  setUserData: React.Dispatch<React.SetStateAction<boolean | UserData>>;
   getUserData: () => Promise<void>;
 }
 
@@ -21,7 +25,7 @@ export const AppContent = createContext<AppContextProps | undefined>(undefined);
 export const AppContextProvider = (props: AppContextProviderProps) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [isLoggedin, setIsLoggedin] = useState(false);
-  const [userData, setUserData] = useState(false);
+  const [userData, setUserData] = useState<boolean | UserData>(false);
 
   const getAuthState = async () => {
     try {

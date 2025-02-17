@@ -16,18 +16,33 @@ const EmailVerify = () => {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl, isLoggedin, userData, getUserData } = appContext;
+  const { backendUrl, isLoggedin, userData, getUserData } = appContext as {
+    backendUrl: string;
+    isLoggedin: boolean;
+    userData: { isAccountVerified: boolean };
+    getUserData: () => void;
+  };
 
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
-  const handleInput = (e: any, index: number) => {
+  const handleInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     if (e.target.value.length > 0 && index < inputRefs.current.length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (e: any, index: number) => {
-    if (e.key === "Backspace" && e.target.value === "" && index > 0) {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (
+      e.key === "Backspace" &&
+      (e.target as HTMLInputElement).value === "" &&
+      index > 0
+    ) {
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -35,17 +50,17 @@ const EmailVerify = () => {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const paste = e.clipboardData.getData("text");
     const pasteArray = paste.split("");
-    pasteArray.forEach((char: string, index: number) => {
+    pasteArray.forEach((char, index: number) => {
       if (inputRefs.current[index]) {
         inputRefs.current[index]!.value = char;
       }
     });
   };
 
-  const onSubmitHandler = async (e) => {
+  const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      const otpArray = inputRefs.current.map((e) => e.value);
+      const otpArray = inputRefs.current.map((e) => e!.value);
       const otp = otpArray.join("");
       const { data } = await axios.post(
         backendUrl + "/api/auth/verify-account",
@@ -105,11 +120,13 @@ const EmailVerify = () => {
               <input
                 className="text-center w-12 h-12 bg-[#333A5C] text-white text-2xl rounded-md"
                 type="text"
-                maxLength="1"
+                maxLength={1}
                 key={index}
                 required
-                ref={(e) => (inputRefs.current[index] = e)}
-                onInput={(e) => handleInput(e, index)}
+                ref={(e) => {
+                  inputRefs.current[index] = e;
+                }}
+                onInput={(e: any) => handleInput(e, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
               />
             ))}

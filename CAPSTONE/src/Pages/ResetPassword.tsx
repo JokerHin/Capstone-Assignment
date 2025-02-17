@@ -5,43 +5,54 @@ import axios from "axios";
 import { AppContent } from "../context/AppContext";
 import { toast } from "react-toastify";
 import mail from "../assets/mail_icon.svg";
+import lock from "../assets/lock_icon.svg";
 
 const ResetPassword = () => {
-  const { backendUrl } = useContext(AppContent);
+  const { backendUrl } = useContext(AppContent)!;
   axios.defaults.withCredentials = true;
 
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [isEmailSent, setIsEmailSent] = useState("");
-  const [otp, setOtp] = useState(0);
-  const [isOtpSubmited, setIsOtpSubmited] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
+  const [otp, setOtp] = useState<string>("");
+  const [isOtpSubmited, setIsOtpSubmited] = useState<boolean>(false);
 
-  const inputRefs = React.useRef([]);
+  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
-  const handleInput = (e, index) => {
+  const handleInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     if (e.target.value.length > 0 && index < inputRefs.current.length - 1) {
-      inputRefs.current[index + 1].focus();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (e, index) => {
-    if (e.key === "Backspace" && e.target.value === "" && index > 0) {
-      inputRefs.current[index - 1].focus();
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (
+      e.key === "Backspace" &&
+      (e.target as HTMLInputElement).value === "" &&
+      index > 0
+    ) {
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const paste = e.clipboardData.getData("text");
     const pasteArray = paste.split("");
-    pasteArray.forEach((char, index) => {
+    pasteArray.forEach((char: string, index: number) => {
       if (inputRefs.current[index]) {
-        inputRefs.current[index].value = char;
+        inputRefs.current[index]!.value = char;
       }
     });
   };
 
-  const onSubmitEmail = async (e) => {
+  const onSubmitEmail = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const { data } = await axios.post(
@@ -52,19 +63,19 @@ const ResetPassword = () => {
       );
       data.success ? toast.success(data.message) : toast.error(data.message);
       data.success && setIsEmailSent(true);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
     }
   };
 
-  const onSubmitOTP = async (e) => {
+  const onSubmitOTP = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const otpArray = inputRefs.current.map((e) => e.value);
+    const otpArray = inputRefs.current.map((e) => e!.value);
     setOtp(otpArray.join(""));
     setIsOtpSubmited(true);
   };
 
-  const onSubmitNewPassword = async (e) => {
+  const onSubmitNewPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const { data } = await axios.post(
@@ -77,7 +88,7 @@ const ResetPassword = () => {
       );
       data.success ? toast.success(data.message) : toast.error(data.message);
       data.success && navigate("/login");
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
     }
   };
@@ -153,11 +164,13 @@ const ResetPassword = () => {
                 <input
                   className="text-center w-12 h-12 bg-[#333A5C] text-white text-2xl rounded-md"
                   type="text"
-                  maxLength="1"
+                  maxLength={1}
                   key={index}
                   required
-                  ref={(e) => (inputRefs.current[index] = e)}
-                  onInput={(e) => handleInput(e, index)}
+                  ref={(e) => {
+                    inputRefs.current[index] = e;
+                  }}
+                  onInput={(e: any) => handleInput(e, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                 />
               ))}
@@ -182,7 +195,7 @@ const ResetPassword = () => {
             Enter the new password below
           </p>
           <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-            <img src={assets.lock_icon} alt="" className="w-3 h-3" />
+            <img src={lock} alt="" className="w-3 h-3" />
             <input
               type="password"
               placeholder="Password"
