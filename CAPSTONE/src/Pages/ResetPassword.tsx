@@ -45,7 +45,7 @@ const ResetPassword = () => {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const paste = e.clipboardData.getData("text");
     const pasteArray = paste.split("");
-    pasteArray.forEach((char: string, index: number) => {
+    pasteArray.forEach((char, index: number) => {
       if (inputRefs.current[index]) {
         inputRefs.current[index]!.value = char;
       }
