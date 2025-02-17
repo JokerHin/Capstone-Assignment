@@ -5,14 +5,15 @@ import { useEffect } from "react";
 
 interface UserData {
   isAccountVerified: boolean;
+  name: string;
 }
 
 interface AppContextProps {
   backendUrl: string;
   isLoggedin: boolean;
   setIsLoggedin: React.Dispatch<React.SetStateAction<boolean>>;
-  userData: boolean | UserData;
-  setUserData: React.Dispatch<React.SetStateAction<boolean | UserData>>;
+  userData: UserData | null;
+  setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
   getUserData: () => Promise<void>;
 }
 
@@ -25,7 +26,7 @@ export const AppContent = createContext<AppContextProps | undefined>(undefined);
 export const AppContextProvider = (props: AppContextProviderProps) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [isLoggedin, setIsLoggedin] = useState(false);
-  const [userData, setUserData] = useState<boolean | UserData>(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   const getAuthState = async () => {
     try {
