@@ -5,7 +5,7 @@ export default function Games() {
         Games
       </div>
       <div className="w-[90%] md:w-[70%] h-auto grid grid-flow-row grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-white items-center">
-        <div className="w-[100%] bg-[#11131f] h-[200px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
+        <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
           <img
             src="https://cdn2.unrealengine.com/s05-keyart-1920x1080-logo-1920x1080-8eefea7d608b.png?resize=1&w=1920"
             alt="image"
@@ -15,7 +15,7 @@ export default function Games() {
             Fail Guy
           </p>
         </div>
-        <div className="w-[100%] bg-[#11131f] h-[200px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
+        <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
           <img
             src="https://www.ji-cloud.cn/ueditor/php/upload/image/20230414/1681454294321103.jpg"
             alt="image"
@@ -25,7 +25,7 @@ export default function Games() {
             Fail Guy
           </p>
         </div>
-        <div className="w-[100%] bg-[#11131f] h-[200px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
+        <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
           <img
             src="https://p.qpic.cn/mwegame/0/c6057c02143ad52ad201fd1c9a0a1540/"
             alt="image"

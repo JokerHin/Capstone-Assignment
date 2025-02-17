@@ -26,7 +26,7 @@ export default function Home() {
       <img
         src="https://cdn2.unrealengine.com/s1-right-character-420x420-d4b8f86b4c4f.png"
         alt="image"
-        className="absolute top-680 left-0 w-[40%] z-10  md:w-[20%] md:top-600"
+        className="absolute top-750 left-0 w-[40%] z-10  md:w-[20%] md:top-600"
       />
       <div
         className="h-[40rem] rounded-md flex flex-col antialiased bg-white dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden"

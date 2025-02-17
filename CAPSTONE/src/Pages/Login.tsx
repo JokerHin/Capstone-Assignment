@@ -79,7 +79,7 @@ export default function Login() {
         className="absolute left-5 sm:left-20 top-5 w-28 sm:w-32 cursor-pointer"
       />
       <h2
-        className="absolute left-20 sm:left-50 top-18 ml-[-15px] font-medium text-white text-xl cursor-pointer"
+        className="absolute left-30 sm:left-50 top-18 ml-[-15px] font-medium text-white text-xl cursor-pointer"
         onClick={() => navigate("/")}
       >
         <span className="text-[#ff8800] text-4xl">F</span>ireWall
@@ -169,7 +169,7 @@ export default function Login() {
       <img
         src="https://cdn2.unrealengine.com/s5-center-character-420x420-3c611ad55a23.png"
         alt="image"
-        className="absolute top-120 right-90 w-[20%] z-10"
+        className="absolute top-150 right-0 w-[50%] z-10 md:top-120 md:right-90 md:w-[20%]"
       />
     </div>
   );
