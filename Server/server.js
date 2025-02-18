@@ -14,7 +14,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.CLIENT_URL,
-  "https://capstone-assignment.vercel.app/",
+  "https://capstone-assignment.vercel.app",
 ];
 
 // middleware
