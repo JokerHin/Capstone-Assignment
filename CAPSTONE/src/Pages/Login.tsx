@@ -24,24 +24,35 @@ export default function Login() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType] = useState("user");
 
   const onSubmitHandler = async (e: any) => {
     try {
       e.preventDefault();
 
-      axios.defaults.withCredentials = true; //send cookie with request
+      axios.defaults.withCredentials = true;
 
       if (state === "Sign Up") {
         const { data } = await axios.post(backendUrl + "/api/auth/register", {
           name,
           email,
           password,
+          userType,
         });
         if (data.success) {
           setIsLoggedin(true);
           getUserData();
-          navigate("/");
-          toast.success("Successfully registered");
+          const userType = data.userData?.userType;
+          if (userType === "admin") {
+            navigate("/AdminHome");
+          } else {
+            navigate("/");
+          }
+          toast.success(
+            state === "Sign Up"
+              ? "Successfully registered"
+              : "Successfully logged in"
+          );
         } else {
           toast.error(data.message);
         }
@@ -53,8 +64,17 @@ export default function Login() {
         if (data.success) {
           setIsLoggedin(true);
           getUserData();
-          navigate("/");
-          toast.success("Successfully logged in");
+          const userType = data.userData?.userType;
+          if (userType === "admin") {
+            navigate("/AdminHome");
+          } else {
+            navigate("/");
+          }
+          toast.success(
+            state === "Sign Up"
+              ? "Successfully registered"
+              : "Successfully logged in"
+          );
         } else {
           toast.error(data.message);
         }

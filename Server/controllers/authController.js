@@ -8,7 +8,7 @@ import {
 } from "../config/emailTemplates.js";
 
 export const register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, userType = "user" } = req.body;
 
   if (!name || !email || !password) {
     return res.json({ success: false, message: "Missing Details" });
@@ -23,18 +23,22 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new userModel({ name, email, password: hashedPassword });
-    await user.save(); // save user to database
+    const user = new userModel({
+      name,
+      email,
+      password: hashedPassword,
+      userType,
+    });
+    await user.save();
 
-    //generate the token using JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // Ensure this is true
-      sameSite: "None", // Change to None
+      secure: true,
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -48,7 +52,10 @@ export const register = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    return res.json({ success: true });
+    return res.json({
+      success: true,
+      userData: { name: user.name, userType: user.userType },
+    });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -59,7 +66,7 @@ export const login = async (req, res) => {
 
   if (!email || !password) {
     return res.json({
-      sucess: false,
+      success: false,
       message: "Email and password are required",
     });
   }
@@ -76,19 +83,21 @@ export const login = async (req, res) => {
       return res.json({ success: false, message: "Invalid password" });
     }
 
-    // generate the token after login with success password and email
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // Ensure this is true
-      sameSite: "None", // Change to None
+      secure: true,
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.json({ success: true });
+    return res.json({
+      success: true,
+      userData: { name: user.name, userType: user.userType },
+    });
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
@@ -98,8 +107,8 @@ export const logout = async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: true, // Ensure this is true
-      sameSite: "None", // Change to None
+      secure: true,
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
