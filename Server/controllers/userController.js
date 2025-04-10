@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 
 export const getUserData = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const user = await userModal.findById(userId);
+    // Use req.user from middleware instead of req.body
+    const user = await userModal.findById(req.user);
 
     if (!user) {
       return res.json({ success: false, message: "User not found" });
@@ -14,6 +14,7 @@ export const getUserData = async (req, res) => {
       success: true,
       userData: {
         name: user.name,
+        email: user.email,
         isAccountVerified: user.isAccountVerified,
         userType: user.userType,
       },
@@ -27,24 +28,42 @@ export const updateProfile = async (req, res) => {
   try {
     const { name, currentPassword, newPassword } = req.body;
 
-    const user = await userModal.findById(req.user.id); // Use req.user.id
+    // Access user ID directly from the middleware
+    const user = await userModal.findById(req.user);
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Incorrect current password" });
+    // If only name is being updated (no password change)
+    if (name && !newPassword) {
+      user.name = name;
+      await user.save();
+      return res.json({
+        success: true,
+        message: "Profile updated successfully",
+      });
     }
 
-    if (name) user.name = name;
+    // If password is being changed, validate current password
     if (newPassword) {
+      // Check if current password matches
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Incorrect current password" });
+      }
+
+      // Update password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       user.password = hashedPassword;
+    }
+
+    // Update name if provided
+    if (name) {
+      user.name = name;
     }
 
     await user.save();

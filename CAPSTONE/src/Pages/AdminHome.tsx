@@ -104,8 +104,8 @@ export default function AdminHome() {
       <div className="lg:hidden w-full bg-slate-900 p-4 flex justify-between items-center border-b border-gray-700">
         <div className="flex items-center">
           <img src={Logo} alt="Logo" className="w-10 h-10" />
-          <h1 className="ml-2 text-lg font-medium text-white">
-            <span className="text-[#ff8800] text-sm">The</span> Codyssey
+          <h1 className="ml-2 text-md font-medium text-white">
+            <span className="text-[#ff8800]">The</span> Codyssey
           </h1>
         </div>
         <button

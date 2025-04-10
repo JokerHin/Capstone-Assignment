@@ -51,7 +51,10 @@ export default function Home() {
 }
 
 const Contributors = [
-  { quote: "Cho", name: "Designer" },
-  { quote: "Kar", name: "Frontend Developer" },
-  { quote: "Hin", name: "FreeRider" },
+  { quote: "Cho Kar Hin", name: "Frontend Developer" },
+  { quote: "Beh Hon Sheng", name: "Designer" },
+  { quote: "Chong Yong Wai", name: "FullStack Developer" },
+  { quote: "Benjamin Soon", name: "Project Manager" },
+  { quote: "Aimy Chong", name: "Leader" },
+  { quote: "Chan Ying Yi", name: "Designer" },
 ];

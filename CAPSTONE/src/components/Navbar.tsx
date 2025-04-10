@@ -142,8 +142,8 @@ const Navbar = () => {
             className="mr-6 flex items-center space-x-2 mt-5 cursor-pointer"
           >
             <img src={Logo} alt="logo" className="w-20 h-auto" />
-            <h2 className="block rounded-md ml-[-15px] mt-2 font-medium text-white text-3xl">
-              <span className="text-[#ff8800] text-xl">The</span> Codyssey
+            <h2 className="block rounded-md ml-[-15px] mt-2 font-medium text-white text-2xl">
+              <span className="text-[#ff8800] ">The</span> Codyssey
             </h2>
           </a>
           <nav className="md:flex hidden items-center space-x-10 text-lg font-medium text-white mt-5">

@@ -1,4 +1,11 @@
 const Hero = () => {
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div
       className="items-center h-[900px] md:[700px] bg-primary flex flex-col md:flex-row justify-center w-full transition-all duration-500 ease-in-out "
@@ -19,10 +26,22 @@ const Hero = () => {
           Platform.
         </p>
         <div className="w-full text-center flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-10 transition-all duration-500 animate-slide-in-left">
-          <button className="text-white rounded-2xl border border-white p-4 w-full md:w-[30%] hover:text-black hover:bg-white font-bold cursor-pointer transition active:scale-80 duration-500 animate-slide-in-left">
+          <button
+            className="text-white rounded-2xl border border-white p-4 w-full md:w-[30%] hover:text-black hover:bg-white font-bold cursor-pointer transition active:scale-80 duration-500 animate-slide-in-left"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection("games-section");
+            }}
+          >
             Get Start
           </button>
-          <button className="text-[#ff8800] border border-white p-4 bg-white rounded-2xl w-full md:w-[30%] hover:bg-[#ff8800] hover:text-white font-bold cursor-pointer transition active:scale-80 duration-500 animate-slide-in-left">
+          <button
+            className="text-[#ff8800] border border-white p-4 bg-white rounded-2xl w-full md:w-[30%] hover:bg-[#ff8800] hover:text-white font-bold cursor-pointer transition active:scale-80 duration-500 animate-slide-in-left"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection("contributors-section");
+            }}
+          >
             Join Us
           </button>
         </div>

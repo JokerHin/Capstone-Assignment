@@ -12,7 +12,7 @@ import {
 import axios from "axios";
 import { AppContent } from "../../context/AppContext";
 import { toast } from "react-toastify";
-import BadgeImg from "../../assets/badge.png"; // Import the badge image
+import BadgeImg from "../../assets/badge.png";
 
 // Sample data for the leaderboard
 const leaderboardData = [

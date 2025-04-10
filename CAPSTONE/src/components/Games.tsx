@@ -12,7 +12,7 @@ export default function Games() {
             className="w-full rounded-t-4xl"
           />
           <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
-            Fail Guy
+            Chapter 1
           </p>
         </div>
         <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
@@ -22,7 +22,7 @@ export default function Games() {
             className="w-full rounded-t-4xl"
           />
           <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
-            Fail Guy
+            Chapter 2
           </p>
         </div>
         <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
@@ -32,7 +32,37 @@ export default function Games() {
             className="w-full rounded-t-4xl"
           />
           <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
-            Fail Guy
+            Chapter 3
+          </p>
+        </div>
+        <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
+          <img
+            src="https://images6.alphacoders.com/125/1250786.jpg"
+            alt="image"
+            className="w-full rounded-t-4xl"
+          />
+          <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
+            Chapter 4
+          </p>
+        </div>
+        <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
+          <img
+            src="https://wallpapers.com/images/hd/fall-guys-fun-skins-l7pnkwqhyrmtivot.jpg"
+            alt="image"
+            className="w-full rounded-t-4xl"
+          />
+          <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
+            Chapter 5
+          </p>
+        </div>
+        <div className="w-[100%] bg-[#11131f] h-[300px] md:h-[300px] hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer rounded-4xl hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500">
+          <img
+            src="https://assets.nintendo.com/image/upload/q_auto/f_auto/ncom/software/switch/70010000042975/937afd0c84319831009b44c93369faf0a2c926a454809f73523df9bfb6cf6233"
+            alt="image"
+            className="w-full rounded-t-4xl"
+          />
+          <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
+            Chapter 6
           </p>
         </div>
       </div>

@@ -1,0 +1,47 @@
+import mongoose from "mongoose";
+
+const achievementSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  points: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  rarity: {
+    type: String,
+    enum: ["common", "uncommon", "rare", "epic", "legendary"],
+    default: "common",
+  },
+  game: {
+    type: String,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Update the 'updatedAt' field on save
+achievementSchema.pre("save", function (next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+const achievementModel =
+  mongoose.models.achievement ||
+  mongoose.model("achievement", achievementSchema);
+
+export default achievementModel;

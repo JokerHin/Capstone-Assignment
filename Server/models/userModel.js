@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const userModal = mongoose.models.user || mongoose.model("user", userSchema);

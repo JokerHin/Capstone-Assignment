@@ -77,7 +77,7 @@ export const InfiniteMovingCards = ({
       )}
     >
       <div className="text-white font-bold text-5xl text-center mt-10 mb-10">
-        Contributos
+        Our Contributor
       </div>
       <ul
         ref={scrollerRef}
@@ -101,16 +101,18 @@ export const InfiniteMovingCards = ({
                 aria-hidden="true"
                 className="user-select-none -z-1 pointer-events-none absolute -left-0.5 -top-0.5 h-[calc(100%_+_4px)] w-[calc(100%_+_4px)]"
               ></div>
-              <div className=" text-gray-100 text-2xl flex justify-center gap-6 font-bold ">
+              <div className=" text-gray-100 text-2xl flex justify-evenly gap-6 font-bold ">
                 <img
                   src="https://preview.redd.it/fall-guys-skins-v0-2ps8uqurfn9d1.png?width=300&format=png&auto=webp&s=7b8f1ab858435d0fb7938a303601630c5d3641ea"
                   alt="bear"
-                  className="w-16 h-16 rounded-full border-4 border-white"
+                  className="w-16 h-16 rounded-full border-4 border-white mt-1"
                 />
-                <span className="mt-3">{item.quote}</span>
-                <span className=" text-gray-400 font-normal mt-3">
-                  ({item.name})
-                </span>
+                <div>
+                  <p>{item.quote}</p>
+                  <p className=" text-gray-400 font-normal mt-2 text-xl">
+                    ({item.name})
+                  </p>
+                </div>
               </div>
             </blockquote>
           </li>
