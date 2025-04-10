@@ -108,10 +108,10 @@ const ResetPassword = () => {
         className="absolute left-5 sm:left-20 top-5 w-28 sm:w-32 cursor-pointer"
       />
       <h2
-        className="absolute left-30 sm:left-50 top-18 ml-[-15px] font-medium text-white text-xl cursor-pointer"
+        className="absolute left-30 sm:left-50 top-18 ml-[-15px] font-medium text-white text-3xl cursor-pointer"
         onClick={() => navigate("/")}
       >
-        <span className="text-[#ff8800] text-4xl">F</span>ireWall
+        <span className="text-[#ff8800] text-xl">The</span> Codyssey
       </h2>
 
       {/* Email input form */}

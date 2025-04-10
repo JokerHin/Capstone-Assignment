@@ -6,6 +6,7 @@ import { useEffect } from "react";
 interface UserData {
   isAccountVerified: boolean;
   name: string;
+  email: string;
 }
 
 interface AppContextProps {

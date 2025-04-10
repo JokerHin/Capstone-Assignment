@@ -9,13 +9,14 @@ const Hero = () => {
     >
       <div className="w-full md:w-[40%] h-auto items-center transition-all duration-500 animate-slide-in-left sm:mt-10">
         <p className="text-[30pt] md:text-[50pt] w-full transition-all duration-500 animate-slide-in-left bg-clip-text text-transparent bg-gradient-to-b from-neutral-900 to-neutral-700 dark:from-neutral-600 dark:to-white md:text-4xl lg:text-7xl font-sans relative font-bold tracking-tight">
-          Let Join Our Lastest
+          The Codyssey
         </p>
-        <p className="text-[#ff8800] font-bold text-[30pt] md:text-[50pt] w-full text-left transition-all duration-500 animate-slide-in-left">
-          JokerHin
+        <p className="text-[#ff8800] font-bold text-[20pt] md:text-[35pt] w-full text-left transition-all duration-500 animate-slide-in-left">
+          The Journey Through the Object Realm
         </p>
         <p className="text-white transition-all duration-500 animate-slide-in-left">
-          All work but no play make jack a dumb boy
+          Make Your Game More Fun and Engaging with Our Game Development
+          Platform.
         </p>
         <div className="w-full text-center flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mt-10 transition-all duration-500 animate-slide-in-left">
           <button className="text-white rounded-2xl border border-white p-4 w-full md:w-[30%] hover:text-black hover:bg-white font-bold cursor-pointer transition active:scale-80 duration-500 animate-slide-in-left">

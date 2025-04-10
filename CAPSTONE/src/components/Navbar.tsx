@@ -13,7 +13,7 @@ const Navbar = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [updatedName, setUpdatedName] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [currentPassword, setCurrentPassword] = useState(""); // Add current password state
+  const [currentPassword, setCurrentPassword] = useState("");
 
   function handleScrollPercentage() {
     const howMuchScrolled =
@@ -41,6 +41,14 @@ const Navbar = () => {
       behavior: "smooth",
     });
   }
+
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const appContext = useContext(AppContent);
 
   if (!appContext) {
@@ -65,18 +73,56 @@ const Navbar = () => {
     }
   };
 
+  const handleOpenProfileModal = () => {
+    if (userData) {
+      setUpdatedName(userData.name);
+    }
+    setCurrentPassword("");
+    setNewPassword("");
+    setIsProfileModalOpen(true);
+  };
+
   const handleProfileUpdate = async () => {
+    if (!userData) {
+      toast.error("User data not available");
+      return;
+    }
+
     try {
-      const { data } = await axios.put(
-        backendUrl + "/api/user/update-profile", // Ensure this endpoint exists in the backend
-        {
-          name: updatedName || userData.name,
-          currentPassword,
-          newPassword,
+      const requestBody: {
+        name?: string;
+        currentPassword?: string;
+        newPassword?: string;
+      } = {};
+
+      if (updatedName !== userData.name) {
+        requestBody.name = updatedName;
+      }
+
+      if (newPassword) {
+        if (!currentPassword) {
+          toast.error("Current password is required to change password");
+          return;
         }
+        requestBody.currentPassword = currentPassword;
+        requestBody.newPassword = newPassword;
+      }
+
+      if (Object.keys(requestBody).length === 0) {
+        setIsProfileModalOpen(false);
+        return;
+      }
+
+      const { data } = await axios.put(
+        backendUrl + "/api/user/update-profile",
+        requestBody
       );
+
       if (data.success) {
-        setUserData({ ...userData, name: updatedName || userData.name });
+        setUserData({
+          ...userData,
+          name: updatedName || userData.name,
+        });
         toast.success("Profile updated successfully");
         setIsProfileModalOpen(false);
       } else {
@@ -96,28 +142,40 @@ const Navbar = () => {
             className="mr-6 flex items-center space-x-2 mt-5 cursor-pointer"
           >
             <img src={Logo} alt="logo" className="w-20 h-auto" />
-            <h2 className="block rounded-md ml-[-15px] mt-2 text-base font-medium text-white">
-              <span className="text-[#ff8800] text-3xl">F</span>ireWall
+            <h2 className="block rounded-md ml-[-15px] mt-2 font-medium text-white text-3xl">
+              <span className="text-[#ff8800] text-xl">The</span> Codyssey
             </h2>
           </a>
-          <nav className="md:flex hidden items-center space-x-6 text-lg font-medium text-white mt-5">
+          <nav className="md:flex hidden items-center space-x-10 text-lg font-medium text-white mt-5">
             <a
               href="#Home"
               className="text-white hover:text-[#ff8800] hover:-translate-y-1 hover:duration-75 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                handleScrollToTop();
+              }}
             >
               Home
             </a>
             <a
               href="#games"
               className="text-white hover:text-[#ff8800] hover:-translate-y-1 hover:duration-75 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("games-section");
+              }}
             >
               Games
             </a>
             <a
-              href="#contact"
+              href="#contributor"
               className="text-white hover:text-[#ff8800] hover:-translate-y-1 hover:duration-75 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("contributors-section");
+              }}
             >
-              Contact Us
+              Contributor
             </a>
           </nav>
           {userData ? (
@@ -128,7 +186,7 @@ const Navbar = () => {
                   <ul className="list-none m-0 p-2 bg-gray-100 text-sm">
                     <li
                       className="py-1 px-2 hover:bg-gray-200 cursor-pointer"
-                      onClick={() => setIsProfileModalOpen(true)}
+                      onClick={handleOpenProfileModal}
                     >
                       My Profile
                     </li>
@@ -178,28 +236,37 @@ const Navbar = () => {
         <div className="md:hidden">
           <div className="space-y-1 px-2 pb-3 pt-2 mt-5">
             <a
-              href="#about"
+              href="#Home"
               className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-50 hover:text-gray-900"
+              onClick={(e) => {
+                e.preventDefault();
+                handleScrollToTop();
+                setmMobileMenuOpen(false);
+              }}
             >
-              About
+              Home
             </a>
             <a
-              href="#projects"
+              href="#games"
               className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-50 hover:text-gray-900"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("games-section");
+                setmMobileMenuOpen(false);
+              }}
             >
-              Project
+              Games
             </a>
             <a
-              href="#testimonials"
+              href="#contributor"
               className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-50 hover:text-gray-900"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("contributors-section");
+                setmMobileMenuOpen(false);
+              }}
             >
-              Testimonials
-            </a>
-            <a
-              href="#contact"
-              className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-50 hover:text-gray-900"
-            >
-              Contact
+              Contributor
             </a>
           </div>
         </div>
@@ -210,7 +277,7 @@ const Navbar = () => {
       ></div>
       {isProfileModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="absolute bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-sm inset-shadow-sm inset-shadow-amber-500 top-80">
+          <div className="absolute bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-sm inset-shadow-sm inset-shadow-amber-500 top-60">
             <h2 className="text-3xl font-semibold text-white text-center mb-3">
               My Profile
             </h2>
@@ -220,7 +287,13 @@ const Navbar = () => {
                   Name
                 </label>
                 <div className="flex items-center w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <span className="text-white ml-5">{userData.name}</span>
+                  <input
+                    type="text"
+                    value={updatedName}
+                    onChange={(e) => setUpdatedName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="bg-transparent outline-none ml-5 text-white w-full"
+                  />
                 </div>
               </div>
               <div className="mb-4">
@@ -228,7 +301,7 @@ const Navbar = () => {
                   Email
                 </label>
                 <div className="flex items-center w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <span className="text-white ml-5">{userData.email}</span>
+                  <span className="text-white ml-5">{userData?.email}</span>
                 </div>
               </div>
               <div className="mb-4">
