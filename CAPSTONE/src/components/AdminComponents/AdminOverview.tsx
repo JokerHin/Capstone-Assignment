@@ -50,7 +50,7 @@ const AdminOverview: React.FC = () => {
   // Scroll the badges container horizontally
   const scrollBadges = (direction: "left" | "right") => {
     if (badgeContainerRef.current) {
-      const scrollAmount = 250; // Adjust as needed
+      const scrollAmount = 250;
       badgeContainerRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",

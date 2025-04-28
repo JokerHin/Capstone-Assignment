@@ -110,7 +110,7 @@ export const addUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      userType: "user", // Always set to 'user' for admin-created accounts
+      userType: "user",
     });
 
     await newUser.save();
