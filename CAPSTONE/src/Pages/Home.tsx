@@ -1,9 +1,10 @@
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import { ContainerScroll } from "../components/ScrollAnimation";
-import { InfiniteMovingCards } from "../components/Contributors";
-import Footer from "../components/Footer";
-import Games from "../components/Games";
+import Navbar from "../components/LandingComponent/Navbar";
+import Hero from "../components/LandingComponent/Hero";
+import { ContainerScroll } from "../components/LandingComponent/ScrollAnimation";
+import { InfiniteMovingCards } from "../components/LandingComponent/Contributors";
+import Footer from "../components/LandingComponent/Footer";
+import Games from "../components/LandingComponent/Games";
+import Map from "../assets/town_map.jpg";
 
 export default function Home() {
   return (
@@ -16,10 +17,7 @@ export default function Home() {
         }
       >
         <div>
-          <img
-            src="https://p1.itc.cn/q_70/images03/20230503/eccb47d0f93442019cb580aeca86c34d.png"
-            alt="image"
-          />
+          <img src={Map} alt="image" />
         </div>
       </ContainerScroll>
       <div id="games-section">

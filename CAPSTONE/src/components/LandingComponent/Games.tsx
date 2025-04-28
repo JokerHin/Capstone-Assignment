@@ -2,7 +2,7 @@ import { Lock } from "lucide-react";
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AppContent } from "../context/AppContext";
+import { AppContent } from "../../context/AppContext";
 
 const realmsData = [
   {
@@ -210,7 +210,7 @@ export default function Games() {
       {/* Chapter Details Modal */}
       {showModal && selectedChapter && (
         <div className="fixed inset-0 bg-black flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1f38] rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl">
+          <div className="bg-[#1a1f38] rounded-xl w-full max-w-5xl overflow-hidden shadow-2xl">
             <div className="flex flex-col md:flex-row">
               {/* Left Column - Image */}
               <div className="w-full md:w-2/5">
@@ -266,7 +266,7 @@ export default function Games() {
                     </p>
                   </div>
 
-                  <div className="bg-[#262b47] p-3 rounded-lg flex-col justify-center items-center">
+                  <div className="bg-[#262b47] w-[80px] p-3 rounded-lg flex-col justify-center items-center">
                     <div>
                       <h4 className="text-sm text-gray-400 text-center">
                         Badge
@@ -275,7 +275,7 @@ export default function Games() {
                     <img
                       src={realmsData[selectedChapter - 1].badge}
                       alt="Badge"
-                      className="w-12"
+                      className="w-12 ml-1"
                     />
                   </div>
 

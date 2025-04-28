@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { Menu, X } from "lucide-react";
-import Logo from "../assets/logo.png";
+import Logo from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -10,10 +10,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setmMobileMenuOpen] = useState(false);
   const [scrollPercentage, setScrollPercentage] = useState(0);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [updatedName, setUpdatedName] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
 
   function handleScrollPercentage() {
     const howMuchScrolled =
@@ -50,7 +46,6 @@ const Navbar = () => {
   };
 
   const appContext = useContext(AppContent);
-
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
@@ -70,66 +65,6 @@ const Navbar = () => {
       }
     } catch (error: any) {
       toast.error(error.message);
-    }
-  };
-
-  const handleOpenProfileModal = () => {
-    if (userData) {
-      setUpdatedName(userData.name);
-    }
-    setCurrentPassword("");
-    setNewPassword("");
-    setIsProfileModalOpen(true);
-  };
-
-  const handleProfileUpdate = async () => {
-    if (!userData) {
-      toast.error("User data not available");
-      return;
-    }
-
-    try {
-      const requestBody: {
-        name?: string;
-        currentPassword?: string;
-        newPassword?: string;
-      } = {};
-
-      if (updatedName !== userData.name) {
-        requestBody.name = updatedName;
-      }
-
-      if (newPassword) {
-        if (!currentPassword) {
-          toast.error("Current password is required to change password");
-          return;
-        }
-        requestBody.currentPassword = currentPassword;
-        requestBody.newPassword = newPassword;
-      }
-
-      if (Object.keys(requestBody).length === 0) {
-        setIsProfileModalOpen(false);
-        return;
-      }
-
-      const { data } = await axios.put(
-        backendUrl + "/api/user/update-profile",
-        requestBody
-      );
-
-      if (data.success) {
-        setUserData({
-          ...userData,
-          name: updatedName || userData.name,
-        });
-        toast.success("Profile updated successfully");
-        setIsProfileModalOpen(false);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message);
     }
   };
 
@@ -186,7 +121,7 @@ const Navbar = () => {
                   <ul className="list-none m-0 p-2 bg-gray-100 text-sm">
                     <li
                       className="py-1 px-2 hover:bg-gray-200 cursor-pointer"
-                      onClick={handleOpenProfileModal}
+                      onClick={() => navigate("/profile")} // Changed to navigate instead of opening modal
                     >
                       My Profile
                     </li>
@@ -275,83 +210,6 @@ const Navbar = () => {
         className="mt-4 h-1 rounded-full bg-[#ff8800]"
         style={{ width: `${scrollPercentage}%` }}
       ></div>
-      {isProfileModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="absolute bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-sm inset-shadow-sm inset-shadow-amber-500 top-60">
-            <h2 className="text-3xl font-semibold text-white text-center mb-3">
-              My Profile
-            </h2>
-            <form>
-              <div className="mb-4">
-                <label className="block text-white text-sm font-medium mb-1">
-                  Name
-                </label>
-                <div className="flex items-center w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <input
-                    type="text"
-                    value={updatedName}
-                    onChange={(e) => setUpdatedName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="bg-transparent outline-none ml-5 text-white w-full"
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-white text-sm font-medium mb-1">
-                  Email
-                </label>
-                <div className="flex items-center w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <span className="text-white ml-5">{userData?.email}</span>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-white text-sm font-medium mb-1">
-                  Current Password
-                </label>
-                <div className="flex items-center w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <input
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current password"
-                    className="bg-transparent outline-none ml-5 text-white w-full"
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-white text-sm font-medium mb-1">
-                  New Password
-                </label>
-                <div className="flex items-center w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
-                    className="bg-transparent outline-none ml-5 text-white w-full"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setIsProfileModalOpen(false)}
-                  className="py-2 px-6 bg-gray-500 rounded-full text-white font-bold hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleProfileUpdate}
-                  className="py-2 px-6 bg-orange-500 rounded-full text-white font-bold hover:bg-orange-600"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </header>
   );
 };

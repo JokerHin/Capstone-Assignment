@@ -5,6 +5,7 @@ import Home from "./Pages/Home";
 import Login from "./Pages/Login";
 import ResetPassword from "./Pages/ResetPassword";
 import AdminHome from "./Pages/AdminHome";
+import ProfilePage from "./Pages/ProfilePage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />}></Route>
         <Route path="/reset-password" element={<ResetPassword />}></Route>
         <Route path="/AdminHome" element={<AdminHome />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </div>
   );
