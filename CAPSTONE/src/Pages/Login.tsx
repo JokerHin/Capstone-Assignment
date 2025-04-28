@@ -25,6 +25,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userType] = useState("user");
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
 
   const onSubmitHandler = async (e: any) => {
     try {
@@ -33,6 +34,7 @@ export default function Login() {
       axios.defaults.withCredentials = true;
 
       if (state === "Sign Up") {
+        // Regular user registration - unchanged
         const { data } = await axios.post(backendUrl + "/api/auth/register", {
           name,
           email,
@@ -60,27 +62,37 @@ export default function Login() {
         const { data } = await axios.post(backendUrl + "/api/auth/login", {
           email,
           password,
+          isAdminLogin,
         });
+
         if (data.success) {
           setIsLoggedin(true);
           getUserData();
-          const userType = data.userData?.userType;
-          if (userType === "admin") {
-            navigate("/AdminHome");
+
+          // If admin login was requested, ensure we got admin privileges
+          if (isAdminLogin) {
+            if (data.userData?.userType === "admin") {
+              navigate("/AdminHome");
+              toast.success("Admin login successful");
+            } else {
+              toast.error("Something went wrong with admin login");
+            }
           } else {
-            navigate("/");
+            // Regular user login
+            if (data.userData?.userType === "admin") {
+              navigate("/AdminHome");
+            } else {
+              navigate("/");
+            }
+            toast.success("Successfully logged in");
           }
-          toast.success(
-            state === "Sign Up"
-              ? "Successfully registered"
-              : "Successfully logged in"
-          );
         } else {
           toast.error(data.message);
         }
       }
     } catch (error: any) {
-      toast.error(error.message);
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error(errorMsg);
     }
   };
 
@@ -151,6 +163,25 @@ export default function Login() {
               required
             />
           </div>
+
+          {/* Admin Login Checkbox - Only show for login state */}
+          {state === "Login" && (
+            <div className="mb-4 flex items-center">
+              <input
+                type="checkbox"
+                id="adminLogin"
+                checked={isAdminLogin}
+                onChange={(e) => setIsAdminLogin(e.target.checked)}
+                className="w-4 h-4 mr-2 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500"
+              />
+              <label
+                htmlFor="adminLogin"
+                className="text-gray-300 text-sm cursor-pointer"
+              >
+                Login as Administrator
+              </label>
+            </div>
+          )}
 
           <p
             onClick={() => navigate("/Reset-password")}

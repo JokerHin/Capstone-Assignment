@@ -7,8 +7,8 @@ interface Achievement {
   _id?: string;
   id?: number;
   name: string;
-  description: string;
-  points: number;
+  description?: string; // Made optional
+  points?: number; // Made optional
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
   game: string;
 }
@@ -19,8 +19,6 @@ const AdminAchievements: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [newAchievement, setNewAchievement] = useState<Achievement>({
     name: "",
-    description: "",
-    points: 10,
     rarity: "common",
     game: "All Games",
   });
@@ -64,13 +62,8 @@ const AdminAchievements: React.FC = () => {
   // Handle creating or updating an achievement
   const handleSaveAchievement = async () => {
     try {
-      if (!newAchievement.name || !newAchievement.description) {
-        toast.error("Name and description are required");
-        return;
-      }
-
-      if (newAchievement.points <= 0) {
-        toast.error("Points must be greater than 0");
+      if (!newAchievement.name) {
+        toast.error("Name is required");
         return;
       }
 
@@ -137,8 +130,6 @@ const AdminAchievements: React.FC = () => {
     setCurrentAchievementId(achievement._id || null);
     setNewAchievement({
       name: achievement.name,
-      description: achievement.description,
-      points: achievement.points,
       rarity: achievement.rarity,
       game: achievement.game,
     });
@@ -149,8 +140,6 @@ const AdminAchievements: React.FC = () => {
   const resetAndCloseModal = () => {
     setNewAchievement({
       name: "",
-      description: "",
-      points: 10,
       rarity: "common",
       game: "All Games",
     });
@@ -168,7 +157,7 @@ const AdminAchievements: React.FC = () => {
     const { name, value } = e.target;
     setNewAchievement((prev) => ({
       ...prev,
-      [name]: name === "points" ? parseInt(value, 10) || 0 : value,
+      [name]: value,
     }));
   };
 
@@ -225,11 +214,7 @@ const AdminAchievements: React.FC = () => {
                   <h3 className="text-xl font-bold text-white">
                     {achievement.name}
                   </h3>
-                  <span className="bg-gray-700 text-xs text-gray-300 px-2 py-1 rounded">
-                    {achievement.points} pts
-                  </span>
                 </div>
-                <p className="text-gray-400 mt-2">{achievement.description}</p>
 
                 <div className="mt-4 flex justify-between items-center text-sm">
                   <div className="text-gray-500">
@@ -303,35 +288,7 @@ const AdminAchievements: React.FC = () => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  value={newAchievement.description}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                  placeholder="Describe the achievement"
-                  rows={3}
-                  required
-                ></textarea>
-              </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Points
-                  </label>
-                  <input
-                    type="number"
-                    name="points"
-                    value={newAchievement.points}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                    min="1"
-                    required
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
                     Rarity
@@ -349,24 +306,24 @@ const AdminAchievements: React.FC = () => {
                     <option value="legendary">Legendary</option>
                   </select>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Game
-                </label>
-                <select
-                  name="game"
-                  value={newAchievement.game}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                >
-                  <option value="All Games">All Games</option>
-                  <option value="Debug Detective">Debug Detective</option>
-                  <option value="Algorithm Adventure">
-                    Algorithm Adventure
-                  </option>
-                  <option value="Function Fighter">Function Fighter</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Game
+                  </label>
+                  <select
+                    name="game"
+                    value={newAchievement.game}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                  >
+                    <option value="All Games">All Games</option>
+                    <option value="Debug Detective">Debug Detective</option>
+                    <option value="Algorithm Adventure">
+                      Algorithm Adventure
+                    </option>
+                    <option value="Function Fighter">Function Fighter</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">

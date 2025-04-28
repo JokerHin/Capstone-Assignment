@@ -15,13 +15,35 @@ export default function AdminHome() {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [adminName, setAdminName] = useState<string | null>(null);
 
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
 
-  const { userData, backendUrl, setUserData, setIsLoggedin } = appContext;
+  const { userData, backendUrl, setUserData, setIsLoggedin, getUserData } =
+    appContext;
+
+  // Force refresh user data when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        await getUserData();
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [getUserData]);
+
+  // Set admin name from userData when it's available
+  useEffect(() => {
+    if (userData && userData.name) {
+      setAdminName(userData.name);
+    }
+  }, [userData]);
 
   // Handle window resize
   useEffect(() => {
@@ -205,10 +227,14 @@ export default function AdminHome() {
         <div className="p-4 border-t border-gray-700">
           <div className="flex items-center mb-4">
             <div className="w-12 h-12 flex justify-center items-center rounded-full bg-[#ff8800] text-white text-xl">
-              {userData?.name ? userData.name[0].toUpperCase() : "A"}
+              {adminName || userData?.name
+                ? (adminName || userData?.name || "A")[0].toUpperCase()
+                : "A"}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium">{userData?.name || "Admin"}</p>
+              <p className="text-sm font-medium">
+                {adminName || userData?.name || "Admin"}
+              </p>
               <p className="text-xs text-gray-400">Administrator</p>
             </div>
           </div>
@@ -222,9 +248,7 @@ export default function AdminHome() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 p-4 lg:p-8 overflow-x-hidden">
-        {/* Mobile Tab Title */}
         <div className="lg:hidden mb-4">
           <h1 className="text-2xl font-bold capitalize">
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}

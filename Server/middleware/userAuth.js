@@ -1,27 +1,66 @@
 import jwt from "jsonwebtoken";
+import userModel from "../models/userModel.js";
+import adminModel from "../models/adminModel.js";
 
 const userAuth = async (req, res, next) => {
   try {
-    // Get token from cookie
-    const token = req.cookies.token;
+    const token =
+      req.cookies.token ||
+      (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Please login to access this resource",
+        message: "Not authenticated. Please login",
       });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (decoded.userId) {
+        const user = await userModel.findById(decoded.userId);
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            message: "User not found",
+          });
+        }
 
-    // Set user in request
-    req.user = decoded.id;
-    next();
+        req.user = user;
+        next();
+      } else if (decoded.adminId) {
+        const admin = await adminModel.findById(decoded.adminId);
+        if (!admin) {
+          return res.status(401).json({
+            success: false,
+            message: "Admin not found",
+          });
+        }
+
+        req.user = {
+          _id: admin._id,
+          name: admin.name,
+          email: admin.email,
+          userType: "admin",
+        };
+        req.admin = admin;
+        next();
+      } else {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid token format",
+        });
+      }
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
   } catch (error) {
-    return res.status(401).json({
+    return res.status(500).json({
       success: false,
-      message: "Invalid or expired token. Please login again.",
+      message: error.message,
     });
   }
 };

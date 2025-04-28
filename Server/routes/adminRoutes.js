@@ -1,11 +1,5 @@
 import express from "express";
-import {
-  getUserStats,
-  getUsers,
-  addUser,
-  deleteUser,
-  updateUser,
-} from "../controllers/adminController.js";
+import adminAuth from "../middleware/adminAuth.js";
 import {
   getAllAchievements,
   getAchievementById,
@@ -13,23 +7,30 @@ import {
   updateAchievement,
   deleteAchievement,
 } from "../controllers/achievementController.js";
-import userAuth from "../middleware/userAuth.js";
-import adminAuth from "../middleware/adminAuth.js";
+import {
+  getUserStats,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} from "../controllers/adminController.js";
 
 const adminRouter = express.Router();
 
-// User management routes
-adminRouter.get("/user-stats", userAuth, adminAuth, getUserStats);
-adminRouter.get("/users", userAuth, adminAuth, getUsers);
-adminRouter.post("/add-user", userAuth, adminAuth, addUser);
-adminRouter.put("/update-user/:userId", userAuth, adminAuth, updateUser);
-adminRouter.delete("/delete-user/:userId", userAuth, adminAuth, deleteUser);
+// Admin dashboard statistics
+adminRouter.get("/user-stats", adminAuth, getUserStats);
 
-// Achievement management routes
-adminRouter.get("/achievements", userAuth, adminAuth, getAllAchievements);
-adminRouter.get("/achievements/:id", userAuth, adminAuth, getAchievementById);
-adminRouter.post("/achievements", userAuth, adminAuth, createAchievement);
-adminRouter.put("/achievements/:id", userAuth, adminAuth, updateAchievement);
-adminRouter.delete("/achievements/:id", userAuth, adminAuth, deleteAchievement);
+// User management routes
+adminRouter.get("/users", adminAuth, getAllUsers);
+adminRouter.get("/users/:id", adminAuth, getUserById);
+adminRouter.put("/users/:id", adminAuth, updateUser);
+adminRouter.delete("/users/:id", adminAuth, deleteUser);
+
+// Achievement routes
+adminRouter.get("/achievements", adminAuth, getAllAchievements);
+adminRouter.get("/achievements/:id", adminAuth, getAchievementById);
+adminRouter.post("/achievements", adminAuth, createAchievement);
+adminRouter.put("/achievements/:id", adminAuth, updateAchievement);
+adminRouter.delete("/achievements/:id", adminAuth, deleteAchievement);
 
 export default adminRouter;

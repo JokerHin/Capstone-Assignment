@@ -1,17 +1,17 @@
-import userModal from "../models/userModel.js";
-import bcrypt from "bcryptjs";
+import userModel from "../models/userModel.js";
 
+// Get user statistics for admin dashboard
 export const getUserStats = async (req, res) => {
   try {
-    // Get total number of users
-    const totalUsers = await userModal.countDocuments();
+    // Get total users count
+    const totalUsers = await userModel.countDocuments();
 
-    // Get monthly registration stats for the current year
+    // Aggregate monthly registrations for the current year
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
 
-    const monthlyStats = await userModal.aggregate([
+    const monthlyStats = await userModel.aggregate([
       {
         $match: {
           createdAt: { $gte: startOfYear, $lte: endOfYear },
@@ -19,13 +19,13 @@ export const getUserStats = async (req, res) => {
       },
       {
         $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m", date: "$createdAt" },
-          },
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
           count: { $sum: 1 },
         },
       },
-      { $sort: { _id: 1 } },
+      {
+        $sort: { _id: 1 },
+      },
     ]);
 
     return res.json({
@@ -34,107 +34,58 @@ export const getUserStats = async (req, res) => {
       monthlyStats,
     });
   } catch (error) {
-    console.error("Error fetching user statistics:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch user statistics",
+      message: "Error fetching user statistics",
       error: error.message,
     });
   }
 };
 
-// Get users with pagination
-export const getUsers = async (req, res) => {
+// Get all users with pagination
+export const getAllUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const userType = req.query.userType || "user";
 
-    // Query only users matching userType (exclude admins if userType=user)
-    const query = { userType };
+    // Get total count for pagination
+    const totalUsers = await userModel.countDocuments({ userType });
 
-    const users = await userModal
-      .find(query)
-      .select("name email createdAt")
+    // Get users with pagination
+    const users = await userModel
+      .find({ userType })
+      .select("-password")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalUsers = await userModal.countDocuments(query);
-    const totalPages = Math.ceil(totalUsers / limit);
-
     return res.json({
       success: true,
       users,
-      totalUsers,
-      totalPages,
-      currentPage: page,
+      pagination: {
+        totalUsers,
+        totalPages: Math.ceil(totalUsers / limit),
+        currentPage: page,
+        hasNextPage: page < Math.ceil(totalUsers / limit),
+        hasPrevPage: page > 1,
+      },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch users",
+      message: "Error fetching users",
       error: error.message,
     });
   }
 };
 
-// Add new user
-export const addUser = async (req, res) => {
+// Get user by ID
+export const getUserById = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const user = await userModel.findById(req.params.id).select("-password");
 
-    // Validate inputs
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, email, and password are required",
-      });
-    }
-
-    // Check if user already exists
-    const existingUser = await userModal.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User with this email already exists",
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new user
-    const newUser = new userModal({
-      name,
-      email,
-      password: hashedPassword,
-      userType: "user",
-    });
-
-    await newUser.save();
-
-    return res.json({
-      success: true,
-      message: "User created successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create user",
-      error: error.message,
-    });
-  }
-};
-
-// Delete user
-export const deleteUser = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-
-    // Find user to verify it's not an admin
-    const user = await userModal.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -142,15 +93,65 @@ export const deleteUser = async (req, res) => {
       });
     }
 
-    // Prevent deleting admin users
-    if (user.userType === "admin") {
-      return res.status(403).json({
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching user",
+      error: error.message,
+    });
+  }
+};
+
+// Update user by ID
+export const updateUser = async (req, res) => {
+  try {
+    const { name, email, userType } = req.body;
+
+    // Find and update user
+    const user = await userModel
+      .findByIdAndUpdate(
+        req.params.id,
+        { name, email, userType },
+        { new: true }
+      )
+      .select("-password");
+
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: "Cannot delete admin users",
+        message: "User not found",
       });
     }
 
-    await userModal.findByIdAndDelete(userId);
+    return res.json({
+      success: true,
+      message: "User updated successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error updating user",
+      error: error.message,
+    });
+  }
+};
+
+// Delete user by ID
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await userModel.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     return res.json({
       success: true,
@@ -159,60 +160,7 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Failed to delete user",
-      error: error.message,
-    });
-  }
-};
-
-// Update user by admin
-export const updateUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const userId = req.params.userId;
-
-    // Find user
-    const user = await userModal.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Update user details
-    if (name) user.name = name;
-    if (email && email !== user.email) {
-      // Check if email is already in use by another user
-      const existingUser = await userModal.findOne({
-        email,
-        _id: { $ne: userId },
-      });
-      if (existingUser) {
-        return res.status(400).json({
-          success: false,
-          message: "Email is already in use by another user",
-        });
-      }
-      user.email = email;
-    }
-
-    // Update password if provided
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-    }
-
-    await user.save();
-
-    return res.json({
-      success: true,
-      message: "User updated successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update user",
+      message: "Error deleting user",
       error: error.message,
     });
   }

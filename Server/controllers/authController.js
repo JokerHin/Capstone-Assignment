@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
+import adminModel from "../models/adminModel.js";
 import transporter from "../config/nodemailer.js";
 import {
   EMAIL_VERIFY_TEMPLATE,
@@ -62,44 +63,148 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.json({
-      success: false,
-      message: "Email and password are required",
-    });
-  }
-
   try {
-    const user = await userModel.findOne({ email });
+    const { email, password, isAdminLogin } = req.body;
 
-    if (!user) {
-      return res.json({ success: false, message: "Invalid email" });
+    // Check if email and password are provided
+    if (!email || !password) {
+      return res.json({
+        success: false,
+        message: "Email and password are required",
+      });
     }
-    const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return res.json({ success: false, message: "Invalid password" });
+    // Admin login path
+    if (isAdminLogin) {
+      // Try to find admin in admin collection
+      const admin = await adminModel.findOne({ email });
+
+      // If admin not found in admin collection, check if there's a user with admin privileges
+      if (!admin) {
+        const user = await userModel.findOne({ email, userType: "admin" });
+
+        if (!user) {
+          return res.json({
+            success: false,
+            message: "Invalid admin credentials",
+          });
+        }
+
+        // Check password for user with admin privileges
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return res.json({
+            success: false,
+            message: "Invalid admin credentials",
+          });
+        }
+
+        // Generate JWT token for user with admin privileges
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+          expiresIn: "1d",
+        });
+
+        // Set token as cookie
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 24 * 60 * 60 * 1000, // 1 day
+        });
+
+        // Return success response
+        return res.json({
+          success: true,
+          message: "Admin login successful",
+          userData: {
+            name: user.name,
+            email: user.email,
+            userType: "admin",
+          },
+        });
+      }
+
+      // Check password for admin from admin collection
+      const isMatch = await bcrypt.compare(password, admin.password);
+      if (!isMatch) {
+        return res.json({
+          success: false,
+          message: "Invalid admin credentials",
+        });
+      }
+
+      // Update last login time
+      admin.lastLogin = Date.now();
+      await admin.save();
+
+      // Generate JWT token for admin
+      const token = jwt.sign({ adminId: admin._id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+
+      // Set token as cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
+
+      // Return success response
+      return res.json({
+        success: true,
+        message: "Admin login successful",
+        userData: {
+          name: admin.name,
+          email: admin.email,
+          userType: "admin",
+          role: admin.role,
+        },
+      });
+    } else {
+      // Regular user login
+      const user = await userModel.findOne({ email });
+
+      // If user not found
+      if (!user) {
+        return res.json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Check if password is correct
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+
+      // Set token as cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
+
+      // Return success response
+      return res.json({
+        success: true,
+        message: "Login successful",
+        userData: {
+          name: user.name,
+          email: user.email,
+          userType: user.userType,
+        },
+      });
     }
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    return res.json({
-      success: true,
-      userData: { name: user.name, userType: user.userType },
-    });
   } catch (error) {
-    return res.json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
@@ -189,12 +294,64 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// Check if the use is authenticated
+// Check if the user is authenticated
 export const isAuthenticated = async (req, res) => {
   try {
-    return res.json({ success: true });
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Determine if this is a user or admin token
+      if (decoded.userId) {
+        const user = await userModel.findById(decoded.userId);
+        if (!user) {
+          return res
+            .status(401)
+            .json({ success: false, message: "User not found" });
+        }
+
+        return res.json({
+          success: true,
+          userData: {
+            name: user.name,
+            email: user.email,
+            userType: user.userType,
+          },
+        });
+      } else if (decoded.adminId) {
+        const admin = await adminModel.findById(decoded.adminId);
+        if (!admin) {
+          return res
+            .status(401)
+            .json({ success: false, message: "Admin not found" });
+        }
+
+        return res.json({
+          success: true,
+          userData: {
+            name: admin.name,
+            email: admin.email,
+            userType: "admin",
+            role: admin.role,
+          },
+        });
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, message: "Invalid token format" });
+      }
+    } catch (error) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

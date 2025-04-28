@@ -49,18 +49,18 @@ export const createAchievement = async (req, res) => {
     const { name, description, points, rarity, game } = req.body;
 
     // Validate required fields
-    if (!name || !description || !game) {
+    if (!name || !game) {
       return res.status(400).json({
         success: false,
-        message: "Name, description, and game are required",
+        message: "Name and game are required",
       });
     }
 
     // Create new achievement
     const newAchievement = new achievementModel({
       name,
-      description,
-      points: points || 10,
+      description, // Optional now
+      points: points || 0, // Default to 0 if not provided
       rarity: rarity || "common",
       game,
     });
@@ -98,8 +98,8 @@ export const updateAchievement = async (req, res) => {
 
     // Update fields
     if (name) achievement.name = name;
-    if (description) achievement.description = description;
-    if (points) achievement.points = points;
+    if (description !== undefined) achievement.description = description;
+    if (points !== undefined) achievement.points = points;
     if (rarity) achievement.rarity = rarity;
     if (game) achievement.game = game;
 
