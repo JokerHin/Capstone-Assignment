@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import person from "../assets/person_icon.svg";
 import mail from "../assets/mail_icon.svg";
 import lock from "../assets/lock_icon.svg";
+import mc from "../assets/mc.gif";
 import "./Animation.css";
 
 export default function Login() {
@@ -218,7 +219,7 @@ export default function Login() {
         )}
       </div>
       <img
-        src="https://cdn2.unrealengine.com/s5-center-character-420x420-3c611ad55a23.png"
+        src={mc}
         alt="image"
         className="absolute top-150 right-0 w-[50%] z-10 md:top-120 md:right-90 md:w-[20%]"
       />

@@ -121,7 +121,7 @@ const Navbar = () => {
                   <ul className="list-none m-0 p-2 bg-gray-100 text-sm">
                     <li
                       className="py-1 px-2 hover:bg-gray-200 cursor-pointer"
-                      onClick={() => navigate("/profile")} // Changed to navigate instead of opening modal
+                      onClick={() => navigate("/profile")}
                     >
                       My Profile
                     </li>

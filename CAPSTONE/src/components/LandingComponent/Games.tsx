@@ -3,6 +3,7 @@ import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
+import red from "../../assets/red.gif";
 
 const realmsData = [
   {
@@ -202,9 +203,9 @@ export default function Games() {
       </div>
 
       <img
-        src="https://i.pinimg.com/originals/e5/b4/0d/e5b40df80fba2da8cace9fb997a3e960.png"
+        src={red}
         alt="image"
-        className="absolute top-420 right-0 w-[50%] md:w-[30%] md:top-450"
+        className="absolute top-420 right-30 w-[30%] md:w-[20%] md:top-450"
       />
 
       {/* Chapter Details Modal */}

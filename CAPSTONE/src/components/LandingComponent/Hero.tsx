@@ -1,3 +1,5 @@
+import mc from "../../assets/mc.gif";
+
 const Hero = () => {
   const scrollToSection = (sectionId: string) => {
     const section = document.getElementById(sectionId);
@@ -49,7 +51,7 @@ const Hero = () => {
       <div className="w-full md:w-[40%] items-center flex justify-center transition-all duration-500 animate-slide-in-right mt-10 md:mt-0">
         <img
           className="w-[60%] md:w-[80%] h-auto transition-all duration-500 animate-slideDown"
-          src="https://www.pngall.com/wp-content/uploads/15/Fall-Guy-Transparent.png"
+          src={mc}
           alt="image"
         />
       </div>

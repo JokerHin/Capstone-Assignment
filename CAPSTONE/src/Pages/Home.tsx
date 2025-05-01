@@ -5,6 +5,8 @@ import { InfiniteMovingCards } from "../components/LandingComponent/Contributors
 import Footer from "../components/LandingComponent/Footer";
 import Games from "../components/LandingComponent/Games";
 import Map from "../assets/town_map.jpg";
+import kid from "../assets/kid.gif";
+import bird from "../assets/bird.gif";
 
 export default function Home() {
   return (
@@ -24,9 +26,14 @@ export default function Home() {
         <Games />
       </div>
       <img
-        src="https://cdn2.unrealengine.com/s1-right-character-420x420-d4b8f86b4c4f.png"
+        src={kid}
         alt="image"
         className="absolute top-750 left-0 w-[40%] z-10  md:w-[20%] md:top-600"
+      />
+      <img
+        src={bird}
+        alt="image"
+        className="absolute top-1000 right-0 w-[40%] z-10  md:w-[20%] md:top-700 md:right-10"
       />
       <div
         id="contributors-section"
