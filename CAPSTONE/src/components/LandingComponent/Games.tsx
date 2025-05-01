@@ -132,10 +132,10 @@ export default function Games() {
   }
   const { isLoggedin } = appContext;
 
-  const [unlockedChapters, setUnlockedChapters] = useState([
+  const [unlockedChapters] = useState([
     true, // Chapter 1
     false, // Chapter 2
-    true, // Chapter 3
+    false, // Chapter 3
     false, // Chapter 4
     false, // Chapter 5
     false, // Chapter 6
