@@ -165,16 +165,6 @@ const AdminContent: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab("NPC")}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "NPC"
-                ? "border-orange-500 text-orange-500"
-                : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
-            }`}
-          >
-            NPC
-          </button>
-          <button
             onClick={() => setActiveTab("Inventory")}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "Inventory"
@@ -289,13 +279,6 @@ const AdminContent: React.FC = () => {
               </tbody>
             </table>
           )}
-        </div>
-      )}
-      {activeTab === "NPC" && (
-        <div className="bg-slate-800 rounded-lg shadow-lg p-6">
-          <p className="text-gray-300">
-            Assets management content will be displayed here
-          </p>
         </div>
       )}
 

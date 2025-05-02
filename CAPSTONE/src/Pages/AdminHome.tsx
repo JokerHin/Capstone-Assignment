@@ -3,6 +3,7 @@ import { useSearchParams, useLocation } from "react-router-dom";
 import AdminOverview from "../components/AdminComponents/AdminOverview";
 import AdminUsers from "../components/AdminComponents/AdminUsers";
 import AdminContent from "../components/AdminComponents/AdminContent";
+import AdminNPC from "../components/AdminComponents/AdminNPC";
 import AdminAchievements from "../components/AdminComponents/AdminAchievements";
 import AdminSidebar from "../components/AdminComponents/AdminSidebar";
 
@@ -29,6 +30,8 @@ export default function AdminHome() {
         return <AdminUsers />;
       case "content":
         return <AdminContent />;
+      case "npc":
+        return <AdminNPC />;
       case "achievements":
         return <AdminAchievements />;
       case "overview":
