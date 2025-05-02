@@ -31,6 +31,7 @@ const allowedOrigins = [
   "https://the-codyssey.vercel.app",
   "https://codyssey-mongodb.vercel.app/dialogue",
   "https://data-bank-delta.vercel.app/",
+  "http://127.0.0.1:5500/"
 ];
 
 // middleware

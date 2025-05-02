@@ -21,7 +21,7 @@ class MainScene extends Phaser.Scene {
         this.player_direction=-1;
         this.zoomFactor=1.8; //1.8
         this.locationId=0;
-        this.player_id=1; //need change after login
+        this.player_id=1; //need change to cookie player
     }
 
     init(data) {
@@ -48,35 +48,35 @@ class MainScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("Dungeon_Tileset", "asset/map_asset/Dungeon_Tileset.png");
-        this.load.image("Big_Set", "asset/map_asset/Big_Set.png");
-        this.load.image("Rustic_Indoor", "asset/map_asset/Rustic_Indoor.png");
-        this.load.tilemapTiledJSON("map1", "asset/map_asset/map1.tmj"); //Mbat, Dungeon_Tileset
-        this.load.tilemapTiledJSON("map2", "asset/map_asset/map2.tmj"); //House1, Big_Set
-        this.load.tilemapTiledJSON("map3", "asset/map_asset/map3.tmj"); //House2, Big_Set
-        this.load.tilemapTiledJSON("map4", "asset/map_asset/map4.tmj"); //House3, Big_Set
-        this.load.tilemapTiledJSON("map5", "asset/map_asset/map5.tmj"); //Diner, Rustic_Indoor
-        this.load.tilemapTiledJSON("map6", "asset/map_asset/map6.tmj"); //Purple, Rustic_Indoor
+        this.load.image("Dungeon_Tileset", "../assets/map_asset/Dungeon_Tileset.png");
+        this.load.image("Big_Set", "../assets/map_asset/Big_Set.png");
+        this.load.image("Rustic_Indoor", "../assets/map_asset/Rustic_Indoor.png");
+        this.load.tilemapTiledJSON("map1", "../assets/map_asset/map1.tmj"); //Mbat, Dungeon_Tileset
+        this.load.tilemapTiledJSON("map2", "../assets/map_asset/map2.tmj"); //House1, Big_Set
+        this.load.tilemapTiledJSON("map3", "../assets/map_asset/map3.tmj"); //House2, Big_Set
+        this.load.tilemapTiledJSON("map4", "../assets/map_asset/map4.tmj"); //House3, Big_Set
+        this.load.tilemapTiledJSON("map5", "../assets/map_asset/map5.tmj"); //Diner, Rustic_Indoor
+        this.load.tilemapTiledJSON("map6", "../assets/map_asset/map6.tmj"); //Purple, Rustic_Indoor
 
-        this.load.image('town_bg', 'asset/town_map.jpg');
-        this.load.image('town_obstacle', 'asset/town_map_obstacle.png');
-        this.load.spritesheet('fighter', 'asset/mc_spritesheet.png', {
+        this.load.image('town_bg', '../assets/town_map.jpg');
+        this.load.image('town_obstacle', '../assets/town_map_obstacle.png');
+        this.load.spritesheet('fighter', '../assets/mc_spritesheet.png', {
             frameWidth: 641,  // Adjust based on your sprite sheet
             frameHeight: 640.8
         });
-        this.load.image("house1_interior", "asset/house1_interior.png");
-        this.load.image("ownhouse_interior", "asset/ownhouse_interior.jpg");
+        this.load.image("house1_interior", "../assets/house1_interior.png");
+        this.load.image("ownhouse_interior", "../assets/ownhouse_interior.jpg");
 
-        this.load.image('inventory_icon', 'asset/inventory_icon.png'); // Replace with the actual path to your image
-        this.load.image('close_icon', 'asset/close_icon.webp');
-        this.load.image('menu_icon', 'asset/menu_icon.png');
+        this.load.image('inventory_icon', '../assets/inventory_icon.png'); // Replace with the actual path to your image
+        this.load.image('close_icon', '../assets/close_icon.webp');
+        this.load.image('menu_icon', '../assets/menu_icon.png');
 
         for (let [tag,npc] of Object.entries(this.npcDetail)){
             if (npc.type === "image") {
-                this.load.image(tag, `asset/${npc.img}`);
+                this.load.image(tag, `../assets/${npc.img}`);
             }else if (npc.type === "spritesheet"){
                 console.log(tag);
-                this.load.spritesheet(tag, `asset/${npc.img}`, {
+                this.load.spritesheet(tag, `../assets/${npc.img}`, {
                     frameWidth: npc.frameSize.width,
                     frameHeight: npc.frameSize.height
                 });
@@ -104,15 +104,12 @@ class MainScene extends Phaser.Scene {
         this.backdrop['map'] = new Backdrop(this, 0, 0, locationDetail.img, this.zoomFactor);
         this.current_bg=this.backdrop['map'];
 
-        //background obstacle
-        this.backdrop['obstacle'] = new Backdrop(this, 0, 0, 'town_obstacle', this.zoomFactor);
-
         //import npc
         this.spawnNpc();
 
         //player (fighter)
         this.player = this.physics.add.sprite(this.gameWidth / 2, this.gameHeight / 2, 'fighter');
-        // this.player.setScale(0.2);
+        this.player.setScale(0.1);
 
         //background obstacle
         this.backdrop['obstacle'] = new Backdrop(this, 0, 0, 'town_obstacle', this.zoomFactor);
@@ -243,8 +240,20 @@ class MainScene extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
         this.physics.world.setBounds(0, 0, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
         this.player.setCollideWorldBounds(true); // Prevent the player from moving outside the bounds
-        this.player.setScale(0.1);
         // this.movementSpeed = this.movementSpeed/zoomFactor;
+
+        //initiate first quest for new user
+        fetch("https://codyssey-mongodb.vercel.app/player_progress", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+            player_id: this.player_id,
+            subquest_id: 1,
+            status: "In Progress",
+            }),
+        });
     }
 
     update() {
@@ -422,6 +431,7 @@ class MainScene extends Phaser.Scene {
 
     openInventory(){
         this.inventoryButton.setVisible(false);
+        this.collisionHappened = true;
 
         // Create a semi-transparent background
         this.inventoryBg = this.add.graphics();
@@ -480,6 +490,7 @@ class MainScene extends Phaser.Scene {
         this.inventoryItems.forEach(item => item.destroy());
         this.inventoryItems = [];
         this.inventoryButton.setVisible(true);
+        this.collisionHappened = false;
     }
 
     openMenu() {
@@ -567,7 +578,7 @@ class Game {
         console.log(window.innerWidth,window.innerHeight);
         this.gameWidth = window.innerWidth;
         this.gameHeight = window.innerHeight;
-        this.fetchData(); // Fetch data from MongoDB
+        // this.fetchData(); // Fetch data from MongoDB
         this.fetchMongo().then(() => {
             this.startGame(); // Start game only after fetching data
         });
@@ -626,8 +637,8 @@ class Game {
                 "https://codyssey-mongodb.vercel.app/choice",
                 "https://codyssey-mongodb.vercel.app/player_progress",
                 "https://codyssey-mongodb.vercel.app/admin",
-                './game-data/npc_detail.json',
-                './game-data/location_detail.json'
+                '../components/PlayerComponent/game-data/npc_detail.json',
+                '../components/PlayerComponent/game-data/location_detail.json'
             ];
 
             const responses = await Promise.all(urls.map(url => fetch(url)));
