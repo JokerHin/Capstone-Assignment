@@ -33,7 +33,7 @@ class MainScene extends Phaser.Scene {
         this.quest = data.quest || {};
         this.location = data.location || {};
         this.inventory = data.inventory || [];
-        this.player = data.player || {};
+        // this.player = data.player || {};
         this.item = data.item || {};
         this.action = data.action || {};
         this.packageDetail = data.packageDetail || {};
@@ -42,7 +42,6 @@ class MainScene extends Phaser.Scene {
         this.package = data.package || {};
         this.choice = data.choice || {};
         this.playerProgress = data.playerProgress || {};
-        this.admin = data.admin || {};
         this.npcDetail = data.npcDetail || {};
         this.locationDetail = data.locationDetail || {};
     }
@@ -383,7 +382,7 @@ class MainScene extends Phaser.Scene {
             quest: this.quest,
             location: this.location,
             inventory: this.inventory,
-            player: this.player,
+            // player: this.player,
             item: this.item,
             action: this.action,
             packageDetail: this.packageDetail,
@@ -392,7 +391,6 @@ class MainScene extends Phaser.Scene {
             package: this.package,
             choice: this.choice,
             playerProgress: this.playerProgress,
-            admin: this.admin,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail,
         });
@@ -623,20 +621,18 @@ class Game {
     fetchMongo = async () => {
         try {
             const urls = [
-                "https://codyssey-mongodb.vercel.app/dialogue",
-                "https://codyssey-mongodb.vercel.app/quest",
-                "https://codyssey-mongodb.vercel.app/location",
-                "https://codyssey-mongodb.vercel.app/inventory",
-                "https://codyssey-mongodb.vercel.app/player",
-                "https://codyssey-mongodb.vercel.app/item",
-                "https://codyssey-mongodb.vercel.app/action",
-                "https://codyssey-mongodb.vercel.app/package_detail",
-                "https://codyssey-mongodb.vercel.app/position",
-                "https://codyssey-mongodb.vercel.app/subquest",
-                "https://codyssey-mongodb.vercel.app/package",
-                "https://codyssey-mongodb.vercel.app/choice",
-                "https://codyssey-mongodb.vercel.app/player_progress",
-                "https://codyssey-mongodb.vercel.app/admin",
+                "https://capstone-assignment-36lq.vercel.app/dialogue",
+                "https://capstone-assignment-36lq.vercel.app/quest",
+                "https://capstone-assignment-36lq.vercel.app/location",
+                "https://capstone-assignment-36lq.vercel.app/inventory",
+                "https://capstone-assignment-36lq.vercel.app/item",
+                "https://capstone-assignment-36lq.vercel.app/action",
+                "https://capstone-assignment-36lq.vercel.app/package_detail",
+                "https://capstone-assignment-36lq.vercel.app/position",
+                "https://capstone-assignment-36lq.vercel.app/subquest",
+                "https://capstone-assignment-36lq.vercel.app/package",
+                "https://capstone-assignment-36lq.vercel.app/choice",
+                "https://capstone-assignment-36lq.vercel.app/player_progress",
                 '../components/PlayerComponent/game-data/npc_detail.json',
                 '../components/PlayerComponent/game-data/location_detail.json'
             ];
@@ -644,7 +640,7 @@ class Game {
             const responses = await Promise.all(urls.map(url => fetch(url)));
             const [
                 dialogue, quest, location,
-                inventory, player, item, action, packageDetail,
+                inventory, item, action, packageDetail,
                 position, subquest, packageData, choice, playerProgress, admin,
                 npcDetail, locationDetail
             ] = await Promise.all(responses.map(res => res.json()));
@@ -653,7 +649,6 @@ class Game {
             this.quest = quest;
             this.location = location;
             this.inventory = inventory;
-            this.player = player;
             this.item = item;
             this.action = action;
             this.packageDetail = packageDetail;
@@ -662,7 +657,6 @@ class Game {
             this.package = packageData;
             this.choice = choice;
             this.playerProgress = playerProgress;
-            this.admin = admin;
             this.npcDetail = npcDetail;
             this.locationDetail = locationDetail;
 
@@ -670,7 +664,6 @@ class Game {
             console.log("Fetched quest:", quest);
             console.log("Fetched location:", location);
             console.log("Fetched inventory:", inventory);
-            console.log("Fetched player:", player);
             console.log("Fetched item:", item);
             console.log("Fetched action:", action);
             console.log("Fetched packageDetail:", packageDetail);
@@ -679,7 +672,6 @@ class Game {
             console.log("Fetched package:", packageData);
             console.log("Fetched choice:", choice);
             console.log("Fetched playerProgress:", playerProgress);
-            console.log("Fetched admin:", admin);
             console.log("Fetched npcDetail:", npcDetail);
             console.log("Fetched locationDetail:", locationDetail);
         } catch (error) {
@@ -721,7 +713,6 @@ class Game {
             package: this.package,
             choice: this.choice,
             playerProgress: this.playerProgress,
-            admin: this.admin,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail
         });

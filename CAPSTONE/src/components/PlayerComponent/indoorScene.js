@@ -29,7 +29,7 @@ export class IndoorScene extends Phaser.Scene {
         this.quest = data.quest || {};
         this.location = data.location || {};
         this.inventory = data.inventory || [];
-        this.player = data.player || {};
+        // this.player = data.player || {};
         this.item = data.item || {};
         this.action = data.action || {};
         this.packageDetail = data.packageDetail || {};
@@ -38,7 +38,6 @@ export class IndoorScene extends Phaser.Scene {
         this.package = data.package || {};
         this.choice = data.choice || {};
         this.playerProgress = data.playerProgress || {};
-        this.admin = data.admin || {};
         this.npcDetail = data.npcDetail || {};
         this.locationDetail = data.locationDetail || {};
     }
