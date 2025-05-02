@@ -51,8 +51,11 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         return;
       }
 
+      // Set withCredentials to true to include cookies with the request
+      axios.defaults.withCredentials = true;
+
       const { data } = await axios.put(
-        backendUrl + "/api/user/update-profile",
+        `${backendUrl}/api/user/update-profile`,
         requestBody
       );
 
@@ -64,10 +67,17 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         toast.success("Profile updated successfully");
         onClose();
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to update profile");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message);
+      console.error("Profile update error:", error);
+      // Show more detailed error messages
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.statusText ||
+        error.message ||
+        "Unknown error occurred";
+      toast.error(`Failed to update profile: ${errorMessage}`);
     }
   };
 

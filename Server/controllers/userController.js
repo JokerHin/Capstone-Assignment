@@ -7,7 +7,9 @@ export const getUserData = async (req, res) => {
     const user = await userModal.findById(req.user);
 
     if (!user) {
-      return res.json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     res.json({
@@ -20,13 +22,21 @@ export const getUserData = async (req, res) => {
       },
     });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("Error getting user data:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const updateProfile = async (req, res) => {
   try {
     const { name, currentPassword, newPassword } = req.body;
+
+    // Log the request to help with debugging
+    console.log("Update profile request:", {
+      userId: req.user,
+      name,
+      hasPassword: !!newPassword,
+    });
 
     // Access user ID directly from the middleware
     const user = await userModal.findById(req.user);
@@ -69,6 +79,7 @@ export const updateProfile = async (req, res) => {
     await user.save();
     res.json({ success: true, message: "Profile updated successfully" });
   } catch (error) {
+    console.error("Error updating profile:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
