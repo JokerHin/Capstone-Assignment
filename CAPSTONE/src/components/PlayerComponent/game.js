@@ -33,7 +33,6 @@ class MainScene extends Phaser.Scene {
         this.quest = data.quest || {};
         this.location = data.location || {};
         this.inventory = data.inventory || [];
-        // this.player = data.player || {};
         this.item = data.item || {};
         this.action = data.action || {};
         this.packageDetail = data.packageDetail || {};
@@ -145,6 +144,7 @@ class MainScene extends Phaser.Scene {
         let locationDoors = this.location.filter(location => location.location_id !== this.locationId);
         console.log(locationDoors);
         for (let location of locationDoors){ //dictionary contains info of a door
+            console.log(location);
             let location_id = location.location_id
             let label = this.locationDetail[location_id].label
             let entrance = location.entrance_position;
