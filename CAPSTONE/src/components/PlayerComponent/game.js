@@ -641,7 +641,7 @@ class Game {
             const [
                 dialogue, quest, location,
                 inventory, item, action, packageDetail,
-                position, subquest, packageData, choice, playerProgress, admin,
+                position, subquest, packageData, choice, playerProgress,
                 npcDetail, locationDetail
             ] = await Promise.all(responses.map(res => res.json()));
 
