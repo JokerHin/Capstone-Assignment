@@ -150,7 +150,7 @@ export default function Games() {
 
   const handlePlayNow = () => {
     if (isLoggedin) {
-      window.open("https://the-codyssey.vercel.app", "_blank");
+      navigate("/game");
     } else {
       toast.warn("Please log in to play this game", {
         position: "top-center",

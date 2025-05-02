@@ -20,13 +20,14 @@ export const updateOrAddInventory = async (req, res) => {
 
     // Perform the update or add operation
     await Inventory.updateOne(
-      { player_id: playerId, item_id: itemId }, // Filter criteria
-      { $inc: { amount: incrementValue } }, // Increment operation
-      { upsert: true } // Insert a new record if no match is found
+      { player_id: playerId, item_id: itemId },
+      { $inc: { amount: incrementValue } },
+      { upsert: true }
     );
 
-    res.status(200).json({ message: "Inventory updated or added successfully" });
-
+    res
+      .status(200)
+      .json({ message: "Inventory updated or added successfully" });
   } catch (error) {
     console.error("Error updating or adding inventory:", error);
   }
@@ -45,7 +46,10 @@ export const getAmount = async (req, res) => {
     }
 
     // Find the inventory record
-    const inventory = await Inventory.findOne({ player_id: playerId, item_id: itemId });
+    const inventory = await Inventory.findOne({
+      player_id: playerId,
+      item_id: itemId,
+    });
 
     // Return 0 if the item is not found
     const amount = inventory ? inventory.amount : 0;
@@ -53,6 +57,8 @@ export const getAmount = async (req, res) => {
     res.status(200).json({ amount });
   } catch (error) {
     console.error("Error fetching amount:", error);
-    res.status(500).json({ message: "Error fetching amount", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching amount", error: error.message });
   }
 };

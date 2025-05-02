@@ -8,12 +8,12 @@ const achievementSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: false, // Changed from required: true
+    required: false,
   },
   points: {
     type: Number,
-    required: false, // Changed from required: true
-    min: 0, // Changed from min: 1 to allow 0
+    required: false,
+    min: 0,
   },
   rarity: {
     type: String,

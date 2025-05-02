@@ -40,6 +40,12 @@ const AdminOverview: React.FC = () => {
   const [totalAchievements, setTotalAchievements] = useState(0);
   const badgeContainerRef = useRef<HTMLDivElement>(null);
 
+  // Add new state variables for realms and subquests
+  const [activeRealms, setActiveRealms] = useState(0);
+  const [totalSubquests, setTotalSubquests] = useState(0);
+  const [realmsLoading, setRealmsLoading] = useState(true);
+  const [subquestsLoading, setSubquestsLoading] = useState(true);
+
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
@@ -84,6 +90,43 @@ const AdminOverview: React.FC = () => {
     };
 
     fetchUserData();
+  }, [backendUrl]);
+
+  // Fetch realm and subquest data
+  useEffect(() => {
+    const fetchGameData = async () => {
+      try {
+        setRealmsLoading(true);
+        setSubquestsLoading(true);
+
+        // Fetch quests and subquests in parallel
+        const [questsResponse, subquestsResponse] = await Promise.all([
+          axios.get(`${backendUrl}/quest`),
+          axios.get(`${backendUrl}/subquest`),
+        ]);
+
+        // Process realm (quest) data
+        if (questsResponse.data) {
+          const realms = questsResponse.data;
+          // Count active realms (those that have at least one subquest)
+          setActiveRealms(realms.length);
+        }
+
+        // Process subquest data
+        if (subquestsResponse.data) {
+          const subquests = subquestsResponse.data;
+          setTotalSubquests(subquests.length);
+        }
+      } catch (error) {
+        console.error("Error fetching game data:", error);
+        toast.error("Error loading game statistics");
+      } finally {
+        setRealmsLoading(false);
+        setSubquestsLoading(false);
+      }
+    };
+
+    fetchGameData();
   }, [backendUrl]);
 
   // Fetch achievements
@@ -177,7 +220,7 @@ const AdminOverview: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards - More responsive grid */}
+      {/* Stats Cards - Updated with real data */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-lg shadow-lg">
           <h3 className="text-lg font-semibold text-white">Total Users</h3>
@@ -192,15 +235,27 @@ const AdminOverview: React.FC = () => {
         </div>
 
         <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold text-white">Active Games</h3>
-          <p className="text-3xl font-bold text-white mt-2">8</p>
-          <p className="text-sm text-white/80 mt-1">↑ 2 new games added</p>
+          <h3 className="text-lg font-semibold text-white">Active Realms</h3>
+          <p className="text-3xl font-bold text-white mt-2">
+            {realmsLoading ? "Loading..." : activeRealms}
+          </p>
+          <p className="text-sm text-white/80 mt-1">
+            {realmsLoading ? "Loading..." : `${activeRealms} realms available`}
+          </p>
         </div>
 
         <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold text-white">Game Sessions</h3>
-          <p className="text-3xl font-bold text-white mt-2">3,856</p>
-          <p className="text-sm text-white/80 mt-1">↑ 8% from last week</p>
+          <h3 className="text-lg font-semibold text-white">Total Subquests</h3>
+          <p className="text-3xl font-bold text-white mt-2">
+            {subquestsLoading ? "Loading..." : totalSubquests}
+          </p>
+          <p className="text-sm text-white/80 mt-1">
+            {subquestsLoading
+              ? "Loading..."
+              : `${Math.round(
+                  totalSubquests / (activeRealms || 1)
+                )} per realm avg`}
+          </p>
         </div>
 
         <div className="bg-gradient-to-r from-purple-500 to-indigo-500 p-6 rounded-lg shadow-lg">
@@ -337,7 +392,7 @@ const AdminOverview: React.FC = () => {
             <h2 className="text-xl font-semibold">Leaderboard</h2>
           </div>
 
-          <div className="overflow-hidden flex-grow">
+          <div className="overflow-hidden flex-grow relative">
             <div className="h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
               <table className="min-w-full">
                 <thead className="sticky top-0 bg-slate-800 z-10">

@@ -29,6 +29,8 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
   "https://capstone-assignment.vercel.app",
   "https://the-codyssey.vercel.app",
+  "https://codyssey-mongodb.vercel.app/dialogue",
+  "https://data-bank-delta.vercel.app/",
 ];
 
 // middleware
