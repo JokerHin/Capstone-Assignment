@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 
 const LocationSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String },
+  location_id: { type: String, required: true },
+  type: { type: String },
+  spawn_position: { type: Object },
+  entrance_position: { type: Object }
 }, {
   collection: "location", // Explicitly set the collection name
 });
