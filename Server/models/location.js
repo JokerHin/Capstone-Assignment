@@ -8,10 +8,9 @@ const LocationSchema = new mongoose.Schema(
       x: { type: Number, required: true },
       y: { type: Number, required: true },
     },
-    // Any other location properties...
   },
   {
-    collection: "location", // Explicitly set the collection name
+    collection: "location",
   }
 );
 

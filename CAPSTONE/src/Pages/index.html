@@ -12,11 +12,104 @@
       body {
         margin: 0;
         overflow: hidden;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+      }
+
+      /* Loading Screen Styles */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        color: white;
+      }
+
+      /* Loading Animation */
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid rgba(255, 136, 0, 0.3);
+        border-radius: 50%;
+        border-top-color: #ff8800;
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 20px;
+      }
+
+      /* Logo Animation */
+      .logo {
+        max-width: 200px;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.8;
+          transform: scale(0.95);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+        100% {
+          opacity: 0.8;
+          transform: scale(0.95);
+        }
+      }
+
+      .game-container {
+        display: none; /* Hide the game initially */
       }
     </style>
   </head>
 
   <body>
-    <script type="module" src="../components/PlayerComponent/game.js"></script>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <img src="../assets/logo.png" alt="The Codyssey" class="logo" />
+      <div class="spinner"></div>
+      <p>Loading your adventure...</p>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" class="game-container">
+      <!-- Game will be rendered here -->
+    </div>
+
+    <script>
+      // Show loading screen for 2 seconds, then start the game
+      window.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+          // Hide loading screen
+          document.getElementById("loading-screen").style.display = "none";
+
+          // Show game container
+          document.getElementById("game-container").style.display = "block";
+
+          // Load the game script after showing the game container
+          const gameScript = document.createElement("script");
+          gameScript.type = "module";
+          gameScript.src = "../components/PlayerComponent/game.js";
+          document.body.appendChild(gameScript);
+        }, 2000); // 2000ms = 2 seconds
+      });
+    </script>
   </body>
 </html>
