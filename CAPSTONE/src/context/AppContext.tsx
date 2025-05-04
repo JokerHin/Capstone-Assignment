@@ -15,6 +15,7 @@ interface AppContextProps {
   userData: UserData | null;
   setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
   getUserData: () => Promise<void>;
+  axiosWithAuth: (url: string, options?: {}) => Promise<any>;
 }
 
 export const AppContent = createContext<AppContextProps | undefined>(undefined);
@@ -32,19 +33,22 @@ export const AppContextProvider = ({
     try {
       axios.defaults.withCredentials = true;
 
-      // Add Authorization header with token if available
+      // Get token from localStorage
       const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const { data } = await axios.get(backendUrl + "/api/auth/me", {
-        headers,
-      });
+      // Create request config with headers
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+      };
+
+      const { data } = await axios.get(`${backendUrl}/api/auth/me`, config);
 
       if (data.success) {
         setUserData(data.userData);
         setIsLoggedin(true);
 
-        // Store token in localStorage if not already there
+        // Store token in localStorage if it was returned and not already stored
         if (data.token && !localStorage.getItem("token")) {
           localStorage.setItem("token", data.token);
         }
@@ -61,6 +65,23 @@ export const AppContextProvider = ({
     }
   };
 
+  // Add this function to ensure all API calls include the token
+  const axiosWithAuth = (
+    url: string,
+    options: { headers?: Record<string, string>; [key: string]: any } = {}
+  ) => {
+    const token = localStorage.getItem("token");
+    return axios({
+      url: `${backendUrl}${url}`,
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+      withCredentials: true,
+    });
+  };
+
   useEffect(() => {
     getUserData();
   }, []);
@@ -74,6 +95,7 @@ export const AppContextProvider = ({
         userData,
         setUserData,
         getUserData,
+        axiosWithAuth, // Add this new function to the context
       }}
     >
       {children}
