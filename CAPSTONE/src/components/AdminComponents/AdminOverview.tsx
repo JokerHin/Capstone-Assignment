@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import axios from "axios";
 import { AppContent } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import BadgeImg from "../../assets/badge.png";
@@ -50,7 +51,7 @@ const AdminOverview: React.FC = () => {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl, axiosWithAuth } = appContext;
+  const { backendUrl } = appContext;
 
   // Scroll the badges container horizontally
   const scrollBadges = (direction: "left" | "right") => {
@@ -63,12 +64,20 @@ const AdminOverview: React.FC = () => {
     }
   };
 
-  // Fetch user data with the axiosWithAuth function
+  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const { data } = await axiosWithAuth("/api/admin/user-stats");
+
+        // Add token to request headers
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const { data } = await axios.get(`${backendUrl}/api/admin/user-stats`, {
+          headers,
+          withCredentials: true,
+        });
 
         if (data.success) {
           // Process monthly data
@@ -89,7 +98,7 @@ const AdminOverview: React.FC = () => {
     };
 
     fetchUserData();
-  }, [backendUrl, axiosWithAuth]);
+  }, [backendUrl]);
 
   // Fetch realm and subquest data
   useEffect(() => {
@@ -100,8 +109,8 @@ const AdminOverview: React.FC = () => {
 
         // Fetch quests and subquests in parallel
         const [questsResponse, subquestsResponse] = await Promise.all([
-          axiosWithAuth("/quest"),
-          axiosWithAuth("/subquest"),
+          axios.get(`${backendUrl}/quest`),
+          axios.get(`${backendUrl}/subquest`),
         ]);
 
         // Process realm (quest) data
@@ -126,14 +135,22 @@ const AdminOverview: React.FC = () => {
     };
 
     fetchGameData();
-  }, [backendUrl, axiosWithAuth]);
+  }, [backendUrl]);
 
   // Fetch achievements
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
         setAchievementsLoading(true);
-        const { data } = await axiosWithAuth("/api/admin/achievements");
+
+        // Add token to request headers
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const { data } = await axios.get(
+          `${backendUrl}/api/admin/achievements`,
+          { headers, withCredentials: true }
+        );
 
         if (data.success) {
           setAchievements(data.achievements);
@@ -151,7 +168,7 @@ const AdminOverview: React.FC = () => {
     };
 
     fetchAchievements();
-  }, [backendUrl, axiosWithAuth]);
+  }, [backendUrl]);
 
   // Process the monthly data from the API response
   const processMonthlyData = (monthlyStats: any) => {

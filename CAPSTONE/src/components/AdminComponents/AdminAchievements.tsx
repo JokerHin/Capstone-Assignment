@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
 
@@ -31,18 +32,18 @@ const AdminAchievements: React.FC = () => {
     throw new Error("AppContent context is undefined");
   }
 
-  const { axiosWithAuth } = appContext;
+  const { backendUrl } = appContext;
 
   // Fetch all achievements when component mounts
   useEffect(() => {
     fetchAchievements();
   }, []);
 
-  // Fetch achievements from API using the new axiosWithAuth function
+  // Fetch achievements from API
   const fetchAchievements = async () => {
     try {
       setLoading(true);
-      const { data } = await axiosWithAuth("/api/admin/achievements");
+      const { data } = await axios.get(`${backendUrl}/api/admin/achievements`);
 
       if (data.success) {
         setAchievements(data.achievements);
@@ -68,12 +69,9 @@ const AdminAchievements: React.FC = () => {
 
       if (isEditing && currentAchievementId) {
         // Update existing achievement
-        const { data } = await axiosWithAuth(
-          `/api/admin/achievements/${currentAchievementId}`,
-          {
-            method: "PUT",
-            data: newAchievement,
-          }
+        const { data } = await axios.put(
+          `${backendUrl}/api/admin/achievements/${currentAchievementId}`,
+          newAchievement
         );
 
         if (data.success) {
@@ -85,10 +83,10 @@ const AdminAchievements: React.FC = () => {
         }
       } else {
         // Create new achievement
-        const { data } = await axiosWithAuth("/api/admin/achievements", {
-          method: "POST",
-          data: newAchievement,
-        });
+        const { data } = await axios.post(
+          `${backendUrl}/api/admin/achievements`,
+          newAchievement
+        );
 
         if (data.success) {
           toast.success("Achievement created successfully");
@@ -109,9 +107,9 @@ const AdminAchievements: React.FC = () => {
       return;
 
     try {
-      const { data } = await axiosWithAuth(`/api/admin/achievements/${id}`, {
-        method: "DELETE",
-      });
+      const { data } = await axios.delete(
+        `${backendUrl}/api/admin/achievements/${id}`
+      );
 
       if (data.success) {
         toast.success("Achievement deleted successfully");

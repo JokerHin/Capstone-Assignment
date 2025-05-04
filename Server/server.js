@@ -29,37 +29,15 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
   "https://capstone-assignment.vercel.app",
   "https://the-codyssey.vercel.app",
-  "https://codyssey-mongodb.vercel.app",
-  "https://data-bank-delta.vercel.app",
+  "https://codyssey-mongodb.vercel.app/dialogue",
+  "https://data-bank-delta.vercel.app/",
   "http://127.0.0.1:5500",
-  "https://capstone-assignment-36lq.vercel.app", // Add your production domain
 ];
 
 // middleware
 app.use(express.json());
 app.use(cookieParser());
-
-// More detailed CORS setup
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl requests)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.indexOf(origin) === -1) {
-        var msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-// Add an OPTIONS handler for preflight requests
-app.options("*", cors());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 // API Endpoints
 app.get("/", (req, res) => res.send("API Working"));
