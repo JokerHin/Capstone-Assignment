@@ -35,15 +35,22 @@ export default function Login() {
       axios.defaults.withCredentials = true;
 
       if (state === "Sign Up") {
-        // Regular user registration - unchanged
+        // Regular user registration
         const { data } = await axios.post(backendUrl + "/api/auth/register", {
           name,
           email,
           password,
           userType,
         });
+
         if (data.success) {
           setIsLoggedin(true);
+
+          // Save token to localStorage
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
+
           getUserData();
           const userType = data.userData?.userType;
           if (userType === "admin") {
@@ -51,11 +58,7 @@ export default function Login() {
           } else {
             navigate("/");
           }
-          toast.success(
-            state === "Sign Up"
-              ? "Successfully registered"
-              : "Successfully logged in"
-          );
+          toast.success("Successfully registered");
         } else {
           toast.error(data.message);
         }
@@ -68,6 +71,12 @@ export default function Login() {
 
         if (data.success) {
           setIsLoggedin(true);
+
+          // Save token to localStorage
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
+
           getUserData();
 
           // If admin login was requested, ensure we got admin privileges

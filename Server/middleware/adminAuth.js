@@ -4,8 +4,9 @@ import userModel from "../models/userModel.js";
 
 const adminAuth = async (req, res, next) => {
   try {
+    // Get the token from cookies or Authorization header
     const token =
-      req.cookies.token ||
+      req.cookies.jwt ||
       (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
@@ -16,22 +17,25 @@ const adminAuth = async (req, res, next) => {
     }
 
     try {
+      // Verify the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      if (decoded.adminId) {
-        const admin = await adminModel.findById(decoded.adminId);
-        if (!admin) {
-          return res.status(401).json({
-            success: false,
-            message: "Admin not found",
-          });
-        }
+      // Check if the token has ID (could be id, userId, or adminId)
+      const userId = decoded.id || decoded.userId || decoded.adminId;
 
-        req.admin = admin._id;
-        req.isAdmin = true;
-        next();
-      } else if (decoded.userId) {
-        const user = await userModel.findById(decoded.userId);
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid token format",
+        });
+      }
+
+      // First try to find admin by ID
+      let admin = await adminModel.findById(userId);
+
+      // If not found in admin collection, look in users collection
+      if (!admin) {
+        const user = await userModel.findById(userId);
         if (!user || user.userType !== "admin") {
           return res.status(401).json({
             success: false,
@@ -39,15 +43,18 @@ const adminAuth = async (req, res, next) => {
           });
         }
 
-        req.user = user._id;
+        // User is an admin
+        req.admin = user;
+        req.userId = user._id;
         req.isAdmin = true;
-        next();
       } else {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid token format",
-        });
+        // Found in admin collection
+        req.admin = admin;
+        req.adminId = admin._id;
+        req.isAdmin = true;
       }
+
+      next();
     } catch (error) {
       return res.status(401).json({
         success: false,
