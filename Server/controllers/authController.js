@@ -91,54 +91,24 @@ export const login = async (req, res) => {
       });
     }
 
-    // Admin login path
+    // Admin login path - only check admin collection
     if (isAdminLogin) {
-      // Try to find admin in admin collection
       const admin = await adminModel.findOne({ email });
+      const adminUser = !admin
+        ? await userModal.findOne({ email, userType: "admin" })
+        : null;
 
-      // If admin not found in admin collection, check if there's a user with admin privileges
-      if (!admin) {
-        const user = await userModal.findOne({ email, userType: "admin" });
-
-        if (!user) {
-          return res.json({
-            success: false,
-            message: "Invalid admin credentials",
-          });
-        }
-
-        // Check password for user with admin privileges
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-          return res.json({
-            success: false,
-            message: "Invalid admin credentials",
-          });
-        }
-
-        // Generate JWT token for user with admin privileges
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-          expiresIn: "1d",
-        });
-
-        // Set cookie and return token in body
-        const cookieOptions = setCookieOptions(req);
-        res.cookie("jwt", token, cookieOptions);
-
+      if (!admin && !adminUser) {
         return res.json({
-          success: true,
-          message: "Admin login successful",
-          token,
-          userData: {
-            name: user.name,
-            email: user.email,
-            userType: "admin",
-          },
+          success: false,
+          message: "Invalid admin credentials",
         });
       }
 
-      // Check password for admin from admin collection
-      const isMatch = await bcrypt.compare(password, admin.password);
+      const target = admin || adminUser;
+
+      // Check password
+      const isMatch = await bcrypt.compare(password, target.password);
       if (!isMatch) {
         return res.json({
           success: false,
@@ -146,14 +116,21 @@ export const login = async (req, res) => {
         });
       }
 
-      // Update last login time
-      admin.lastLogin = Date.now();
-      await admin.save();
+      // Update last login time if it's a property
+      if (target.lastLogin) {
+        target.lastLogin = Date.now();
+        await target.save();
+      }
 
-      // Generate JWT token for admin
-      const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
-        expiresIn: "1d",
-      });
+      // Generate JWT token with admin flag
+      const token = jwt.sign(
+        {
+          id: target._id,
+          userType: "admin", // Add userType to the token payload
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
 
       // Set cookie and return token in body
       const cookieOptions = setCookieOptions(req);
@@ -164,14 +141,14 @@ export const login = async (req, res) => {
         message: "Admin login successful",
         token,
         userData: {
-          name: admin.name,
-          email: admin.email,
+          name: target.name,
+          email: target.email,
           userType: "admin",
-          role: admin.role,
+          role: target.role || "administrator",
         },
       });
     } else {
-      // Regular user login
+      // Regular user login - only check user collection
       const user = await userModal.findOne({ email });
 
       // If user not found
@@ -191,10 +168,15 @@ export const login = async (req, res) => {
         });
       }
 
-      // Generate JWT token
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "1d",
-      });
+      // Generate JWT token for regular user
+      const token = jwt.sign(
+        {
+          id: user._id,
+          userType: user.userType || "user", // Add userType to token payload
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
 
       // Set cookie and return token in body
       const cookieOptions = setCookieOptions(req);
@@ -207,7 +189,7 @@ export const login = async (req, res) => {
         userData: {
           name: user.name,
           email: user.email,
-          userType: user.userType,
+          userType: user.userType || "user",
         },
       });
     }
