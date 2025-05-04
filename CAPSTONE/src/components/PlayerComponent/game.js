@@ -4,6 +4,9 @@ import { Backdrop } from './backdrop.js';
 import { Door } from './door.js';
 import { IndoorScene } from './indoorScene.js';
 
+import { useContext } from "react";
+import { AppContent } from "../context/AppContext";
+
 
 
 class MainScene extends Phaser.Scene {
@@ -68,12 +71,12 @@ class MainScene extends Phaser.Scene {
         this.load.image('inventory_icon', '../assets/inventory_icon.png'); // Replace with the actual path to your image
         this.load.image('close_icon', '../assets/close_icon.webp');
         this.load.image('menu_icon', '../assets/menu_icon.png');
+        this.load.image('scroll_background', '../assets/scroll_background2.png');
 
         for (let [tag,npc] of Object.entries(this.npcDetail)){
             if (npc.type === "image") {
                 this.load.image(tag, `../assets/${npc.img}`);
             }else if (npc.type === "spritesheet"){
-                console.log(tag);
                 this.load.spritesheet(tag, `../assets/${npc.img}`, {
                     frameWidth: npc.frameSize.width,
                     frameHeight: npc.frameSize.height
@@ -142,24 +145,12 @@ class MainScene extends Phaser.Scene {
 
         //house collision area (door)
         let locationDoors = this.location.filter(location => location.location_id !== this.locationId);
-        console.log(locationDoors);
         for (let location of locationDoors){ //dictionary contains info of a door
-            console.log(location);
             let location_id = location.location_id
             let label = this.locationDetail[location_id].label
             let entrance = location.entrance_position;
             this.doors[location_id] = new Door(this, entrance.x1, entrance.y1, entrance.x2, entrance.y2, '#000', label, location_id, 0); //create a door object
         }
-
-        // let doorData = this.alldoor[this.sceneName] //list of door of the current scene
-        // for (let door of doorData){ //dictionary contains info of a door
-        //     if (door.to){ //not an exit (exit dont have "to")
-        //         let indoorDetail = this.location[door.to]; //target location detail
-        //         let label = indoorDetail.label; //location label for action text
-        //         let doorPos = door.position; //all 4 positions (x1,y1,x2,y2) of doors
-        //         this.doors[door.to] = new Door(this, doorPos.x1, doorPos.y1, doorPos.x2, doorPos.y2, '#000', label, door.to, 0); //create a door object
-        //     }
-        // }
 
         //Talk to npc button
         this.talkButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Talk to someone', {
@@ -230,7 +221,6 @@ class MainScene extends Phaser.Scene {
             console.log(this.registry.get("activeSubQuest"));
             if (this.npcList.length==0 ){
                 this.spawnNpc();
-                console.log(this.MapPosx);
             }
         });
 
@@ -354,7 +344,6 @@ class MainScene extends Phaser.Scene {
         this.children.bringToTop(this.backdrop['obstacle']);
         this.children.bringToTop(this.inventoryButton);
         this.children.bringToTop(this.menuButton);
-        console.log(this.npc);
     }
 
     talk() {
@@ -425,6 +414,52 @@ class MainScene extends Phaser.Scene {
             this.enterButton.setText(`Enter ${objectName}`);
             this.enterButton.setVisible(true);
         }
+    }
+
+    moveNpcTo(npc_tag, targetX, targetY, speed) {
+        // Calculate the direction vector
+        let npc = this.npc[npc_tag];
+        const directionX = targetX - npc.x;
+        const directionY = targetY - npc.y;
+    
+        // Normalize the direction vector
+        const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
+        const normalizedX = directionX / magnitude;
+        const normalizedY = directionY / magnitude;
+    
+        // Set velocity based on the direction and speed
+        npc.setVelocity(normalizedX * speed, normalizedY * speed);
+    
+        // Play walking animation based on direction
+        // if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
+        //     // Horizontal movement
+        //     if (normalizedX > 0) {
+        //         npc.anims.play('npc_walk_right', true); // Replace with your right-walking animation key
+        //     } else {
+        //         npc.anims.play('npc_walk_left', true); // Replace with your left-walking animation key
+        //     }
+        // } else {
+        //     // Vertical movement
+        //     if (normalizedY > 0) {
+        //         npc.anims.play('npc_walk_down', true); // Replace with your down-walking animation key
+        //     } else {
+        //         npc.anims.play('npc_walk_up', true); // Replace with your up-walking animation key
+        //     }
+        // }
+    
+        // Stop movement when the NPC reaches the target
+        const checkArrival = this.time.addEvent({
+            delay: 50, // Check every 50ms
+            callback: () => {
+                const distance = Phaser.Math.Distance.Between(npc.x, npc.y, targetX, targetY);
+                if (distance < 5) { // Stop when close enough
+                    npc.setVelocity(0, 0); // Stop movement
+                    npc.anims.stop(); // Stop animation
+                    checkArrival.remove(); // Remove the timer
+                }
+            },
+            loop: true
+        });
     }
 
     openInventory(){
@@ -498,23 +533,33 @@ class MainScene extends Phaser.Scene {
         this.menuButton.setVisible(false);
     
         // Create a semi-transparent background
-        this.menuBg = this.add.graphics();
-        this.menuBg.fillStyle(0x000000, 0.8); // Black with 80% opacity
-        this.menuBg.fillRect(50, 50, this.gameWidth - 100, this.gameHeight - 100); // Adjust size and position
+        // this.menuBg = this.add.graphics();
+        // this.menuBg.fillStyle(0x000000, 0.8); // Black with 80% opacity
+        // this.menuBg.fillRect(50, 50, this.gameWidth - 100, this.gameHeight - 100); // Adjust size and position
+        // this.menuBg.setScrollFactor(0);
+
+        // Add the scroll background as the menu background
+        this.menuBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-50) / 2), 'scroll_background')
+            // .setOrigin(0.5)
+            // .setDisplaySize(this.gameWidth - 100, this.gameHeight - 100); // Adjust size to fit the menu
         this.menuBg.setScrollFactor(0);
+        let scrollScale = (this.gameWidth-100)/this.menuBg.width;
+        this.menuBg.setScale(scrollScale);
     
         // Add "Game Paused" text
-        this.menuTitle = this.add.text(this.gameWidth / 2, 100, 'Game Paused', {
+        this.menuTitle = this.add.text(this.gameWidth / 2, this.menuBg.y - (this.menuBg.displayHeight / 8) + 70, 'Game Paused', {
             fontSize: '48px',
-            fill: '#ffffff'
+            fill: '#000000',
+            fontFamily: 'Tagesschrift'
         }).setOrigin(0.5);
         this.menuTitle.setScrollFactor(0);
     
         // Add Resume button
-        this.resumeButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 50, 'Resume', {
+        this.resumeButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, 'Resume', {
             fontSize: '32px',
-            fill: '#ffffff',
-            backgroundColor: '#000000',
+            fill: '#000000',
+            // backgroundColor: '#000000',
+            fontFamily: 'Tagesschrift',
             padding: { x: 10, y: 5 }
         })
         .setOrigin(0.5)
@@ -527,8 +572,9 @@ class MainScene extends Phaser.Scene {
         // Add Save & Exit button
         this.saveExitButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 50, 'Save & Exit', {
             fontSize: '32px',
-            fill: '#ffffff',
-            backgroundColor: '#000000',
+            fill: '#000000',
+            // backgroundColor: '#000000',
+            fontFamily: 'Tagesschrift',
             padding: { x: 10, y: 5 }
         })
         .setOrigin(0.5)
@@ -561,61 +607,22 @@ class MainScene extends Phaser.Scene {
         this.scene.stop('IndoorScene');
         // Optionally, redirect to a main menu scene if you have one
         // this.scene.start('MainMenu');
+        window.location.href = '/CAPSTONE/index.html'; // Redirect to the main menu or home page
     }
 }
 
 class Game {
-    constructor(gameWidth, gameHeight) {
-        this.dialogue = {}; // Store dialogues from API
-        this.quest = {};
-        this.door = {};
-        this.location = {};
-        this.npc = {};
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
-        console.log(window.innerWidth,window.innerHeight);
+    constructor() {
+        // this.dialogue = {}; // Store dialogues from API
+        // this.quest = {};
+        // this.door = {};
+        // this.location = {};
+        // this.npc = {};
         this.gameWidth = window.innerWidth;
         this.gameHeight = window.innerHeight;
-        // this.fetchData(); // Fetch data from MongoDB
         this.fetchMongo().then(() => {
             this.startGame(); // Start game only after fetching data
         });
-    }
-
-    async fetchNpcJson() {
-        try {
-            const response = await fetch('./game-data/npc.json');
-            const npcData = await response.json();
-            this.npc = npcData;
-            console.log("Fetched NPC data:", npcData);
-        } catch (error) {
-            console.error('Error fetching npc.json:', error);
-        }
-    }
-
-    async fetchData() {
-        try {
-            const response1 = await fetch('https://data-bank-delta.vercel.app/');
-            const response2 = await fetch('https://data-bank-delta.vercel.app/quest');
-            const response3 = await fetch('https://data-bank-delta.vercel.app/door');
-            const response4 = await fetch('https://data-bank-delta.vercel.app/location');
-            const response5 = await fetch('https://data-bank-delta.vercel.app/npc');
-            const data1 = await response1.json();
-            const data2 = await response2.json();
-            const data3 = await response3.json();
-            const data4 = await response4.json();
-            const data5 = await response5.json();
-            this.dialogue = data1;  // Store API data
-            this.quest = data2;
-            this.door = data3;
-            this.location = data4;
-            this.npc = data5;
-            console.log("Fetched data 1:", data1);
-            console.log("Fetched data 2:", data2);
-            await this.fetchNpcJson(); // Fetch npc.json after other data
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
     }
 
     fetchMongo = async () => {
@@ -626,7 +633,7 @@ class Game {
                 "https://capstone-assignment-36lq.vercel.app/location",
                 "https://capstone-assignment-36lq.vercel.app/inventory",
                 "https://capstone-assignment-36lq.vercel.app/item",
-                "https://capstone-assignment-36lq.vercel.app/action",
+                '../components/PlayerComponent/game-data/action.json',
                 "https://capstone-assignment-36lq.vercel.app/package_detail",
                 "https://capstone-assignment-36lq.vercel.app/position",
                 "https://capstone-assignment-36lq.vercel.app/subquest",
@@ -680,6 +687,16 @@ class Game {
     };
 
     startGame() {
+        const appContext = useContext(AppContent);
+
+        if (!appContext) {
+            throw new Error("AppContent context is undefined");
+        }
+
+        const { userData } = appContext;
+
+        console.log("Current User:", userData);
+
         this.config = {
             type: Phaser.AUTO,
             width: this.gameWidth,
@@ -721,5 +738,5 @@ class Game {
 
 
 // Create the game object with dynamic width & height
-const myGame = new Game(1450, 650); //size wont be use
+const myGame = new Game(); //size wont be use
 

@@ -6,8 +6,8 @@
         "scale":1.8
     },
     "1":{
-        "label": "MBAT",
-        "bgcolor": "#4F546B",
+        "label": "MEAT",
+        "bgcolor": "#25131A",
         "map": "map1",
         "name": "Mbat",
         "tileset": "Dungeon_Tileset"
@@ -35,14 +35,14 @@
     },
     "5":{
         "label": "Diner",
-        "bgcolor": "#3B2821",
+        "bgcolor": "#0B0B0B",
         "map": "map5",
         "name": "Diner",
         "tileset": "Rustic_Indoor"
     },
     "6":{
         "label": "Mysterious House",
-        "bgcolor": "#3B2821",
+        "bgcolor": "#0B0B0B",
         "map": "map6",
         "name": "Purple",
         "tileset": "Rustic_Indoor"

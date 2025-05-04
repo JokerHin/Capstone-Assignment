@@ -291,7 +291,6 @@ export class IndoorScene extends Phaser.Scene {
             this.children.bringToTop(this.enterButton);
             this.enterButton.setPosition(object.x - this.enterButton.width / 2, object.y + object.height/2 + this.enterButton.height);
             this.enterButton.setVisible(true);
-            console.log(this.enterButton.x, this.enterButton.y);
         }
     }
 
@@ -311,6 +310,52 @@ export class IndoorScene extends Phaser.Scene {
         this.enterButton.setVisible(false);
         console.log("Exiting");
         this.exitHouse()
+    }
+
+    moveNpcTo(npc_tag, targetX, targetY, speed) {
+        // Calculate the direction vector
+        let npc = this.npc[npc_tag];
+        const directionX = targetX - npc.x;
+        const directionY = targetY - npc.y;
+    
+        // Normalize the direction vector
+        const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
+        const normalizedX = directionX / magnitude;
+        const normalizedY = directionY / magnitude;
+    
+        // Set velocity based on the direction and speed
+        npc.setVelocity(normalizedX * speed, normalizedY * speed);
+    
+        // Play walking animation based on direction
+        // if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
+        //     // Horizontal movement
+        //     if (normalizedX > 0) {
+        //         npc.anims.play('npc_walk_right', true); // Replace with your right-walking animation key
+        //     } else {
+        //         npc.anims.play('npc_walk_left', true); // Replace with your left-walking animation key
+        //     }
+        // } else {
+        //     // Vertical movement
+        //     if (normalizedY > 0) {
+        //         npc.anims.play('npc_walk_down', true); // Replace with your down-walking animation key
+        //     } else {
+        //         npc.anims.play('npc_walk_up', true); // Replace with your up-walking animation key
+        //     }
+        // }
+    
+        // Stop movement when the NPC reaches the target
+        const checkArrival = this.time.addEvent({
+            delay: 50, // Check every 50ms
+            callback: () => {
+                const distance = Phaser.Math.Distance.Between(npc.x, npc.y, targetX, targetY);
+                if (distance < 5) { // Stop when close enough
+                    npc.setVelocity(0, 0); // Stop movement
+                    npc.anims.stop(); // Stop animation
+                    checkArrival.remove(); // Remove the timer
+                }
+            },
+            loop: true
+        });
     }
 
     openInventory(){
