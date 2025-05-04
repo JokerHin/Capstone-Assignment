@@ -2,7 +2,7 @@ import React from "react";
 import Grand from "../../assets/npc/GrandCompiler.png";
 import Auntie from "../../assets/npc/AuntieAng.png";
 import Uncle from "../../assets/npc/UncleChong.png";
-import Ava from "../../assets/npc/Ava.png";
+import Ava from "../../assets/npc/ava.png";
 import Gatekeeper from "../../assets/npc/GatekeeperAxion.png";
 import Grandpa from "../../assets/npc/Grandpa.png";
 import Wai from "../../assets/npc/Wai.png";
