@@ -1,11 +1,10 @@
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
-import adminModel from "../models/adminModel.js";
 
 const userAuth = async (req, res, next) => {
   try {
     const token =
-      req.cookies.token ||
+      req.cookies.jwt ||
       (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
@@ -17,40 +16,37 @@ const userAuth = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      if (decoded.userId) {
-        const user = await userModel.findById(decoded.userId);
-        if (!user) {
-          return res.status(401).json({
-            success: false,
-            message: "User not found",
-          });
-        }
 
-        req.user = user;
-        next();
-      } else if (decoded.adminId) {
-        const admin = await adminModel.findById(decoded.adminId);
-        if (!admin) {
-          return res.status(401).json({
-            success: false,
-            message: "Admin not found",
-          });
-        }
+      // Get the user ID from the token
+      const userId = decoded.id;
 
-        req.user = {
-          _id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          userType: "admin",
-        };
-        req.admin = admin;
-        next();
-      } else {
+      const isAdmin = decoded.userType === "admin";
+
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: "Invalid token format",
         });
       }
+
+      // Find the user
+      const user = await userModel.findById(userId);
+      if (!user && !isAdmin) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Set user in request
+      req.user = userId;
+
+      // If admin token, mark as admin
+      if (isAdmin) {
+        req.isAdmin = true;
+      }
+
+      next();
     } catch (error) {
       return res.status(401).json({
         success: false,

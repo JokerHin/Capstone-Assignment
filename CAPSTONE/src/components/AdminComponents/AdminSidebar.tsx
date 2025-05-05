@@ -93,6 +93,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         break;
       case "users":
       case "content":
+      case "npc":
       case "achievements":
         navigate(`/AdminHome?tab=${page}`);
         break;
@@ -192,6 +193,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 onClick={() => navigateToAdminPage("content")}
               >
                 <span className="ml-2">Content</span>
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-full flex items-center px-4 py-3 rounded-lg ${
+                  activeTab === "npc"
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-300 hover:bg-gray-700"
+                }`}
+                onClick={() => navigateToAdminPage("npc")}
+              >
+                <span className="ml-2">NPCs</span>
               </button>
             </li>
             <li>

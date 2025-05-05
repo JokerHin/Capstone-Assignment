@@ -112,6 +112,11 @@ const AdminUsers: React.FC = () => {
         Object.assign(payload, { password: editUser.password });
       }
 
+      // Set withCredentials to ensure cookies are sent
+      axios.defaults.withCredentials = true;
+
+      console.log(`Updating user with ID: ${editUser._id}`);
+
       const { data } = await axios.put(
         `${backendUrl}/api/admin/update-user/${editUser._id}`,
         payload
@@ -120,16 +125,21 @@ const AdminUsers: React.FC = () => {
       if (data.success) {
         toast.success("User updated successfully");
         setIsEditUserModalOpen(false);
-        fetchUsers(); // Refresh user list
+        // Update the user in the local state to avoid needing to refetch
+        setUsers(
+          users.map((u) => (u._id === editUser._id ? { ...u, ...payload } : u))
+        );
       } else {
         toast.error(data.message || "Failed to update user");
       }
     } catch (error: any) {
-      toast.error(
+      console.error("Error updating user:", error);
+      const errorMessage =
         error.response?.data?.message ||
-          error.message ||
-          "Failed to update user"
-      );
+        error.response?.statusText ||
+        error.message ||
+        "Unknown error occurred";
+      toast.error(`Failed to update user: ${errorMessage}`);
     }
   };
 

@@ -145,9 +145,6 @@ const AdminContent: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Content Management</h1>
-        <button className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded">
-          Add New Game
-        </button>
       </div>
 
       {/* Tab Navigation */}
@@ -164,16 +161,6 @@ const AdminContent: React.FC = () => {
             Games
           </button>
 
-          <button
-            onClick={() => setActiveTab("NPC")}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "NPC"
-                ? "border-orange-500 text-orange-500"
-                : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
-            }`}
-          >
-            NPC
-          </button>
           <button
             onClick={() => setActiveTab("Inventory")}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -289,13 +276,6 @@ const AdminContent: React.FC = () => {
               </tbody>
             </table>
           )}
-        </div>
-      )}
-      {activeTab === "NPC" && (
-        <div className="bg-slate-800 rounded-lg shadow-lg p-6">
-          <p className="text-gray-300">
-            Assets management content will be displayed here
-          </p>
         </div>
       )}
 

@@ -38,7 +38,6 @@ const AdminSubquest: React.FC = () => {
   );
   const [editedSubquestTitle, setEditedSubquestTitle] = useState("");
 
-  const [currentSubquest, setCurrentSubquest] = useState<Subquest | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -114,7 +113,6 @@ const AdminSubquest: React.FC = () => {
 
   // Open add modal
   const handleAddSubquest = () => {
-    setCurrentSubquest(null);
     setFormData({ title: "", description: "" });
     setShowAddModal(true);
   };

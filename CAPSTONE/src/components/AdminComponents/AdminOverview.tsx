@@ -69,7 +69,15 @@ const AdminOverview: React.FC = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`${backendUrl}/api/admin/user-stats`);
+
+        // Add token to request headers
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const { data } = await axios.get(`${backendUrl}/api/admin/user-stats`, {
+          headers,
+          withCredentials: true,
+        });
 
         if (data.success) {
           // Process monthly data
@@ -134,8 +142,14 @@ const AdminOverview: React.FC = () => {
     const fetchAchievements = async () => {
       try {
         setAchievementsLoading(true);
+
+        // Add token to request headers
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const { data } = await axios.get(
-          `${backendUrl}/api/admin/achievements`
+          `${backendUrl}/api/admin/achievements`,
+          { headers, withCredentials: true }
         );
 
         if (data.success) {

@@ -31,21 +31,33 @@ export const AppContextProvider = ({
   const getUserData = async () => {
     try {
       axios.defaults.withCredentials = true;
-      const { data } = await axios.get(backendUrl + "/api/auth/is-auth");
+
+      // Add Authorization header with token if available
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const { data } = await axios.get(backendUrl + "/api/auth/me", {
+        headers,
+      });
+
       if (data.success) {
         setUserData(data.userData);
         setIsLoggedin(true);
-        return data.userData;
+
+        // Store token in localStorage if not already there
+        if (data.token && !localStorage.getItem("token")) {
+          localStorage.setItem("token", data.token);
+        }
       } else {
-        setUserData(null);
         setIsLoggedin(false);
-        return null;
+        setUserData(null);
+        localStorage.removeItem("token");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching user data:", error);
-      setUserData(null);
       setIsLoggedin(false);
-      return null;
+      setUserData(null);
+      localStorage.removeItem("token");
     }
   };
 
