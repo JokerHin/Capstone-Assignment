@@ -1,0 +1,26 @@
+[
+    {
+        "item_id": 1,
+        "name": "Green Gem",
+        "type": "quest",
+        "description": null
+    },
+    {
+        "item_id": 2,
+        "name": null,
+        "type": "milestone",
+        "description": null
+    },
+    {
+        "item_id": 3,
+        "name": "Potion",
+        "type": "quest",
+        "description": null
+    },
+    {
+        "item_id": 4,
+        "name": "Master",
+        "type": "badge",
+        "description": null
+    }
+]

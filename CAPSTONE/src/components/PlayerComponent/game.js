@@ -4,8 +4,8 @@ import { Backdrop } from './backdrop.js';
 import { Door } from './door.js';
 import { IndoorScene } from './indoorScene.js';
 
-import { useContext } from "react";
-import { AppContent } from "../context/AppContext";
+// import { useContext } from "react";
+// import { AppContent } from "../context/AppContext";
 
 
 
@@ -25,6 +25,7 @@ class MainScene extends Phaser.Scene {
         this.zoomFactor=1.8; //1.8
         this.locationId=0;
         this.player_id=1; //need change to cookie player
+        this.uistatus=0;
     }
 
     init(data) {
@@ -46,6 +47,7 @@ class MainScene extends Phaser.Scene {
         this.playerProgress = data.playerProgress || {};
         this.npcDetail = data.npcDetail || {};
         this.locationDetail = data.locationDetail || {};
+        this.itemDetail = data.itemDetail || {};
     }
 
     preload() {
@@ -69,9 +71,11 @@ class MainScene extends Phaser.Scene {
         this.load.image("ownhouse_interior", "../assets/ownhouse_interior.jpg");
 
         this.load.image('inventory_icon', '../assets/inventory_icon.png'); // Replace with the actual path to your image
-        this.load.image('close_icon', '../assets/close_icon.webp');
+        this.load.image('close_icon', '../assets/close_icon.png');
         this.load.image('menu_icon', '../assets/menu_icon.png');
         this.load.image('scroll_background', '../assets/scroll_background2.png');
+        this.load.image('inventory_cat1', '../assets/inventory_cat1.png');
+        this.load.image('inventory_cat2', '../assets/inventory_cat2.png');
 
         for (let [tag,npc] of Object.entries(this.npcDetail)){
             if (npc.type === "image") {
@@ -82,6 +86,10 @@ class MainScene extends Phaser.Scene {
                     frameHeight: npc.frameSize.height
                 });
             }
+        }
+
+        for (let item of Object.values(this.itemDetail)){
+            this.load.image(item.tag, `../assets/${item.img}`);
         }
     }
 
@@ -232,7 +240,7 @@ class MainScene extends Phaser.Scene {
         // this.movementSpeed = this.movementSpeed/zoomFactor;
 
         //initiate first quest for new user
-        fetch("https://codyssey-mongodb.vercel.app/player_progress", {
+        fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
             method: "POST",
             headers: {
             "Content-Type": "application/json",
@@ -371,7 +379,6 @@ class MainScene extends Phaser.Scene {
             quest: this.quest,
             location: this.location,
             inventory: this.inventory,
-            // player: this.player,
             item: this.item,
             action: this.action,
             packageDetail: this.packageDetail,
@@ -382,6 +389,7 @@ class MainScene extends Phaser.Scene {
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail,
+            itemDetail: this.itemDetail
         });
     }
 
@@ -463,51 +471,87 @@ class MainScene extends Phaser.Scene {
     }
 
     openInventory(){
-        this.inventoryButton.setVisible(false);
+        if (this.uistatus!=0){
+            return;
+        }
+        this.uistatus=1;
         this.collisionHappened = true;
+        let displayCat = 0;
 
-        // Create a semi-transparent background
-        this.inventoryBg = this.add.graphics();
-        this.inventoryBg.fillStyle(0x000000, 0.8); // Black with 80% opacity
-        this.inventoryBg.fillRect(50, 50, this.gameWidth - 100, this.gameHeight - 100); // Adjust size and position
+        // Create a semi-transparent dark overlay
+        this.darkOverlay = this.add.graphics();
+        this.darkOverlay.fillStyle(0x000000, 0.5); // Black with 50% opacity
+        this.darkOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        this.darkOverlay.setScrollFactor(0);
+
+        // Add the scroll background as the menu background
+        this.inventoryBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-50) / 2), 'scroll_background')
         this.inventoryBg.setScrollFactor(0);
+        let scrollScale = (this.gameWidth-10)/this.inventoryBg.width;
+        this.inventoryBg.setScale(scrollScale);
 
         // Add a title
-        this.inventoryTitle = this.add.text(this.gameWidth / 2, 70, 'Inventory', {
-            fontSize: '32px',
-            fill: '#ffffff'
+        this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.0875), 'Inventory', {
+            fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
+            fontStyle: 'bold',
+            fill: '#000000'
         }).setOrigin(0.5);
         this.inventoryTitle.setScrollFactor(0);
 
         // Display inventory items
         this.inventoryItems = [];
-        let startX = 100;
-        let startY = 120;
-        let itemWidth = 100;
-        let itemHeight = 100;
-        let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
 
-        this.inventory.forEach((item, index) => {
-            let x = startX + (index % itemsPerRow) * itemWidth;
-            let y = startY + Math.floor(index / itemsPerRow) * itemHeight;
+        // Add category slots on the left
+        let categoryLength = this.inventoryBg.displayWidth*0.05;
+        let categoryGap = this.inventoryBg.displayHeight * 0.02;
+        let categoryStartX = this.gameWidth*0.3;
+        let categoryStartY = this.inventoryTitle.y*1.35;
 
-            // Add item background
-            let itemBg = this.add.graphics();
-            itemBg.fillStyle(0xffffff, 1); // White background
-            itemBg.fillRect(x, y, itemWidth - 10, itemHeight - 10);
-            this.inventoryItems.push(itemBg);
-
-            // Add item text or image
-            let itemText = this.add.text(x + 10, y + 10, item.name, {
-                fontSize: '16px',
-                fill: '#000000'
+        // Category 1
+        let category1 = this.add.graphics();
+        category1.fillStyle(0xDEB369, 1); // Light blue color
+        category1.fillRect(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength);
+        category1.setInteractive(new Phaser.Geom.Rectangle(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength), Phaser.Geom.Rectangle.Contains)
+            .on('pointerdown', () => {
+                console.log('Category 1 clicked');
+                displayCat = 0;
+                this.showCatItem(displayCat);
+                // Add logic to filter inventory items for Category 1
             });
-            this.inventoryItems.push(itemText);
-        });
+        category1.setScrollFactor(0);
+        this.inventoryItems.push(category1);
+
+        // Add an image inside Category 1
+        let category1Image = this.add.image(categoryStartX, categoryStartY, 'inventory_cat1') // Replace 'weapons_icon' with your image key
+        .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
+        category1Image.setScrollFactor(0);
+        this.inventoryItems.push(category1Image);
+
+        // Category 2
+        let category2 = this.add.graphics();
+        category2.fillStyle(0xDEB369, 1); // Light green color
+        category2.fillRect(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength);
+        category2.setInteractive(new Phaser.Geom.Rectangle(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength), Phaser.Geom.Rectangle.Contains)
+            .on('pointerdown', () => {
+                console.log('Category 2 clicked');
+                displayCat = 1;
+                this.showCatItem(displayCat);
+                // Add logic to filter inventory items for Category 2
+            });
+        category2.setScrollFactor(0);
+        this.inventoryItems.push(category2);
+
+        // Add an image inside Category 2
+        let category2Image = this.add.image(categoryStartX, categoryStartY + categoryLength + categoryGap, 'inventory_cat2') // Replace 'potions_icon' with your image key
+            .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
+        category2Image.setScrollFactor(0);
+        this.inventoryItems.push(category2Image);
+
+        this.showCatItem(displayCat);
 
         // Add a close button
-        this.closeButton = this.add.image(this.gameWidth - 70, 70, 'close_icon') // Replace 'close_icon' with your image key
-        .setScale(0.1) // Scale the image if needed
+        this.closeButton = this.add.image(this.gameWidth *0.9, this.gameHeight *0.15, 'close_icon') // Replace 'close_icon' with your image key
+        .setScale(this.gameWidth/1.5e4) // Scale the image if needed
         .setInteractive() // Make the image clickable
         .on('pointerdown', () => {
             this.closeInventory(); // Close the inventory UI
@@ -515,8 +559,72 @@ class MainScene extends Phaser.Scene {
         this.closeButton.setScrollFactor(0);
     }
 
+    showCatItem(catType=0){
+        let catItemType = [];
+        if (catType==0){
+            catItemType = ['quest'];
+        }else{
+            catItemType = ['badge'];
+        }
+
+        let playerInventory = this.inventory.filter(item => item.player_id === this.player_id);
+
+        let filteredInventory = playerInventory.filter(inventoryItem => {
+            let itemDetails = this.item.find(item => item.item_id === inventoryItem.item_id); // Access item details from this.item
+            return itemDetails && catItemType.includes(itemDetails.type); // Check if the type matches
+        });
+
+        let startX = this.gameWidth*0.4;
+        let startY = this.inventoryTitle.y*1.2;
+        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
+        let itemsPerRow = 5;
+        let totalSlots = 15; // Fixed number of slots
+        let itemLength = this.inventoryBg.displayWidth*0.045;
+        let itemGapX = this.inventoryBg.displayWidth*0.02;
+        let itemGapY = this.inventoryBg.displayHeight*0.008;
+
+        for (let i = 0; i < totalSlots; i++) {
+            let x = startX + (i % itemsPerRow) * (itemLength+itemGapX);
+            let y = startY + Math.floor(i / itemsPerRow) * (itemLength+itemGapY);
+    
+            // Add a square for the slot
+            let itemBg = this.add.graphics();
+            itemBg.fillStyle(0xDEB369, 1); // White background
+            itemBg.fillRect(x, y, itemLength, itemLength);
+            itemBg.setScrollFactor(0);
+            this.inventoryItems.push(itemBg);
+    
+            // If there's an item for this slot, display it
+            if (i < filteredInventory.length) {
+                let item = filteredInventory[i];
+                let itemId = item.item_id;
+                let itemDetails = this.itemDetail[itemId];
+
+                // Add the item image
+                let itemImage = this.add.image(x + itemLength / 2, y + itemLength / 2, itemDetails.tag)
+                    .setDisplaySize(itemLength * 0.8, itemLength * 0.8); // Scale the image to fit the slot
+                itemImage.setScrollFactor(0);
+                this.inventoryItems.push(itemImage);
+    
+                if (item.amount>1){
+                    // item amount display on top right of each item
+                    let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
+                        fontSize: `${itemLength*0.3}px`,
+                        fontStyle: 'bold',
+                        fill: '#000000'
+                    });
+                    itemText.setOrigin(1, 0);
+                    itemText.setScrollFactor(0);
+                    this.inventoryItems.push(itemText);
+                }
+                
+            }
+        }
+    }
+
     closeInventory() {
         // Destroy all inventory UI elements
+        this.darkOverlay.destroy();
         this.inventoryBg.destroy();
         this.inventoryTitle.destroy();
         this.closeButton.destroy();
@@ -524,19 +632,21 @@ class MainScene extends Phaser.Scene {
         this.inventoryItems = [];
         this.inventoryButton.setVisible(true);
         this.collisionHappened = false;
+        this.uistatus=0;
     }
 
     openMenu() {
-        // Pause the game
-        // this.scene.pause();
+        if (this.uistatus!=0){
+            return;
+        }
+        this.uistatus=1;
         this.collisionHappened = true;
-        this.menuButton.setVisible(false);
-    
-        // Create a semi-transparent background
-        // this.menuBg = this.add.graphics();
-        // this.menuBg.fillStyle(0x000000, 0.8); // Black with 80% opacity
-        // this.menuBg.fillRect(50, 50, this.gameWidth - 100, this.gameHeight - 100); // Adjust size and position
-        // this.menuBg.setScrollFactor(0);
+
+        // Create a semi-transparent dark overlay
+        this.darkOverlay2 = this.add.graphics();
+        this.darkOverlay2.fillStyle(0x000000, 0.5); // Black with 50% opacity
+        this.darkOverlay2.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        this.darkOverlay2.setScrollFactor(0);
 
         // Add the scroll background as the menu background
         this.menuBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-50) / 2), 'scroll_background')
@@ -586,28 +696,23 @@ class MainScene extends Phaser.Scene {
     }
 
     closeMenu() {
-        // Resume the game
-        // this.scene.resume();
-        this.collisionHappened = false;
-    
         // Destroy menu UI elements
+        this.darkOverlay2.destroy();
         this.menuBg.destroy();
         this.menuTitle.destroy();
         this.resumeButton.destroy();
         this.saveExitButton.destroy();
         this.menuButton.setVisible(true);
+
+        this.collisionHappened = false;
+        this.uistatus=0;
     }
 
     saveAndExit() {
-        console.log('Game saved! Exiting...');
-        // Add your save logic here (e.g., send data to a server or save locally)
-    
-        // Stop the current scene and go back to the main menu or quit
+        console.log('Game saved! Exiting...');    
         this.scene.stop('MainScene');
         this.scene.stop('IndoorScene');
-        // Optionally, redirect to a main menu scene if you have one
-        // this.scene.start('MainMenu');
-        window.location.href = '/CAPSTONE/index.html'; // Redirect to the main menu or home page
+        window.location.href = '/'; // Redirect to the main menu or home page
     }
 }
 
@@ -631,8 +736,8 @@ class Game {
                 "https://capstone-assignment-36lq.vercel.app/dialogue",
                 "https://capstone-assignment-36lq.vercel.app/quest",
                 "https://capstone-assignment-36lq.vercel.app/location",
-                "https://capstone-assignment-36lq.vercel.app/inventory",
-                "https://capstone-assignment-36lq.vercel.app/item",
+                '../components/PlayerComponent/game-data/inventory_sample.json', // "https://capstone-assignment-36lq.vercel.app/inventory",
+                '../components/PlayerComponent/game-data/item_sample.json', //"https://capstone-assignment-36lq.vercel.app/item",
                 '../components/PlayerComponent/game-data/action.json',
                 "https://capstone-assignment-36lq.vercel.app/package_detail",
                 "https://capstone-assignment-36lq.vercel.app/position",
@@ -641,7 +746,8 @@ class Game {
                 "https://capstone-assignment-36lq.vercel.app/choice",
                 "https://capstone-assignment-36lq.vercel.app/player_progress",
                 '../components/PlayerComponent/game-data/npc_detail.json',
-                '../components/PlayerComponent/game-data/location_detail.json'
+                '../components/PlayerComponent/game-data/location_detail.json',
+                '../components/PlayerComponent/game-data/item_detail.json'
             ];
 
             const responses = await Promise.all(urls.map(url => fetch(url)));
@@ -649,7 +755,7 @@ class Game {
                 dialogue, quest, location,
                 inventory, item, action, packageDetail,
                 position, subquest, packageData, choice, playerProgress,
-                npcDetail, locationDetail
+                npcDetail, locationDetail, itemDetail
             ] = await Promise.all(responses.map(res => res.json()));
 
             this.dialogue = dialogue;
@@ -666,6 +772,7 @@ class Game {
             this.playerProgress = playerProgress;
             this.npcDetail = npcDetail;
             this.locationDetail = locationDetail;
+            this.itemDetail = itemDetail;
 
             console.log("Fetched dialogue:", dialogue);
             console.log("Fetched quest:", quest);
@@ -681,21 +788,22 @@ class Game {
             console.log("Fetched playerProgress:", playerProgress);
             console.log("Fetched npcDetail:", npcDetail);
             console.log("Fetched locationDetail:", locationDetail);
+            console.log("Fetched itemDetail:", itemDetail);
         } catch (error) {
             console.error('Error fetching data from MongoDB:', error);
         }
     };
 
     startGame() {
-        const appContext = useContext(AppContent);
+        // const appContext = useContext(AppContent);
 
-        if (!appContext) {
-            throw new Error("AppContent context is undefined");
-        }
+        // if (!appContext) {
+        //     throw new Error("AppContent context is undefined");
+        // }
 
-        const { userData } = appContext;
+        // const { userData } = appContext;
 
-        console.log("Current User:", userData);
+        // console.log("Current User:", userData);
 
         this.config = {
             type: Phaser.AUTO,
@@ -731,7 +839,8 @@ class Game {
             choice: this.choice,
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
-            locationDetail: this.locationDetail
+            locationDetail: this.locationDetail,
+            itemDetail: this.itemDetail
         });
     }
 }

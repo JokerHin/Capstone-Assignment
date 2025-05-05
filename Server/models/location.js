@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const LocationSchema = new mongoose.Schema({
-  location_id: { type: int, required: true },
+  location_id: { type: Number, required: true },
   type: { type: String },
   spawn_position: { type: Object },
   entrance_position: { type: Object }
