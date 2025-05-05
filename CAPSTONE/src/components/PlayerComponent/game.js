@@ -4,6 +4,9 @@ import { Backdrop } from './backdrop.js';
 import { Door } from './door.js';
 import { IndoorScene } from './indoorScene.js';
 
+// import { useContext } from "react";
+// import { AppContent } from "../context/AppContext";
+
 
 
 class MainScene extends Phaser.Scene {
@@ -22,6 +25,7 @@ class MainScene extends Phaser.Scene {
         this.zoomFactor=1.8; //1.8
         this.locationId=0;
         this.player_id=1; //need change to cookie player
+        this.uistatus=0;
     }
 
     init(data) {
@@ -43,6 +47,7 @@ class MainScene extends Phaser.Scene {
         this.playerProgress = data.playerProgress || {};
         this.npcDetail = data.npcDetail || {};
         this.locationDetail = data.locationDetail || {};
+        this.itemDetail = data.itemDetail || {};
     }
 
     preload() {
@@ -66,19 +71,25 @@ class MainScene extends Phaser.Scene {
         this.load.image("ownhouse_interior", "../assets/ownhouse_interior.jpg");
 
         this.load.image('inventory_icon', '../assets/inventory_icon.png'); // Replace with the actual path to your image
-        this.load.image('close_icon', '../assets/close_icon.webp');
+        this.load.image('close_icon', '../assets/close_icon.png');
         this.load.image('menu_icon', '../assets/menu_icon.png');
+        this.load.image('scroll_background', '../assets/scroll_background2.png');
+        this.load.image('inventory_cat1', '../assets/inventory_cat1.png');
+        this.load.image('inventory_cat2', '../assets/inventory_cat2.png');
 
         for (let [tag,npc] of Object.entries(this.npcDetail)){
             if (npc.type === "image") {
                 this.load.image(tag, `../assets/${npc.img}`);
             }else if (npc.type === "spritesheet"){
-                console.log(tag);
                 this.load.spritesheet(tag, `../assets/${npc.img}`, {
                     frameWidth: npc.frameSize.width,
                     frameHeight: npc.frameSize.height
                 });
             }
+        }
+
+        for (let item of Object.values(this.itemDetail)){
+            this.load.image(item.tag, `../assets/${item.img}`);
         }
     }
 
@@ -142,24 +153,12 @@ class MainScene extends Phaser.Scene {
 
         //house collision area (door)
         let locationDoors = this.location.filter(location => location.location_id !== this.locationId);
-        console.log(locationDoors);
         for (let location of locationDoors){ //dictionary contains info of a door
-            console.log(location);
             let location_id = location.location_id
             let label = this.locationDetail[location_id].label
             let entrance = location.entrance_position;
             this.doors[location_id] = new Door(this, entrance.x1, entrance.y1, entrance.x2, entrance.y2, '#000', label, location_id, 0); //create a door object
         }
-
-        // let doorData = this.alldoor[this.sceneName] //list of door of the current scene
-        // for (let door of doorData){ //dictionary contains info of a door
-        //     if (door.to){ //not an exit (exit dont have "to")
-        //         let indoorDetail = this.location[door.to]; //target location detail
-        //         let label = indoorDetail.label; //location label for action text
-        //         let doorPos = door.position; //all 4 positions (x1,y1,x2,y2) of doors
-        //         this.doors[door.to] = new Door(this, doorPos.x1, doorPos.y1, doorPos.x2, doorPos.y2, '#000', label, door.to, 0); //create a door object
-        //     }
-        // }
 
         //Talk to npc button
         this.talkButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Talk to someone', {
@@ -230,7 +229,6 @@ class MainScene extends Phaser.Scene {
             console.log(this.registry.get("activeSubQuest"));
             if (this.npcList.length==0 ){
                 this.spawnNpc();
-                console.log(this.MapPosx);
             }
         });
 
@@ -242,7 +240,7 @@ class MainScene extends Phaser.Scene {
         // this.movementSpeed = this.movementSpeed/zoomFactor;
 
         //initiate first quest for new user
-        fetch("https://codyssey-mongodb.vercel.app/player_progress", {
+        fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
             method: "POST",
             headers: {
             "Content-Type": "application/json",
@@ -354,7 +352,6 @@ class MainScene extends Phaser.Scene {
         this.children.bringToTop(this.backdrop['obstacle']);
         this.children.bringToTop(this.inventoryButton);
         this.children.bringToTop(this.menuButton);
-        console.log(this.npc);
     }
 
     talk() {
@@ -382,7 +379,6 @@ class MainScene extends Phaser.Scene {
             quest: this.quest,
             location: this.location,
             inventory: this.inventory,
-            // player: this.player,
             item: this.item,
             action: this.action,
             packageDetail: this.packageDetail,
@@ -393,6 +389,7 @@ class MainScene extends Phaser.Scene {
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail,
+            itemDetail: this.itemDetail
         });
     }
 
@@ -427,52 +424,134 @@ class MainScene extends Phaser.Scene {
         }
     }
 
-    openInventory(){
-        this.inventoryButton.setVisible(false);
-        this.collisionHappened = true;
+    moveNpcTo(npc_tag, targetX, targetY, speed) {
+        // Calculate the direction vector
+        let npc = this.npc[npc_tag];
+        const directionX = targetX - npc.x;
+        const directionY = targetY - npc.y;
+    
+        // Normalize the direction vector
+        const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
+        const normalizedX = directionX / magnitude;
+        const normalizedY = directionY / magnitude;
+    
+        // Set velocity based on the direction and speed
+        npc.setVelocity(normalizedX * speed, normalizedY * speed);
+    
+        // Play walking animation based on direction
+        // if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
+        //     // Horizontal movement
+        //     if (normalizedX > 0) {
+        //         npc.anims.play('npc_walk_right', true); // Replace with your right-walking animation key
+        //     } else {
+        //         npc.anims.play('npc_walk_left', true); // Replace with your left-walking animation key
+        //     }
+        // } else {
+        //     // Vertical movement
+        //     if (normalizedY > 0) {
+        //         npc.anims.play('npc_walk_down', true); // Replace with your down-walking animation key
+        //     } else {
+        //         npc.anims.play('npc_walk_up', true); // Replace with your up-walking animation key
+        //     }
+        // }
+    
+        // Stop movement when the NPC reaches the target
+        const checkArrival = this.time.addEvent({
+            delay: 50, // Check every 50ms
+            callback: () => {
+                const distance = Phaser.Math.Distance.Between(npc.x, npc.y, targetX, targetY);
+                if (distance < 5) { // Stop when close enough
+                    npc.setVelocity(0, 0); // Stop movement
+                    npc.anims.stop(); // Stop animation
+                    checkArrival.remove(); // Remove the timer
+                }
+            },
+            loop: true
+        });
+    }
 
-        // Create a semi-transparent background
-        this.inventoryBg = this.add.graphics();
-        this.inventoryBg.fillStyle(0x000000, 0.8); // Black with 80% opacity
-        this.inventoryBg.fillRect(50, 50, this.gameWidth - 100, this.gameHeight - 100); // Adjust size and position
+    openInventory(){
+        if (this.uistatus!=0){
+            return;
+        }
+        this.uistatus=1;
+        this.collisionHappened = true;
+        let displayCat = 0;
+
+        // Create a semi-transparent dark overlay
+        this.darkOverlay = this.add.graphics();
+        this.darkOverlay.fillStyle(0x000000, 0.5); // Black with 50% opacity
+        this.darkOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        this.darkOverlay.setScrollFactor(0);
+
+        // Add the scroll background as the menu background
+        this.inventoryBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-50) / 2), 'scroll_background')
         this.inventoryBg.setScrollFactor(0);
+        let scrollScale = (this.gameWidth-10)/this.inventoryBg.width;
+        this.inventoryBg.setScale(scrollScale);
 
         // Add a title
-        this.inventoryTitle = this.add.text(this.gameWidth / 2, 70, 'Inventory', {
-            fontSize: '32px',
-            fill: '#ffffff'
+        this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.0875), 'Inventory', {
+            fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
+            fontStyle: 'bold',
+            fill: '#000000'
         }).setOrigin(0.5);
         this.inventoryTitle.setScrollFactor(0);
 
         // Display inventory items
         this.inventoryItems = [];
-        let startX = 100;
-        let startY = 120;
-        let itemWidth = 100;
-        let itemHeight = 100;
-        let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
 
-        this.inventory.forEach((item, index) => {
-            let x = startX + (index % itemsPerRow) * itemWidth;
-            let y = startY + Math.floor(index / itemsPerRow) * itemHeight;
+        // Add category slots on the left
+        let categoryLength = this.inventoryBg.displayWidth*0.05;
+        let categoryGap = this.inventoryBg.displayHeight * 0.02;
+        let categoryStartX = this.gameWidth*0.3;
+        let categoryStartY = this.inventoryTitle.y*1.35;
 
-            // Add item background
-            let itemBg = this.add.graphics();
-            itemBg.fillStyle(0xffffff, 1); // White background
-            itemBg.fillRect(x, y, itemWidth - 10, itemHeight - 10);
-            this.inventoryItems.push(itemBg);
-
-            // Add item text or image
-            let itemText = this.add.text(x + 10, y + 10, item.name, {
-                fontSize: '16px',
-                fill: '#000000'
+        // Category 1
+        let category1 = this.add.graphics();
+        category1.fillStyle(0xDEB369, 1); // Light blue color
+        category1.fillRect(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength);
+        category1.setInteractive(new Phaser.Geom.Rectangle(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength), Phaser.Geom.Rectangle.Contains)
+            .on('pointerdown', () => {
+                console.log('Category 1 clicked');
+                displayCat = 0;
+                this.showCatItem(displayCat);
+                // Add logic to filter inventory items for Category 1
             });
-            this.inventoryItems.push(itemText);
-        });
+        category1.setScrollFactor(0);
+        this.inventoryItems.push(category1);
+
+        // Add an image inside Category 1
+        let category1Image = this.add.image(categoryStartX, categoryStartY, 'inventory_cat1') // Replace 'weapons_icon' with your image key
+        .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
+        category1Image.setScrollFactor(0);
+        this.inventoryItems.push(category1Image);
+
+        // Category 2
+        let category2 = this.add.graphics();
+        category2.fillStyle(0xDEB369, 1); // Light green color
+        category2.fillRect(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength);
+        category2.setInteractive(new Phaser.Geom.Rectangle(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength), Phaser.Geom.Rectangle.Contains)
+            .on('pointerdown', () => {
+                console.log('Category 2 clicked');
+                displayCat = 1;
+                this.showCatItem(displayCat);
+                // Add logic to filter inventory items for Category 2
+            });
+        category2.setScrollFactor(0);
+        this.inventoryItems.push(category2);
+
+        // Add an image inside Category 2
+        let category2Image = this.add.image(categoryStartX, categoryStartY + categoryLength + categoryGap, 'inventory_cat2') // Replace 'potions_icon' with your image key
+            .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
+        category2Image.setScrollFactor(0);
+        this.inventoryItems.push(category2Image);
+
+        this.showCatItem(displayCat);
 
         // Add a close button
-        this.closeButton = this.add.image(this.gameWidth - 70, 70, 'close_icon') // Replace 'close_icon' with your image key
-        .setScale(0.1) // Scale the image if needed
+        this.closeButton = this.add.image(this.gameWidth *0.9, this.gameHeight *0.15, 'close_icon') // Replace 'close_icon' with your image key
+        .setScale(this.gameWidth/1.5e4) // Scale the image if needed
         .setInteractive() // Make the image clickable
         .on('pointerdown', () => {
             this.closeInventory(); // Close the inventory UI
@@ -480,8 +559,72 @@ class MainScene extends Phaser.Scene {
         this.closeButton.setScrollFactor(0);
     }
 
+    showCatItem(catType=0){
+        let catItemType = [];
+        if (catType==0){
+            catItemType = ['quest'];
+        }else{
+            catItemType = ['badge'];
+        }
+
+        let playerInventory = this.inventory.filter(item => item.player_id === this.player_id);
+
+        let filteredInventory = playerInventory.filter(inventoryItem => {
+            let itemDetails = this.item.find(item => item.item_id === inventoryItem.item_id); // Access item details from this.item
+            return itemDetails && catItemType.includes(itemDetails.type); // Check if the type matches
+        });
+
+        let startX = this.gameWidth*0.4;
+        let startY = this.inventoryTitle.y*1.2;
+        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
+        let itemsPerRow = 5;
+        let totalSlots = 15; // Fixed number of slots
+        let itemLength = this.inventoryBg.displayWidth*0.045;
+        let itemGapX = this.inventoryBg.displayWidth*0.02;
+        let itemGapY = this.inventoryBg.displayHeight*0.008;
+
+        for (let i = 0; i < totalSlots; i++) {
+            let x = startX + (i % itemsPerRow) * (itemLength+itemGapX);
+            let y = startY + Math.floor(i / itemsPerRow) * (itemLength+itemGapY);
+    
+            // Add a square for the slot
+            let itemBg = this.add.graphics();
+            itemBg.fillStyle(0xDEB369, 1); // White background
+            itemBg.fillRect(x, y, itemLength, itemLength);
+            itemBg.setScrollFactor(0);
+            this.inventoryItems.push(itemBg);
+    
+            // If there's an item for this slot, display it
+            if (i < filteredInventory.length) {
+                let item = filteredInventory[i];
+                let itemId = item.item_id;
+                let itemDetails = this.itemDetail[itemId];
+
+                // Add the item image
+                let itemImage = this.add.image(x + itemLength / 2, y + itemLength / 2, itemDetails.tag)
+                    .setDisplaySize(itemLength * 0.8, itemLength * 0.8); // Scale the image to fit the slot
+                itemImage.setScrollFactor(0);
+                this.inventoryItems.push(itemImage);
+    
+                if (item.amount>1){
+                    // item amount display on top right of each item
+                    let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
+                        fontSize: `${itemLength*0.3}px`,
+                        fontStyle: 'bold',
+                        fill: '#000000'
+                    });
+                    itemText.setOrigin(1, 0);
+                    itemText.setScrollFactor(0);
+                    this.inventoryItems.push(itemText);
+                }
+                
+            }
+        }
+    }
+
     closeInventory() {
         // Destroy all inventory UI elements
+        this.darkOverlay.destroy();
         this.inventoryBg.destroy();
         this.inventoryTitle.destroy();
         this.closeButton.destroy();
@@ -489,32 +632,44 @@ class MainScene extends Phaser.Scene {
         this.inventoryItems = [];
         this.inventoryButton.setVisible(true);
         this.collisionHappened = false;
+        this.uistatus=0;
     }
 
     openMenu() {
-        // Pause the game
-        // this.scene.pause();
+        if (this.uistatus!=0){
+            return;
+        }
+        this.uistatus=1;
         this.collisionHappened = true;
-        this.menuButton.setVisible(false);
-    
-        // Create a semi-transparent background
-        this.menuBg = this.add.graphics();
-        this.menuBg.fillStyle(0x000000, 0.8); // Black with 80% opacity
-        this.menuBg.fillRect(50, 50, this.gameWidth - 100, this.gameHeight - 100); // Adjust size and position
+
+        // Create a semi-transparent dark overlay
+        this.darkOverlay2 = this.add.graphics();
+        this.darkOverlay2.fillStyle(0x000000, 0.5); // Black with 50% opacity
+        this.darkOverlay2.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        this.darkOverlay2.setScrollFactor(0);
+
+        // Add the scroll background as the menu background
+        this.menuBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-50) / 2), 'scroll_background')
+            // .setOrigin(0.5)
+            // .setDisplaySize(this.gameWidth - 100, this.gameHeight - 100); // Adjust size to fit the menu
         this.menuBg.setScrollFactor(0);
+        let scrollScale = (this.gameWidth-100)/this.menuBg.width;
+        this.menuBg.setScale(scrollScale);
     
         // Add "Game Paused" text
-        this.menuTitle = this.add.text(this.gameWidth / 2, 100, 'Game Paused', {
+        this.menuTitle = this.add.text(this.gameWidth / 2, this.menuBg.y - (this.menuBg.displayHeight / 8) + 70, 'Game Paused', {
             fontSize: '48px',
-            fill: '#ffffff'
+            fill: '#000000',
+            fontFamily: 'Tagesschrift'
         }).setOrigin(0.5);
         this.menuTitle.setScrollFactor(0);
     
         // Add Resume button
-        this.resumeButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 50, 'Resume', {
+        this.resumeButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, 'Resume', {
             fontSize: '32px',
-            fill: '#ffffff',
-            backgroundColor: '#000000',
+            fill: '#000000',
+            // backgroundColor: '#000000',
+            fontFamily: 'Tagesschrift',
             padding: { x: 10, y: 5 }
         })
         .setOrigin(0.5)
@@ -527,8 +682,9 @@ class MainScene extends Phaser.Scene {
         // Add Save & Exit button
         this.saveExitButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 50, 'Save & Exit', {
             fontSize: '32px',
-            fill: '#ffffff',
-            backgroundColor: '#000000',
+            fill: '#000000',
+            // backgroundColor: '#000000',
+            fontFamily: 'Tagesschrift',
             padding: { x: 10, y: 5 }
         })
         .setOrigin(0.5)
@@ -540,82 +696,38 @@ class MainScene extends Phaser.Scene {
     }
 
     closeMenu() {
-        // Resume the game
-        // this.scene.resume();
-        this.collisionHappened = false;
-    
         // Destroy menu UI elements
+        this.darkOverlay2.destroy();
         this.menuBg.destroy();
         this.menuTitle.destroy();
         this.resumeButton.destroy();
         this.saveExitButton.destroy();
         this.menuButton.setVisible(true);
+
+        this.collisionHappened = false;
+        this.uistatus=0;
     }
 
     saveAndExit() {
-        console.log('Game saved! Exiting...');
-        // Add your save logic here (e.g., send data to a server or save locally)
-    
-        // Stop the current scene and go back to the main menu or quit
+        console.log('Game saved! Exiting...');    
         this.scene.stop('MainScene');
         this.scene.stop('IndoorScene');
-        // Optionally, redirect to a main menu scene if you have one
-        // this.scene.start('MainMenu');
+        window.location.href = '/'; // Redirect to the main menu or home page
     }
 }
 
 class Game {
-    constructor(gameWidth, gameHeight) {
-        this.dialogue = {}; // Store dialogues from API
-        this.quest = {};
-        this.door = {};
-        this.location = {};
-        this.npc = {};
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
-        console.log(window.innerWidth,window.innerHeight);
+    constructor() {
+        // this.dialogue = {}; // Store dialogues from API
+        // this.quest = {};
+        // this.door = {};
+        // this.location = {};
+        // this.npc = {};
         this.gameWidth = window.innerWidth;
         this.gameHeight = window.innerHeight;
-        // this.fetchData(); // Fetch data from MongoDB
         this.fetchMongo().then(() => {
             this.startGame(); // Start game only after fetching data
         });
-    }
-
-    async fetchNpcJson() {
-        try {
-            const response = await fetch('./game-data/npc.json');
-            const npcData = await response.json();
-            this.npc = npcData;
-            console.log("Fetched NPC data:", npcData);
-        } catch (error) {
-            console.error('Error fetching npc.json:', error);
-        }
-    }
-
-    async fetchData() {
-        try {
-            const response1 = await fetch('https://data-bank-delta.vercel.app/');
-            const response2 = await fetch('https://data-bank-delta.vercel.app/quest');
-            const response3 = await fetch('https://data-bank-delta.vercel.app/door');
-            const response4 = await fetch('https://data-bank-delta.vercel.app/location');
-            const response5 = await fetch('https://data-bank-delta.vercel.app/npc');
-            const data1 = await response1.json();
-            const data2 = await response2.json();
-            const data3 = await response3.json();
-            const data4 = await response4.json();
-            const data5 = await response5.json();
-            this.dialogue = data1;  // Store API data
-            this.quest = data2;
-            this.door = data3;
-            this.location = data4;
-            this.npc = data5;
-            console.log("Fetched data 1:", data1);
-            console.log("Fetched data 2:", data2);
-            await this.fetchNpcJson(); // Fetch npc.json after other data
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
     }
 
     fetchMongo = async () => {
@@ -624,9 +736,9 @@ class Game {
                 "https://capstone-assignment-36lq.vercel.app/dialogue",
                 "https://capstone-assignment-36lq.vercel.app/quest",
                 "https://capstone-assignment-36lq.vercel.app/location",
-                "https://capstone-assignment-36lq.vercel.app/inventory",
-                "https://capstone-assignment-36lq.vercel.app/item",
-                "https://capstone-assignment-36lq.vercel.app/action",
+                '../components/PlayerComponent/game-data/inventory_sample.json', // "https://capstone-assignment-36lq.vercel.app/inventory",
+                '../components/PlayerComponent/game-data/item_sample.json', //"https://capstone-assignment-36lq.vercel.app/item",
+                '../components/PlayerComponent/game-data/action.json',
                 "https://capstone-assignment-36lq.vercel.app/package_detail",
                 "https://capstone-assignment-36lq.vercel.app/position",
                 "https://capstone-assignment-36lq.vercel.app/subquest",
@@ -634,7 +746,8 @@ class Game {
                 "https://capstone-assignment-36lq.vercel.app/choice",
                 "https://capstone-assignment-36lq.vercel.app/player_progress",
                 '../components/PlayerComponent/game-data/npc_detail.json',
-                '../components/PlayerComponent/game-data/location_detail.json'
+                '../components/PlayerComponent/game-data/location_detail.json',
+                '../components/PlayerComponent/game-data/item_detail.json'
             ];
 
             const responses = await Promise.all(urls.map(url => fetch(url)));
@@ -642,7 +755,7 @@ class Game {
                 dialogue, quest, location,
                 inventory, item, action, packageDetail,
                 position, subquest, packageData, choice, playerProgress,
-                npcDetail, locationDetail
+                npcDetail, locationDetail, itemDetail
             ] = await Promise.all(responses.map(res => res.json()));
 
             this.dialogue = dialogue;
@@ -659,6 +772,7 @@ class Game {
             this.playerProgress = playerProgress;
             this.npcDetail = npcDetail;
             this.locationDetail = locationDetail;
+            this.itemDetail = itemDetail;
 
             console.log("Fetched dialogue:", dialogue);
             console.log("Fetched quest:", quest);
@@ -674,12 +788,23 @@ class Game {
             console.log("Fetched playerProgress:", playerProgress);
             console.log("Fetched npcDetail:", npcDetail);
             console.log("Fetched locationDetail:", locationDetail);
+            console.log("Fetched itemDetail:", itemDetail);
         } catch (error) {
             console.error('Error fetching data from MongoDB:', error);
         }
     };
 
     startGame() {
+        // const appContext = useContext(AppContent);
+
+        // if (!appContext) {
+        //     throw new Error("AppContent context is undefined");
+        // }
+
+        // const { userData } = appContext;
+
+        // console.log("Current User:", userData);
+
         this.config = {
             type: Phaser.AUTO,
             width: this.gameWidth,
@@ -714,12 +839,13 @@ class Game {
             choice: this.choice,
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
-            locationDetail: this.locationDetail
+            locationDetail: this.locationDetail,
+            itemDetail: this.itemDetail
         });
     }
 }
 
 
 // Create the game object with dynamic width & height
-const myGame = new Game(1450, 650); //size wont be use
+const myGame = new Game(); //size wont be use
 

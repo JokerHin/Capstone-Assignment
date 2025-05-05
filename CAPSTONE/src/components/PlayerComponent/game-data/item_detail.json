@@ -1,0 +1,14 @@
+{
+    "1":{
+        "tag": "green_gem",
+        "img": "green_gem.png"
+    },
+    "3":{
+        "tag": "potion",
+        "img": "potion.png"
+    },
+    "4":{
+        "tag": "coin",
+        "img": "coin.png"
+    }
+}

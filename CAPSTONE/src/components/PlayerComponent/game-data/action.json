@@ -1,0 +1,15 @@
+{
+    "karbot_jump":{
+        "npc": "karbot",
+        "type": "movement",
+        "initialPosition": {
+            "x": 100,
+            "y": 100
+        },
+        "endPosition": {
+            "x": 150,
+            "y": 100
+        },
+        "speed": 10
+    }
+}

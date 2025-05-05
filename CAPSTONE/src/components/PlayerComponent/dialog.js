@@ -32,6 +32,9 @@ export class Dialog{
         });
         this.questionBox.setScrollFactor(0);
 
+        let action = question.action;
+        let actionDetail = game.action[action];
+
         let choices = game.choice.filter(choice => choice.dialogue_id === dialogue_id);
         if (choices.length>0){
             console.log(choices);
@@ -50,6 +53,9 @@ export class Dialog{
 
                 this.option.on('pointerdown', () => {
                     this.destroyDialog();
+                    if (question.action){
+                        this.performAction(question.action);
+                    }
 
                     if (option.package_id){
                         let available = this.updateInventory(option.package_id);
@@ -76,6 +82,9 @@ export class Dialog{
                     this.updateInventory(this.content[this.count].package_id);
                 }
                 this.destroyDialog();
+                if (question.action){
+                    this.performAction(question.action);
+                }
                 this.count++;
                 if (this.count<this.content.length){
                     let current_dialogue = this.content[this.count];
@@ -87,6 +96,14 @@ export class Dialog{
             });
         }
     }
+
+    performAction(action){
+        let actionDetail = this.game.action[action];
+        if (actionDetail.type === "movement"){
+            this.game.moveNpcTo(actionDetail.npc, actionDetail.endPosition.x, actionDetail.endPosition.y, actionDetail.speed);
+        }
+    }
+
 
     async updateInventory(package_id){
         let package_detail = this.game.packageDetail.filter(packageDetail => packageDetail.package_id === package_id);
