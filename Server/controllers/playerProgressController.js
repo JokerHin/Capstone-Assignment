@@ -25,8 +25,8 @@ export const updatePlayerProgressStatus = async (req, res) => {
 
     // Find the record by player_id and subquest_id and update the status
     const updatedProgress = await PlayerProgress.findOneAndUpdate(
-      { player_id, subquest_id }, // Find the record by player_id and subquest_id
-      { status }, // Update the status field
+      { player_id }, // Find the record by player_id and subquest_id
+      { subquest_id, status }, // Update the status field
       { new: true } // Return the updated document
     );
 

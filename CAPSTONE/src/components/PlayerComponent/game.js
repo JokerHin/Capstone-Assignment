@@ -21,8 +21,8 @@ class MainScene extends Phaser.Scene {
         this.movementSpeed=200; //200
         this.player_direction=-1;
         this.zoomFactor=1.8; //1.8
-        this.locationId=0;
-        this.player_id=1; //need change to cookie player
+        this.locationId="0";
+        this.player_id="1"; //need change to cookie player
         this.uistatus=0;
         this.createLoadingScreen();
     }
@@ -193,11 +193,11 @@ class MainScene extends Phaser.Scene {
     create() {
         //set initial quest and subquest in the beginning
         //use registry to store data across all scenes
-        // let activeQuest = this.quest.init; //comment this before committing
-        // let activeQuest = "quest2"; //uncomment this before committing
-        let activeQuest = 1;
+        // let activeQuest = 1;
         // let activeSubQuest = this.quest[activeQuest].startquest;
-        let activeSubQuest = 1;
+        let activeSubQuest = this.playerProgress.find(progress => progress.player_id === this.player_id).subquest_id;
+        console.log(activeSubQuest);
+        let activeQuest = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).quest_id;
         this.registry.set("activeQuest", activeQuest);
         this.registry.set("activeSubQuest", activeSubQuest);
         this.registry.set("inventory", this.inventory);
