@@ -36,18 +36,51 @@ export const AppContextProvider = ({
   const [isLoggedin, setIsLoggedin] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
 
-  // Login function
+  const getUserData = async () => {
+    try {
+      if (!isLoggedin || !userData?.email) {
+        return;
+      }
+
+      const email = userData.email;
+
+      const token = localStorage.getItem("token");
+      const headers: any = {};
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await axios.post(
+        `${backendUrl}/api/user/data`,
+        { email: email },
+        { headers, withCredentials: true }
+      );
+
+      if (response.data?.success && response.data?.userData) {
+        console.log("User data received:", response.data.userData);
+        setUserData(response.data.userData);
+      } else {
+        console.log(
+          "API request successful but no userData found:",
+          response.data
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error in getUserData:", error);
+      return { success: false, message: "Failed to get user data" };
+    }
+  };
+
+  // Login function with better logging for getUserData
   const login = async (
     email: string,
     password: string,
     isAdminLogin?: boolean
   ): Promise<boolean> => {
     try {
-      console.log(`Trying to login with email: ${email}`);
-      console.log(`Login URL: ${backendUrl}/api/auth/login`);
-      console.log(`Is admin login: ${isAdminLogin}`);
-
-      // Axios call with correct data format and error handling
       const { data } = await axios.post(
         `${backendUrl}/api/auth/login`,
         {
@@ -56,35 +89,41 @@ export const AppContextProvider = ({
           isAdminLogin: isAdminLogin || false,
         },
         {
-          withCredentials: true, // Ensure cookies are properly set
+          withCredentials: true,
         }
       );
 
       if (data.success) {
         setIsLoggedin(true);
 
-        // Set a simplified userData object to avoid issues with undefined properties
         const userDataObj: UserData = {
           id: data.userData?.id,
           name: data.userData?.name || "",
           email: data.userData?.email || email,
         };
 
-        // For admin users, include the userType
         if (isAdminLogin && data.userData) {
           userDataObj.userType = "admin";
         }
 
         setUserData(userDataObj);
 
-        // Store the auth token if any is returned
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
 
-        // Store admin email in localStorage for backup auth
         if (isAdminLogin) {
           localStorage.setItem("adminEmail", email);
+        }
+
+        try {
+          const userData = await getUserData();
+          console.log("getUserData response after login:", userData);
+        } catch (getUserError) {
+          console.error(
+            "Error executing getUserData after login:",
+            getUserError
+          );
         }
 
         return true;
@@ -95,7 +134,6 @@ export const AppContextProvider = ({
     } catch (error: any) {
       console.error("Login error:", error);
 
-      // Better error message handling
       const errorMessage =
         error.response?.data?.message ||
         "Login failed. Server may be unavailable.";
@@ -114,10 +152,6 @@ export const AppContextProvider = ({
     axios
       .post(backendUrl + "/api/auth/logout")
       .catch((err) => console.error("Logout error:", err));
-  };
-
-  const getUserData = async () => {
-    return;
   };
 
   return (

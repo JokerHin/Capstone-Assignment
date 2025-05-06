@@ -55,7 +55,6 @@ const AdminUsers: React.FC = () => {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    console.log("Auth headers:", headers);
     return headers;
   };
 
@@ -68,20 +67,14 @@ const AdminUsers: React.FC = () => {
     }
   }, [currentPage, backendUrl, isLoggedin, userData]);
 
-  // Create a function to fetch users
   const fetchUsers = async (page = currentPage) => {
     setLoading(true);
     try {
-      // If not logged in or not an admin user, show empty list with auth message
       if (!isLoggedin || userData?.userType !== "admin") {
         setUsers([]);
         setTotalPages(1);
         return;
       }
-
-      console.log(
-        `Fetching users page ${page} from ${backendUrl}/api/admin/users`
-      );
 
       // Make the request with admin headers
       const response = await axios.get(`${backendUrl}/api/admin/users`, {
@@ -90,13 +83,10 @@ const AdminUsers: React.FC = () => {
         headers: getAuthHeaders(),
       });
 
-      console.log("Users API response:", response.data);
-
       if (response.data.success) {
         if (response.data.users && Array.isArray(response.data.users)) {
           setUsers(response.data.users);
           setTotalPages(response.data.pagination.totalPages || 1);
-          console.log(`Loaded ${response.data.users.length} users`);
         } else {
           console.error(
             "API returned success but users data is invalid:",
@@ -106,7 +96,6 @@ const AdminUsers: React.FC = () => {
           setUsers([]);
         }
       } else {
-        console.log("API returned error:", response.data.message);
         setUsers([]);
       }
     } catch (error: any) {
@@ -155,8 +144,6 @@ const AdminUsers: React.FC = () => {
 
     setSubmitting(true);
     try {
-      console.log("Adding new user with data:", addForm);
-
       const response = await axios.post(
         `${backendUrl}/api/admin/add-user`,
         addForm,
@@ -166,14 +153,11 @@ const AdminUsers: React.FC = () => {
         }
       );
 
-      console.log("Add user response:", response.data);
-
       if (response.data.success) {
         toast.success("User added successfully");
         setShowAddModal(false);
         setAddForm({ name: "", email: "", password: "" });
 
-        // Force a small delay to ensure backend has processed the new user
         setTimeout(() => {
           fetchUsers(currentPage);
         }, 500);

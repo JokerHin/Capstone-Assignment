@@ -5,13 +5,14 @@ export const getUserData = async (req, res) => {
   try {
     const { email } = req.body;
  
+
     if (!email) {
       return res.status(400).json({
         success: false,
         message: "Email is required",
       });
     }
- 
+
     const user = await userModal.findOne({ email });
  
     if (!user) {
@@ -20,13 +21,13 @@ export const getUserData = async (req, res) => {
         message: "User not found",
       });
     }
- 
+
     const userData = {
       id: user._id,
       name: user.name,
       email: user.email,
     };
- 
+
     return res.json({
       success: true,
       userData: userData,
@@ -41,7 +42,6 @@ export const updateProfile = async (req, res) => {
   try {
     const { email, password, name, currentPassword, newPassword } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -49,7 +49,6 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Find user by email
     const user = await userModal.findOne({ email });
 
     if (!user) {
@@ -59,7 +58,6 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -68,14 +66,11 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Update name if provided
     if (name) {
       user.name = name;
     }
 
-    // If password is being changed, validate current password again
     if (newPassword) {
-      // Current password should match the password submitted for authentication
       const passwordsMatch =
         currentPassword === password ||
         (await bcrypt.compare(currentPassword, user.password));

@@ -123,14 +123,6 @@ export const getAllUsers = async (req, res) => {
       });
     }
 
-    console.log("Get all users request:", {
-      query: req.query,
-      headers: {
-        "admin-email": req.headers["admin-email"],
-        authorization: req.headers["authorization"] ? "Present" : "Missing",
-      },
-    });
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -144,8 +136,6 @@ export const getAllUsers = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-
-    console.log(`Found ${users.length} users`);
 
     return res.json({
       success: true,
@@ -204,20 +194,9 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    console.log("Update User Request:", {
-      params: req.params,
-      body: req.body,
-      cookies: req.cookies,
-      headers: {
-        "admin-email": req.headers["admin-email"],
-        authorization: req.headers["authorization"] ? "Present" : "Missing",
-      },
-    });
-
     // Check if the user is an admin
     const adminCheck = await isAdmin(req, res);
     if (!adminCheck.valid) {
-      console.log("Admin check failed:", adminCheck.message);
       return res.status(adminCheck.status).json({
         success: false,
         message: adminCheck.message,
@@ -226,11 +205,9 @@ export const updateUser = async (req, res) => {
 
     const { id } = req.params;
     const { name, password } = req.body;
-    console.log(`Admin attempting to update user with ID: ${id}`);
 
     const user = await userModel.findById(id);
     if (!user) {
-      console.log(`User with ID ${id} not found`);
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
@@ -263,17 +240,6 @@ export const updateUser = async (req, res) => {
 // Delete user by ID
 export const deleteUser = async (req, res) => {
   try {
-    // Debug the request to see what's coming in
-    console.log("Delete User Request:", {
-      params: req.params,
-      cookies: req.cookies,
-      headers: {
-        "admin-email": req.headers["admin-email"],
-        authorization: req.headers["authorization"] ? "Present" : "Missing",
-      },
-    });
-
-    // Check if the user is an admin
     const adminCheck = await isAdmin(req, res);
     if (!adminCheck.valid) {
       console.log("Admin check failed:", adminCheck.message);
@@ -309,16 +275,6 @@ export const deleteUser = async (req, res) => {
 // Add User function
 export const addUser = async (req, res) => {
   try {
-    // Log request details for debugging
-    console.log("Add User Request:", {
-      body: req.body,
-      cookies: req.cookies,
-      headers: {
-        "admin-email": req.headers["admin-email"],
-        authorization: req.headers["authorization"] ? "Present" : "Missing",
-      },
-    });
-
     // Check if the user is an admin
     const adminCheck = await isAdmin(req, res);
     if (!adminCheck.valid) {
@@ -359,12 +315,6 @@ export const addUser = async (req, res) => {
     });
 
     await newUser.save();
-
-    console.log("User created successfully:", {
-      id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-    });
 
     return res.status(201).json({
       success: true,
