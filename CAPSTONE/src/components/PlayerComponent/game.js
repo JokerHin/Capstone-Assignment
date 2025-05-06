@@ -611,7 +611,7 @@ class MainScene extends Phaser.Scene {
         // Guide title
         this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.0875), 'GUIDE', {
             fill: '#000000',
-            font: `${this.guideBg.displayWidth*0.07}px 'VT323'`,
+            font: `${this.guideBg.displayWidth*0.07}px 'Jersey 10'`,
             fontStyle: 'bold'
         }).setOrigin(0.5);
         this.guideTitle.setScrollFactor(0);
