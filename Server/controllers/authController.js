@@ -1,5 +1,4 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import userModal from "../models/userModel.js";
 import adminModel from "../models/adminModel.js";
 import transporter from "../config/nodemailer.js";
@@ -7,21 +6,6 @@ import {
   EMAIL_VERIFY_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplates.js";
-
-// Helper function to set cookies based on environment
-const setCookieOptions = (req) => {
-  // Check if request is from production environment
-  const isProduction =
-    req.headers.origin && req.headers.origin.includes("vercel.app");
-
-  return {
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    secure: isProduction,
-    sameSite: isProduction ? "None" : "Lax",
-    domain: isProduction ? ".vercel.app" : undefined,
-  };
-};
 
 export const register = async (req, res) => {
   const { name, email, password, userType = "user" } = req.body;
@@ -47,32 +31,24 @@ export const register = async (req, res) => {
     });
     await user.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    // Set cookie with proper options
-    const cookieOptions = setCookieOptions(req);
-    res.cookie("jwt", token, cookieOptions);
-
     // Sending welcome email
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: email,
-      subject: "Welcome to JokerHins Website",
-      text: `Hello ${name}, welcome to my Website. Your account has been created successfully.`,
+      subject: "Welcome to The Codyssey",
+      text: `Hello ${name}, welcome to The Codyssey. Your account has been created successfully.`,
     };
 
     await transporter.sendMail(mailOptions);
 
-    // Return token in body as well
+    // Return user data without token
     return res.json({
       success: true,
       userData: {
         name: user.name,
+        email: user.email,
         userType: user.userType,
       },
-      token, // Include token in response
     });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -83,129 +59,96 @@ export const login = async (req, res) => {
   try {
     const { email, password, isAdminLogin } = req.body;
 
-    // Check if email and password are provided
     if (!email || !password) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "Email and password are required",
       });
     }
 
-    // Admin login path - only check admin collection
     if (isAdminLogin) {
+      // For admin login, check the adminModel first
       const admin = await adminModel.findOne({ email });
-      const adminUser = !admin
-        ? await userModal.findOne({ email, userType: "admin" })
-        : null;
 
-      if (!admin && !adminUser) {
-        return res.json({
-          success: false,
-          message: "Invalid admin credentials",
-        });
+      if (admin) {
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (isMatch) {
+          // Set email cookie for session tracking
+          res.cookie("email", admin.email, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+          });
+
+          // Return admin data
+          return res.json({
+            success: true,
+            userData: {
+              id: admin._id,
+              name: admin.name || admin.email.split("@")[0],
+              email: admin.email,
+              userType: "admin", // Hardcoded for admins
+            },
+          });
+        }
       }
 
-      const target = admin || adminUser;
-
-      // Check password
-      const isMatch = await bcrypt.compare(password, target.password);
-      if (!isMatch) {
-        return res.json({
-          success: false,
-          message: "Invalid admin credentials",
-        });
-      }
-
-      // Update last login time if it's a property
-      if (target.lastLogin) {
-        target.lastLogin = Date.now();
-        await target.save();
-      }
-
-      // Generate JWT token with admin flag
-      const token = jwt.sign(
-        {
-          id: target._id,
-          userType: "admin", // Add userType to the token payload
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
-      );
-
-      // Set cookie and return token in body
-      const cookieOptions = setCookieOptions(req);
-      res.cookie("jwt", token, cookieOptions);
-
-      return res.json({
-        success: true,
-        message: "Admin login successful",
-        token,
-        userData: {
-          name: target.name,
-          email: target.email,
-          userType: "admin",
-          role: target.role || "administrator",
-        },
+      // If no admin found or password doesn't match, return error
+      return res.status(403).json({
+        success: false,
+        message: "Admin access denied. Invalid credentials.",
       });
     } else {
-      // Regular user login - only check user collection
+      // Regular user login
       const user = await userModal.findOne({ email });
-
-      // If user not found
       if (!user) {
-        return res.json({
+        return res.status(404).json({
           success: false,
-          message: "Invalid email or password",
+          message: "User not found",
         });
       }
 
-      // Check if password is correct
+      // Verify password
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.json({
+        return res.status(401).json({
           success: false,
-          message: "Invalid email or password",
+          message: "Invalid credentials",
         });
       }
 
-      // Generate JWT token for regular user
-      const token = jwt.sign(
-        {
-          id: user._id,
-          userType: user.userType || "user", // Add userType to token payload
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
-      );
+      // Set email cookie for session tracking
+      res.cookie("email", user.email, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
 
-      // Set cookie and return token in body
-      const cookieOptions = setCookieOptions(req);
-      res.cookie("jwt", token, cookieOptions);
-
+      // Return user data (without userType and isAccountVerified)
       return res.json({
         success: true,
-        message: "Login successful",
-        token,
         userData: {
+          id: user._id,
           name: user.name,
           email: user.email,
-          userType: user.userType || "user",
+          // No userType or isAccountVerified
         },
       });
     }
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    });
-
     return res.json({ success: true, message: "Logged Out" });
   } catch (error) {
     return res.json({ success: false, message: error.message });
@@ -283,67 +226,6 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// Check if the user is authenticated
-export const isAuthenticated = async (req, res) => {
-  try {
-    const token = req.cookies.token;
-
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Not authenticated" });
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Determine if this is a user or admin token
-      if (decoded.userId) {
-        const user = await userModal.findById(decoded.userId);
-        if (!user) {
-          return res
-            .status(401)
-            .json({ success: false, message: "User not found" });
-        }
-
-        return res.json({
-          success: true,
-          userData: {
-            name: user.name,
-            email: user.email,
-            userType: user.userType,
-          },
-        });
-      } else if (decoded.adminId) {
-        const admin = await adminModel.findById(decoded.adminId);
-        if (!admin) {
-          return res
-            .status(401)
-            .json({ success: false, message: "Admin not found" });
-        }
-
-        return res.json({
-          success: true,
-          userData: {
-            name: admin.name,
-            email: admin.email,
-            userType: "admin",
-            role: admin.role,
-          },
-        });
-      } else {
-        return res
-          .status(401)
-          .json({ success: false, message: "Invalid token format" });
-      }
-    } catch (error) {
-      return res.status(401).json({ success: false, message: "Invalid token" });
-    }
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
 // Send Password Reset OTP
 export const sendResetOtp = async (req, res) => {
   const { email } = req.body;
@@ -360,21 +242,46 @@ export const sendResetOtp = async (req, res) => {
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
 
-    user.resetOtp = otp;
-    user.resetOtpExpireAt = Date.now() + 15 * 60 * 1000;
+    // Instead of storing OTP in database, set it in a cookie
+    res.cookie("resetOtp", otp, {
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
 
-    await user.save();
+    // Store the email in a cookie to verify user later
+    res.cookie("resetEmail", email, {
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
+
+    // Set expiry timestamp
+    const expireAt = Date.now() + 15 * 60 * 1000;
+    res.cookie("resetOtpExpireAt", expireAt.toString(), {
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
 
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Password Reset OTP",
-      text: `Your OTP for ressetting your password is ${otp}.
-            Use this ITP to proceed with ressetting your password.`,
-      html: PASSWORD_RESET_TEMPLATE.replace("{{otp}}", otp).replace(
-        "{{email}}",
-        user.email
-      ),
+      text: `Your OTP for resetting your password is ${otp}.
+            Use this OTP to proceed with resetting your password.`,
+      html: PASSWORD_RESET_TEMPLATE
+        ? PASSWORD_RESET_TEMPLATE.replace("{{otp}}", otp).replace(
+            "{{email}}",
+            user.email
+          )
+        : `<p>Your OTP is: ${otp}</p>`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -389,6 +296,11 @@ export const sendResetOtp = async (req, res) => {
 export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
+  // Get OTP and expiry from cookies
+  const storedOtp = req.cookies.resetOtp;
+  const storedEmail = req.cookies.resetEmail;
+  const expireAt = Number(req.cookies.resetOtpExpireAt || "0");
+
   if (!email || !otp || !newPassword) {
     return res.json({
       success: false,
@@ -397,26 +309,34 @@ export const resetPassword = async (req, res) => {
   }
 
   try {
+    // Check if email matches the one provided during OTP request
+    if (email !== storedEmail) {
+      return res.json({ success: false, message: "Invalid email" });
+    }
+
+    // Check if OTP is valid
+    if (!storedOtp || storedOtp !== otp) {
+      return res.json({ success: false, message: "Invalid OTP" });
+    }
+
+    // Check if OTP has expired
+    if (expireAt < Date.now()) {
+      return res.json({ success: false, message: "OTP Expired" });
+    }
+
     const user = await userModal.findOne({ email });
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
 
-    if (user.resetOtp === "" || user.resetOtp !== otp) {
-      return res.json({ success: false, message: "Invalid OTP" });
-    }
-
-    if (user.resetOtpExpireAt < Date.now()) {
-      return res.json({ success: false, message: "OTP Expired" });
-    }
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
     user.password = hashedPassword;
-    user.resetOtp = "";
-    user.resetOtpExpireAt = 0;
-
     await user.save();
+
+    // Clear the cookies
+    res.clearCookie("resetOtp");
+    res.clearCookie("resetEmail");
+    res.clearCookie("resetOtpExpireAt");
 
     return res.json({ success: true, message: "Password reset successfully" });
   } catch (error) {
@@ -424,110 +344,53 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// Check if user is authenticated
-export const isAuth = async (req, res) => {
-  try {
-    // Get token from cookies OR Authorization header
-    let token = req.cookies.jwt;
-
-    // If no token in cookies, check authorization header
-    if (!token && req.headers.authorization) {
-      const authHeader = req.headers.authorization;
-      if (authHeader.startsWith("Bearer ")) {
-        token = authHeader.substring(7, authHeader.length);
-      } else {
-        token = authHeader;
-      }
-    }
-
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Not authenticated" });
-    }
-
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Check if user exists
-    let user;
-    if (decoded.id) {
-      user = await userModal.findById(decoded.id);
-    }
-
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found" });
-    }
-
-    // Return user data
-    res.json({
-      success: true,
-      userData: {
-        name: user.name,
-        email: user.email,
-        userType: user.userType || "user",
-      },
-    });
-  } catch (error) {
-    console.error("Auth check error:", error);
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authenticated" });
-  }
-};
-
 // Get current user data
 export const me = async (req, res) => {
   try {
-    // Get token from cookies OR Authorization header
-    let token = req.cookies.jwt;
+    // Now we require credentials to be sent each time
+    const { email, password } = req.body;
 
-    // If no token in cookies, check authorization header
-    if (!token && req.headers.authorization) {
-      const authHeader = req.headers.authorization;
-      if (authHeader.startsWith("Bearer ")) {
-        token = authHeader.substring(7, authHeader.length);
-      } else {
-        token = authHeader;
-      }
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
     }
 
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Not authenticated" });
-    }
-
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Check if user exists
-    let user;
-    if (decoded.id) {
-      user = await userModal.findById(decoded.id);
-    }
+    // Find the user
+    const user = await userModal.findOne({ email });
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found" });
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    // Return user data
-    res.json({
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    // Return user data (without userType and isAccountVerified)
+    return res.json({
       success: true,
       userData: {
+        id: user._id,
         name: user.name,
         email: user.email,
-        userType: user.userType || "user",
+        // No userType
       },
     });
   } catch (error) {
     console.error("Get user data error:", error);
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authenticated" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

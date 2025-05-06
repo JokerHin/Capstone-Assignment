@@ -1,11 +1,13 @@
 import { createContext, useState } from "react";
 import axios from "axios";
-import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 interface UserData {
-  isAccountVerified: boolean;
+  id?: string;
+  isAccountVerified?: boolean;
   name: string;
   email: string;
+  userType?: string;
 }
 
 interface AppContextProps {
@@ -15,6 +17,12 @@ interface AppContextProps {
   userData: UserData | null;
   setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
   getUserData: () => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    isAdmin?: boolean
+  ) => Promise<boolean>;
+  logout: () => void;
 }
 
 export const AppContent = createContext<AppContextProps | undefined>(undefined);
@@ -28,42 +36,89 @@ export const AppContextProvider = ({
   const [isLoggedin, setIsLoggedin] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
 
-  const getUserData = async () => {
+  // Login function
+  const login = async (
+    email: string,
+    password: string,
+    isAdminLogin?: boolean
+  ): Promise<boolean> => {
     try {
-      axios.defaults.withCredentials = true;
+      console.log(`Trying to login with email: ${email}`);
+      console.log(`Login URL: ${backendUrl}/api/auth/login`);
+      console.log(`Is admin login: ${isAdminLogin}`);
 
-      // Add Authorization header with token if available
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-      const { data } = await axios.get(backendUrl + "/api/auth/me", {
-        headers,
-      });
+      // Axios call with correct data format and error handling
+      const { data } = await axios.post(
+        `${backendUrl}/api/auth/login`,
+        {
+          email,
+          password,
+          isAdminLogin: isAdminLogin || false,
+        },
+        {
+          withCredentials: true, // Ensure cookies are properly set
+        }
+      );
 
       if (data.success) {
-        setUserData(data.userData);
         setIsLoggedin(true);
 
-        // Store token in localStorage if not already there
-        if (data.token && !localStorage.getItem("token")) {
+        // Set a simplified userData object to avoid issues with undefined properties
+        const userDataObj: UserData = {
+          id: data.userData?.id,
+          name: data.userData?.name || "",
+          email: data.userData?.email || email,
+        };
+
+        // For admin users, include the userType
+        if (isAdminLogin && data.userData) {
+          userDataObj.userType = "admin";
+        }
+
+        setUserData(userDataObj);
+
+        // Store the auth token if any is returned
+        if (data.token) {
           localStorage.setItem("token", data.token);
         }
+
+        // Store admin email in localStorage for backup auth
+        if (isAdminLogin) {
+          localStorage.setItem("adminEmail", email);
+        }
+
+        return true;
       } else {
-        setIsLoggedin(false);
-        setUserData(null);
-        localStorage.removeItem("token");
+        toast.error(data.message);
+        return false;
       }
     } catch (error: any) {
-      console.error("Error fetching user data:", error);
-      setIsLoggedin(false);
-      setUserData(null);
-      localStorage.removeItem("token");
+      console.error("Login error:", error);
+
+      // Better error message handling
+      const errorMessage =
+        error.response?.data?.message ||
+        "Login failed. Server may be unavailable.";
+      toast.error(errorMessage);
+      return false;
     }
   };
 
-  useEffect(() => {
-    getUserData();
-  }, []);
+  const logout = () => {
+    setIsLoggedin(false);
+    setUserData(null);
+
+    localStorage.removeItem("adminEmail");
+    localStorage.removeItem("token");
+
+    axios
+      .post(backendUrl + "/api/auth/logout")
+      .catch((err) => console.error("Logout error:", err));
+  };
+
+  const getUserData = async () => {
+    return;
+  };
 
   return (
     <AppContent.Provider
@@ -74,6 +129,8 @@ export const AppContextProvider = ({
         userData,
         setUserData,
         getUserData,
+        login,
+        logout,
       }}
     >
       {children}

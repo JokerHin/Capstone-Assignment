@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// email id should be unique
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -14,18 +13,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-  },
-  resetOtp: {
-    type: String,
-    default: "",
-  },
-  resetOtExpireAt: {
-    type: String,
-    default: 0,
-  },
-  userType: {
-    type: String,
-    default: "user",
   },
   createdAt: {
     type: Date,
