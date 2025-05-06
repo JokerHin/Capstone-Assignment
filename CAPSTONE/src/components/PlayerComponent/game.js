@@ -267,9 +267,10 @@ class MainScene extends Phaser.Scene {
 
         //Enter house button
         this.enterButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Enter house', {
-            fontSize: '20px',
+            // fontSize: '20px',
             fill: '#ffffff',
-            backgroundColor: '#000000'
+            backgroundColor: '#000000',
+            font: `${this.gameWidth.displayHeight*0.1}px 'Jersey 10'`
         })
         .setPadding(10)
         .setInteractive() // Make the text clickable
@@ -607,21 +608,14 @@ class MainScene extends Phaser.Scene {
         let scrollScale = (this.gameWidth - 50) / this.guideBg.width;
         this.guideBg.setScale(scrollScale);
     
-        // Add a title
-        // this.guideTitle = this.add.text(this.gameWidth / 2, this.guideBg.y - this.guideBg.displayHeight * 0.4, 'Game Guide', {
-        //     fontSize: `${this.guideBg.displayWidth * 0.05}px`,
-        //     fontStyle: 'bold',
-        //     fill: '#000000'
-        // }).setOrigin(0.5);
-        // this.guideTitle.setScrollFactor(0);
-
-        this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.1), 'GUIDE', {
-            fontStyle: 'bold',
+        // Guide title
+        this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.0875), 'GUIDE', {
             fill: '#000000',
-            font: `${this.guideBg.displayWidth*0.05}px 'Jersey 10'`
+            font: `${this.guideBg.displayWidth*0.07}px 'VT323'`,
+            fontStyle: 'bold'
         }).setOrigin(0.5);
         this.guideTitle.setScrollFactor(0);
-        // this.guideTitle.setLetterSpacing(4);
+        this.guideTitle.setLetterSpacing(2);
 
         // Add guide content
         this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05,
@@ -631,10 +625,10 @@ class MainScene extends Phaser.Scene {
                 fill: '#000000',
                 align: 'center',
                 // wordWrap: { width: this.guideBg.displayWidth * 0.8 },
-                font: `${this.guideBg.displayWidth*0.03}px 'Jersey 10'`
+                font: `${this.guideBg.displayWidth*0.03}px 'VT323'`
             }).setOrigin(0.5);
         this.guideContent.setScrollFactor(0);
-        this.guideContent.setLetterSpacing(2);
+        this.guideContent.setLetterSpacing(0);
 
         // Add a close button
         this.closeGuideButton = this.add.image(this.gameWidth * 0.81, this.gameHeight * 0.3, 'close_icon') // Replace 'close_icon' with your image key
@@ -683,7 +677,7 @@ class MainScene extends Phaser.Scene {
             // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
             fontStyle: 'bold',
             fill: '#000000',
-            font: `${this.inventoryBg.displayWidth*0.05}px 'Jersey 10'`
+            font: `${this.inventoryBg.displayWidth*0.06}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.inventoryTitle.setScrollFactor(0);
         this.inventoryTitle.setLetterSpacing(4);
