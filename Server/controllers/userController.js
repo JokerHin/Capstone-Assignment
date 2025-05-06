@@ -3,45 +3,33 @@ import bcrypt from "bcryptjs";
 
 export const getUserData = async (req, res) => {
   try {
-    // Get user credentials from request body instead of middleware
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+    const { email } = req.body;
+ 
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email is required",
       });
     }
-
-    // Find user by email
+ 
     const user = await userModal.findOne({ email });
-
+ 
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
-
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    // Return user data
-    res.json({
+ 
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    };
+ 
+    return res.json({
       success: true,
-      userData: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        isAccountVerified: user.isAccountVerified,
-        userType: user.userType,
-      },
+      userData: userData,
     });
   } catch (error) {
     console.error("Error getting user data:", error);
