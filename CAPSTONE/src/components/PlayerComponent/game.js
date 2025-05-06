@@ -49,6 +49,8 @@ class MainScene extends Phaser.Scene {
         this.itemDetail = data.itemDetail || {};
         this.userData = data.userData || {};
         console.log("User Data in MainScene:", this.userData);
+        this.player_id = this.userData.id || 1;
+        console.log(this.player_id)
     }
 
     preload() {
@@ -915,11 +917,24 @@ class Game {
 
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
-    this.createLoadingScreen();
-    this.fetchUserData();
-    this.fetchMongo().then(() => {
-      this.startGame(); // Start game only after fetching data
-    });
+    this.initGame();
+  }
+
+  async initGame() {
+    try {
+      this.createLoadingScreen();
+
+      // Wait for fetchUserData to complete
+      await this.fetchUserData();
+
+      // Wait for fetchMongo to complete
+      await this.fetchMongo();
+
+      // Start the game after all data is fetched
+      this.startGame();
+    } catch (error) {
+      console.error("Error initializing the game:", error);
+    }
   }
 
   createLoadingScreen() {
@@ -1111,6 +1126,7 @@ class Game {
       }
 
       this.userData = await response.json(); // Parse the JSON response
+      this.userData = this.userData.userData;
       console.log("Fetched User Data:", this.userData);
     } catch (error) {
       console.error("Error fetching user data:", error);
