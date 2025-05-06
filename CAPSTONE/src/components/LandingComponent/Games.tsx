@@ -22,7 +22,10 @@ const realmsData = [
     points: 1200,
     totalPoints: 2000,
     progress: 60,
-    badge: "./src/assets/badge.png",
+    badge: "/src/assets/badges/badge1.png",
+    badgeTitle: "Blueprint Master",
+    badgeDescription:
+      "Mastered the art of creating and using class blueprints.",
   },
   {
     id: 2,
@@ -39,7 +42,10 @@ const realmsData = [
     points: 800,
     totalPoints: 2000,
     progress: 40,
-    badge: "./src/assets/badge.png",
+    badge: "/src/assets/badges/badge2.png",
+    badgeTitle: "Object Architect",
+    badgeDescription:
+      "Created and manipulated objects with precision and skill.",
   },
   {
     id: 3,
@@ -56,7 +62,9 @@ const realmsData = [
     points: 400,
     totalPoints: 2000,
     progress: 20,
-    badge: "./src/assets/badge.png",
+    badge: "/src/assets/badges/badge3.png",
+    badgeTitle: "Guardian of Secrets",
+    badgeDescription: "Protected data through proper encapsulation techniques.",
   },
   {
     id: 4,
@@ -73,7 +81,10 @@ const realmsData = [
     points: 0,
     totalPoints: 2000,
     progress: 0,
-    badge: "./src/assets/badge.png",
+    badge: "/src/assets/badges/badge4.png",
+    badgeTitle: "Abstraction Adept",
+    badgeDescription:
+      "Simplified complex systems through powerful abstractions.",
   },
   {
     id: 5,
@@ -91,7 +102,9 @@ const realmsData = [
     points: 0,
     totalPoints: 2000,
     progress: 0,
-    badge: "./src/assets/badge.png",
+    badge: "/src/assets/badges/badge5.png",
+    badgeTitle: "Shape Shifter",
+    badgeDescription: "Mastered the art of many forms through polymorphism.",
   },
   {
     id: 6,
@@ -109,7 +122,10 @@ const realmsData = [
     points: 0,
     totalPoints: 2000,
     progress: 0,
-    badge: "./src/assets/badge.png",
+    badge: "/src/assets/badges/badge6.png",
+    badgeTitle: "Legacy Bearer",
+    badgeDescription:
+      "Carried forward the traits of ancestors through inheritance.",
   },
 ];
 
@@ -267,17 +283,31 @@ export default function Games() {
                     </p>
                   </div>
 
-                  <div className="bg-[#262b47] w-[80px] p-3 rounded-lg flex-col justify-center items-center">
+                  {/* Badge with tooltip */}
+                  <div className="bg-[#262b47] w-[80px] p-3 rounded-lg flex-col justify-center items-center relative group">
                     <div>
                       <h4 className="text-sm text-gray-400 text-center">
                         Badge
                       </h4>
                     </div>
-                    <img
-                      src={realmsData[selectedChapter - 1].badge}
-                      alt="Badge"
-                      className="w-12 ml-1"
-                    />
+                    <div className="relative">
+                      <img
+                        src={realmsData[selectedChapter - 1].badge}
+                        alt="Badge"
+                        className="w-12 h-12 ml-1 object-contain transition-transform duration-300 group-hover:scale-110"
+                      />
+
+                      {/* Badge tooltip */}
+                      <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-80 text-white p-2 rounded text-xs w-48 pointer-events-none z-10 -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full">
+                        <div className="font-bold mb-1">
+                          {realmsData[selectedChapter - 1].badgeTitle}
+                        </div>
+                        <div>
+                          {realmsData[selectedChapter - 1].badgeDescription}
+                        </div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full border-4 border-transparent border-t-black/80"></div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Progress */}
