@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 export const getUserData = async (req, res) => {
   try {
     const { email } = req.body;
- 
 
     if (!email) {
       return res.status(400).json({
@@ -14,7 +13,7 @@ export const getUserData = async (req, res) => {
     }
 
     const user = await userModal.findOne({ email });
- 
+
     if (!user) {
       return res.status(404).json({
         success: false,
