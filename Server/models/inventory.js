@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 const InventorySchema = new mongoose.Schema({
-  player_id: { type: Number, required: true },
-  item_id: { type: Number, required: true },
+  player_id: { type: String, required: true },
+  item_id: { type: String, required: true },
   amount: { type: Number },
 }, {
   collection: "inventory", // Explicitly set the collection name
