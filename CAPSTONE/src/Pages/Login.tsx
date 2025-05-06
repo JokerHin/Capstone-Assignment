@@ -42,8 +42,6 @@ export default function Login() {
         });
 
         if (data.success) {
-          localStorage.setItem("userEmail", email);
-
           toast.success("Successfully registered");
           const loginSuccess = await login(email, password);
           if (loginSuccess) {
@@ -56,6 +54,7 @@ export default function Login() {
         const loginSuccess = await login(email, password, isAdminLogin);
 
         if (loginSuccess) {
+          localStorage.setItem("userEmail", email);
           toast.success("Successfully logged in");
           if (isAdminLogin) {
             navigate("/AdminHome");
