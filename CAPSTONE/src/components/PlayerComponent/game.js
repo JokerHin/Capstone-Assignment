@@ -4,11 +4,6 @@ import { Backdrop } from './backdrop.js';
 import { Door } from './door.js';
 import { IndoorScene } from './indoorScene.js';
 
-// import { useContext } from "react";
-// import { AppContent } from "../context/AppContext";
-
-
-
 class MainScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainScene' });
@@ -26,6 +21,7 @@ class MainScene extends Phaser.Scene {
         this.locationId=0;
         this.player_id=1; //need change to cookie player
         this.uistatus=0;
+        this.createLoadingScreen();
     }
 
     init(data) {
@@ -48,6 +44,8 @@ class MainScene extends Phaser.Scene {
         this.npcDetail = data.npcDetail || {};
         this.locationDetail = data.locationDetail || {};
         this.itemDetail = data.itemDetail || {};
+        this.userData = data.userData || {};
+        console.log("User Data in MainScene:", this.userData);
     }
 
     preload() {
@@ -93,6 +91,97 @@ class MainScene extends Phaser.Scene {
 
         for (let item of Object.values(this.itemDetail)){
             this.load.image(item.tag, `../assets/${item.img}`);
+        }
+    }
+
+    createLoadingScreen() {
+        // Create a loading screen container
+        this.loadingScreen = document.createElement('div');
+        this.loadingScreen.id = 'loading-screen';
+        this.loadingScreen.style.position = 'fixed';
+        this.loadingScreen.style.top = '0';
+        this.loadingScreen.style.left = '0';
+        this.loadingScreen.style.width = '100%';
+        this.loadingScreen.style.height = '100%';
+        this.loadingScreen.style.backgroundColor = '#000';
+        this.loadingScreen.style.display = 'flex';
+        this.loadingScreen.style.flexDirection = 'column';
+        this.loadingScreen.style.justifyContent = 'center';
+        this.loadingScreen.style.alignItems = 'center';
+        this.loadingScreen.style.zIndex = '1000';
+
+        // Add the logo
+        const logo = document.createElement('img');
+        logo.src = '../assets/logo.png'; // Path to the logo image
+        logo.alt = 'Game Logo';
+        logo.className = 'logo'; // Add the 'logo' class for animation
+        // logo.style.width = '150px'; // Adjust the size of the logo
+        // logo.style.marginBottom = '20px'; // Add spacing below the logo
+        this.loadingScreen.appendChild(logo);
+
+        // Add a spinner
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        spinner.style.width = '60px';
+        spinner.style.height = '60px';
+        spinner.style.border = '5px solid #4E2900';
+        spinner.style.borderTop = '5px solid #ff8800';
+        spinner.style.borderRadius = '50%';
+        spinner.style.animation = 'spin 1s ease-in-out infinite';
+        this.loadingScreen.appendChild(spinner);
+
+        // Add loading text
+        this.loadingText = document.createElement('p');
+        this.loadingText.textContent = 'Loading your adventure...';
+        this.loadingText.style.color = '#fff';
+        // this.loadingText.style.fontSize = '20px';
+        // this.loadingText.style.marginTop = '20px';
+        this.loadingScreen.appendChild(this.loadingText);
+
+        // Append the loading screen to the body
+        document.body.appendChild(this.loadingScreen);
+
+        // Add spinner animation
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .logo {
+                max-width: 200px;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes pulse {
+                0% {
+                    opacity: 0.8;
+                    transform: scale(0.95);
+                }
+                50% {
+                    opacity: 1;
+                    transform: scale(1.05);
+                }
+                100% {
+                    opacity: 0.8;
+                    transform: scale(0.95);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    updateLoadingScreen(percentage) {
+        // Update the loading text with the percentage
+        this.loadingText.textContent = `Loading... ${percentage}%`;
+    }
+
+    removeLoadingScreen() {
+        // Remove the loading screen from the DOM
+        if (this.loadingScreen) {
+            document.body.removeChild(this.loadingScreen);
         }
     }
 
@@ -251,8 +340,19 @@ class MainScene extends Phaser.Scene {
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setBounds(0, 0, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
         this.physics.world.setBounds(0, 0, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
+
+        // this.physics.world.setBounds(this.current_bg.width*this.zoomFactor*-1, this.current_bg.height*this.zoomFactor*-1, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
         this.player.setCollideWorldBounds(true); // Prevent the player from moving outside the bounds
         // this.movementSpeed = this.movementSpeed/zoomFactor;
+
+        // const collisionLayer = this.physics.add.staticImage(0, 0, "town_obstacle");
+        // collisionLayer.setOrigin(0, 0); // Align to the top-left corner
+        // collisionLayer.setScale(this.zoomFactor); // Scale if needed
+        // collisionLayer.body.setSize(
+        //     collisionLayer.displayWidth,
+        //     collisionLayer.displayHeight
+        // ).setOffset(0, 0);
+        // this.physics.add.collider(this.player, collisionLayer);
 
         //initiate first quest for new user
         fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
@@ -266,6 +366,8 @@ class MainScene extends Phaser.Scene {
             status: "In Progress",
             }),
         });
+
+        this.removeLoadingScreen();
     }
 
     update() {
@@ -339,7 +441,7 @@ class MainScene extends Phaser.Scene {
         let activeSubQuest = this.registry.get("activeSubQuest");
 
         let posData = this.position.filter(position => position.location_id === this.locationId && (position.subquest_id === activeSubQuest || position.subquest_id === null));
-        console.log(posData);
+        console.log("Npc positions:",posData);
 
         for (let pos of posData){ //loop through all npc
             let coordinate = pos.coordinates;
@@ -506,29 +608,34 @@ class MainScene extends Phaser.Scene {
         this.guideBg.setScale(scrollScale);
     
         // Add a title
-        this.guideTitle = this.add.text(this.gameWidth / 2, this.guideBg.y - this.guideBg.displayHeight * 0.4, 'Game Guide', {
-            fontSize: `${this.guideBg.displayWidth * 0.05}px`,
+        // this.guideTitle = this.add.text(this.gameWidth / 2, this.guideBg.y - this.guideBg.displayHeight * 0.4, 'Game Guide', {
+        //     fontSize: `${this.guideBg.displayWidth * 0.05}px`,
+        //     fontStyle: 'bold',
+        //     fill: '#000000'
+        // }).setOrigin(0.5);
+        // this.guideTitle.setScrollFactor(0);
+
+        this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.1), 'GUIDE', {
             fontStyle: 'bold',
-            fill: '#000000'
+            fill: '#000000',
+            font: `${this.guideBg.displayWidth*0.05}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.guideTitle.setScrollFactor(0);
-    
+        // this.guideTitle.setLetterSpacing(4);
+
         // Add guide content
-        this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y, 
-            'Welcome to the game! Here are some tips:\n\n' +
-            '- Use W/A/S/D or Arrow keys to move.\n' +
-            '- Click on NPCs to interact with them.\n' +
-            '- Open your inventory to manage items.\n' +
-            '- Complete quests to progress in the game.\n\n' +
-            'Good luck and have fun!', 
+        this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05,
+            'Use W/A/S/D or Arrow keys to move.\n' +
+            'Click on NPCs to interact with them.\n',
             {
-                fontSize: `${this.guideBg.displayWidth * 0.03}px`,
                 fill: '#000000',
                 align: 'center',
-                wordWrap: { width: this.guideBg.displayWidth * 0.8 }
+                // wordWrap: { width: this.guideBg.displayWidth * 0.8 },
+                font: `${this.guideBg.displayWidth*0.03}px 'Jersey 10'`
             }).setOrigin(0.5);
         this.guideContent.setScrollFactor(0);
-    
+        this.guideContent.setLetterSpacing(2);
+
         // Add a close button
         this.closeGuideButton = this.add.image(this.gameWidth * 0.81, this.gameHeight * 0.3, 'close_icon') // Replace 'close_icon' with your image key
             .setScale(this.gameWidth / 2e4) // Scale the image if needed
@@ -572,12 +679,14 @@ class MainScene extends Phaser.Scene {
         this.inventoryBg.setScale(scrollScale);
 
         // Add a title
-        this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.0875), 'Inventory', {
-            fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
+        this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.1), 'INVENTORY', {
+            // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
             fontStyle: 'bold',
-            fill: '#000000'
+            fill: '#000000',
+            font: `${this.inventoryBg.displayWidth*0.05}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.inventoryTitle.setScrollFactor(0);
+        this.inventoryTitle.setLetterSpacing(4);
 
         // Display inventory items
         this.inventoryItems = [];
@@ -586,7 +695,7 @@ class MainScene extends Phaser.Scene {
         let categoryLength = this.inventoryBg.displayWidth*0.05;
         let categoryGap = this.inventoryBg.displayHeight * 0.02;
         let categoryStartX = this.gameWidth*0.3;
-        let categoryStartY = this.inventoryTitle.y*1.35;
+        let categoryStartY = this.inventoryBg.y*1.3 - categoryLength*1.5 - categoryGap;
 
         // Category 1
         let category1 = this.add.graphics();
@@ -673,14 +782,14 @@ class MainScene extends Phaser.Scene {
             return itemDetails && catItemType.includes(itemDetails.type); // Check if the type matches
         });
 
-        let startX = this.gameWidth*0.4;
-        let startY = this.inventoryTitle.y*1.2;
-        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
-        let itemsPerRow = 5;
-        let totalSlots = 15; // Fixed number of slots
         let itemLength = this.inventoryBg.displayWidth*0.045;
         let itemGapX = this.inventoryBg.displayWidth*0.02;
         let itemGapY = this.inventoryBg.displayHeight*0.008;
+        let startX = this.gameWidth*0.4;
+        let startY = this.inventoryBg.y*1.1 - itemLength*1.5 - itemGapY;
+        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
+        let itemsPerRow = 5;
+        let totalSlots = 15; // Fixed number of slots
 
         for (let i = 0; i < totalSlots; i++) {
             let x = startX + (i % itemsPerRow) * (itemLength+itemGapX);
@@ -756,46 +865,16 @@ class MainScene extends Phaser.Scene {
         this.menuBg.setScale(scrollScale);
     
         // Add "Game Paused" text
-        this.menuTitle = this.add.text(this.gameWidth / 2, (this.menuBg.y - this.menuBg.displayHeight * 0.0875), 'Game Paused', {
-            fontSize: `${this.menuBg.displayWidth*0.03}px`,
+        this.menuTitle = this.add.text(this.gameWidth / 2, (this.menuBg.y - this.menuBg.displayHeight * 0.0875), 'GAME PAUSED', {
             fill: '#000000',
-            fontFamily: 'Tagesschrift'
+            font: `${this.menuBg.displayWidth*0.07}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.menuTitle.setScrollFactor(0);
-    
-        // Add Resume button
-        // this.resumeButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, 'Resume', {
-        //     fontSize: '32px',
-        //     fill: '#000000',
-        //     // backgroundColor: '#000000',
-        //     fontFamily: 'Tagesschrift',
-        //     padding: { x: 10, y: 5 }
-        // })
-        // .setOrigin(0.5)
-        // .setInteractive()
-        // .on('pointerdown', () => {
-        //     this.closeMenu(); // Resume the game
-        // });
-        // this.resumeButton.setScrollFactor(0);
-    
-        // // Add Save & Exit button
-        // this.saveExitButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 50, 'Save & Exit', {
-        //     fontSize: '32px',
-        //     fill: '#000000',
-        //     // backgroundColor: '#000000',
-        //     fontFamily: 'Tagesschrift',
-        //     padding: { x: 10, y: 5 }
-        // })
-        // .setOrigin(0.5)
-        // .setInteractive()
-        // .on('pointerdown', () => {
-        //     this.saveAndExit(); // Save the game and exit
-        // });
-        // this.saveExitButton.setScrollFactor(0);
+        this.menuTitle.setLetterSpacing(2);
 
         // Add Resume button as an image
         this.resumeButton = this.add.image(this.gameWidth / 2, this.gameHeight * 0.48, 'resume_icon') // Replace 'resume_icon' with your image key
-        .setScale(this.gameWidth / 1e4) // Scale the image if needed
+        .setScale(this.gameWidth / 8e3) // Scale the image if needed
         .setInteractive()
         .on('pointerdown', () => {
             this.closeMenu(); // Resume the game
@@ -804,7 +883,7 @@ class MainScene extends Phaser.Scene {
 
     // Add Save & Exit button as an image
     this.saveExitButton = this.add.image(this.gameWidth / 2, this.gameHeight * 0.63, 'exit_icon') // Replace 'exit_icon' with your image key
-        .setScale(this.gameWidth / 1e4) // Scale the image if needed
+        .setScale(this.gameWidth / 8e3) // Scale the image if needed
         .setInteractive()
         .on('pointerdown', () => {
             this.saveAndExit(); // Save the game and exit
@@ -835,16 +914,106 @@ class MainScene extends Phaser.Scene {
 
 class Game {
     constructor() {
-        // this.dialogue = {}; // Store dialogues from API
-        // this.quest = {};
-        // this.door = {};
-        // this.location = {};
-        // this.npc = {};
+        this.userData = {};
+
         this.gameWidth = window.innerWidth;
         this.gameHeight = window.innerHeight;
+        this.createLoadingScreen();
+        this.fetchUserData();
         this.fetchMongo().then(() => {
             this.startGame(); // Start game only after fetching data
         });
+    }
+
+    createLoadingScreen() {
+        // Create a loading screen container
+        this.loadingScreen = document.createElement('div');
+        this.loadingScreen.id = 'loading-screen';
+        this.loadingScreen.style.position = 'fixed';
+        this.loadingScreen.style.top = '0';
+        this.loadingScreen.style.left = '0';
+        this.loadingScreen.style.width = '100%';
+        this.loadingScreen.style.height = '100%';
+        this.loadingScreen.style.backgroundColor = '#000';
+        this.loadingScreen.style.display = 'flex';
+        this.loadingScreen.style.flexDirection = 'column';
+        this.loadingScreen.style.justifyContent = 'center';
+        this.loadingScreen.style.alignItems = 'center';
+        this.loadingScreen.style.zIndex = '1000';
+
+        // Add the logo
+        const logo = document.createElement('img');
+        logo.src = '../assets/logo.png'; // Path to the logo image
+        logo.alt = 'Game Logo';
+        logo.className = 'logo'; // Add the 'logo' class for animation
+        // logo.style.width = '150px'; // Adjust the size of the logo
+        // logo.style.marginBottom = '20px'; // Add spacing below the logo
+        this.loadingScreen.appendChild(logo);
+
+        // Add a spinner
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        spinner.style.width = '60px';
+        spinner.style.height = '60px';
+        spinner.style.border = '5px solid #4E2900';
+        spinner.style.borderTop = '5px solid #ff8800';
+        spinner.style.borderRadius = '50%';
+        spinner.style.animation = 'spin 1s ease-in-out infinite';
+        this.loadingScreen.appendChild(spinner);
+
+        // Add loading text
+        this.loadingText = document.createElement('p');
+        this.loadingText.textContent = 'Loading your adventure...';
+        this.loadingText.style.color = '#fff';
+        // this.loadingText.style.fontSize = '20px';
+        // this.loadingText.style.marginTop = '20px';
+        this.loadingScreen.appendChild(this.loadingText);
+
+        // Append the loading screen to the body
+        document.body.appendChild(this.loadingScreen);
+
+        // Add spinner animation
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .logo {
+                max-width: 200px;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes pulse {
+                0% {
+                    opacity: 0.8;
+                    transform: scale(0.95);
+                }
+                50% {
+                    opacity: 1;
+                    transform: scale(1.05);
+                }
+                100% {
+                    opacity: 0.8;
+                    transform: scale(0.95);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    updateLoadingScreen(percentage) {
+        // Update the loading text with the percentage
+        this.loadingText.textContent = `Loading... ${percentage}%`;
+    }
+
+    removeLoadingScreen() {
+        // Remove the loading screen from the DOM
+        if (this.loadingScreen) {
+            document.body.removeChild(this.loadingScreen);
+        }
     }
 
     fetchMongo = async () => {
@@ -911,6 +1080,29 @@ class Game {
         }
     };
 
+    async fetchUserData() {
+        try {
+            const response = await fetch('https://capstone-assignment-36lq.vercel.app/api/user/data', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Include cookies if needed for authentication
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user data: ${response.statusText}`);
+            }
+    
+            this.userData = await response.json(); // Parse the JSON response
+            console.log('Fetched User Data:', this.userData);
+            return this.userData;
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            return null; // Return null if fetching fails
+        }
+    }
+
     startGame() {
         // const appContext = useContext(AppContent);
 
@@ -921,6 +1113,10 @@ class Game {
         // const { userData } = appContext;
 
         // console.log("Current User:", userData);
+
+        console.log("Starting game with user data:", this.userData);
+
+        this.removeLoadingScreen();
 
         this.config = {
             type: Phaser.AUTO,
@@ -957,7 +1153,8 @@ class Game {
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail,
-            itemDetail: this.itemDetail
+            itemDetail: this.itemDetail,
+            userData: this.userData,
         });
     }
 }

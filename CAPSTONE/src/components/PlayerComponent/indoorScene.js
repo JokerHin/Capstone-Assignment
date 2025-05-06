@@ -461,12 +461,14 @@ export class IndoorScene extends Phaser.Scene {
         this.inventoryBg.setScale(scrollScale);
 
         // Add a title
-        this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.0875), 'Inventory', {
-            fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
+        this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.1), 'INVENTORY', {
+            // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
             fontStyle: 'bold',
-            fill: '#000000'
+            fill: '#000000',
+            font: `${this.inventoryBg.displayWidth*0.05}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.inventoryTitle.setScrollFactor(0);
+        this.inventoryTitle.setLetterSpacing(4);
 
         // Display inventory items
         this.inventoryItems = [];
@@ -475,7 +477,7 @@ export class IndoorScene extends Phaser.Scene {
         let categoryLength = this.inventoryBg.displayWidth*0.05;
         let categoryGap = this.inventoryBg.displayHeight * 0.02;
         let categoryStartX = this.gameWidth*0.3;
-        let categoryStartY = this.inventoryTitle.y*1.35;
+        let categoryStartY = this.inventoryBg.y*1.3 - categoryLength*1.5 - categoryGap;
 
         // Category 1
         let category1 = this.add.graphics();
@@ -562,14 +564,14 @@ export class IndoorScene extends Phaser.Scene {
             return itemDetails && catItemType.includes(itemDetails.type); // Check if the type matches
         });
 
-        let startX = this.gameWidth*0.4;
-        let startY = this.inventoryTitle.y*1.2;
-        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
-        let itemsPerRow = 5;
-        let totalSlots = 15; // Fixed number of slots
         let itemLength = this.inventoryBg.displayWidth*0.045;
         let itemGapX = this.inventoryBg.displayWidth*0.02;
         let itemGapY = this.inventoryBg.displayHeight*0.008;
+        let startX = this.gameWidth*0.4;
+        let startY = this.inventoryBg.y*1.1 - itemLength*1.5 - itemGapY;
+        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
+        let itemsPerRow = 5;
+        let totalSlots = 15; // Fixed number of slots
 
         for (let i = 0; i < totalSlots; i++) {
             let x = startX + (i % itemsPerRow) * (itemLength+itemGapX);
@@ -645,42 +647,30 @@ export class IndoorScene extends Phaser.Scene {
         this.menuBg.setScale(scrollScale);
     
         // Add "Game Paused" text
-        this.menuTitle = this.add.text(this.gameWidth / 2, this.menuBg.y - (this.menuBg.displayHeight / 8) + 70, 'Game Paused', {
-            fontSize: '48px',
+        this.menuTitle = this.add.text(this.gameWidth / 2, (this.menuBg.y - this.menuBg.displayHeight * 0.0875), 'GAME PAUSED', {
             fill: '#000000',
-            fontFamily: 'Tagesschrift'
+            font: `${this.menuBg.displayWidth*0.07}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.menuTitle.setScrollFactor(0);
-    
-        // Add Resume button
-        this.resumeButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, 'Resume', {
-            fontSize: '32px',
-            fill: '#000000',
-            // backgroundColor: '#000000',
-            fontFamily: 'Tagesschrift',
-            padding: { x: 10, y: 5 }
-        })
-        .setOrigin(0.5)
+        this.menuTitle.setLetterSpacing(2);
+
+        // Add Resume button as an image
+        this.resumeButton = this.add.image(this.gameWidth / 2, this.gameHeight * 0.48, 'resume_icon') // Replace 'resume_icon' with your image key
+        .setScale(this.gameWidth / 8e3) // Scale the image if needed
         .setInteractive()
         .on('pointerdown', () => {
             this.closeMenu(); // Resume the game
         });
-        this.resumeButton.setScrollFactor(0);
-    
-        // Add Save & Exit button
-        this.saveExitButton = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 50, 'Save & Exit', {
-            fontSize: '32px',
-            fill: '#000000',
-            // backgroundColor: '#000000',
-            fontFamily: 'Tagesschrift',
-            padding: { x: 10, y: 5 }
-        })
-        .setOrigin(0.5)
+    this.resumeButton.setScrollFactor(0);
+
+    // Add Save & Exit button as an image
+    this.saveExitButton = this.add.image(this.gameWidth / 2, this.gameHeight * 0.63, 'exit_icon') // Replace 'exit_icon' with your image key
+        .setScale(this.gameWidth / 8e3) // Scale the image if needed
         .setInteractive()
         .on('pointerdown', () => {
             this.saveAndExit(); // Save the game and exit
         });
-        this.saveExitButton.setScrollFactor(0);
+    this.saveExitButton.setScrollFactor(0);
     }
 
     closeMenu() {
