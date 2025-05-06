@@ -2,262 +2,212 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
+import { Pencil } from "lucide-react";
 
-interface Achievement {
-  _id?: string;
-  id?: number;
+// Update the Badge interface to allow string for rarity
+interface Badge {
+  _id: string;
+  item_id?: number;
   name: string;
-  description?: string; // Made optional
-  points?: number; // Made optional
-  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
-  game: string;
+  description?: string;
+  rarity?: string;
+  game?: string;
+  points?: number;
+  image?: string;
 }
 
+// Updated to only show and edit badges, not add or delete
 const AdminAchievements: React.FC = () => {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [newAchievementModal, setNewAchievementModal] = useState(false);
+  const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newAchievement, setNewAchievement] = useState<Achievement>({
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [currentBadge, setCurrentBadge] = useState<Badge | null>(null);
+  const [editForm, setEditForm] = useState({
     name: "",
-    rarity: "common",
-    game: "All Games",
+    description: "",
   });
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentAchievementId, setCurrentAchievementId] = useState<
-    string | null
-  >(null);
 
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl } = appContext;
+  const { backendUrl, isLoggedin } = appContext;
 
-  // Fetch all achievements when component mounts
+  // Simplified makeRequest function
+  const makeRequest = async (endpoint: string, options: any = {}) => {
+    try {
+      return await axios({
+        url: `${backendUrl}${endpoint}`,
+        method: options.method || "GET",
+        data: options.data,
+        withCredentials: true,
+      });
+    } catch (error) {
+      console.error("API request error:", error);
+      return null;
+    }
+  };
+
+  // Fetch badges - simplified without demo data
   useEffect(() => {
-    fetchAchievements();
-  }, []);
+    if (isLoggedin) {
+      fetchBadges();
+    } else {
+      setLoading(false);
+      toast.error("Please log in as an administrator to access achievements");
+    }
+  }, [backendUrl, isLoggedin]);
 
-  // Fetch achievements from API
-  const fetchAchievements = async () => {
+  const fetchBadges = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${backendUrl}/api/admin/achievements`);
 
-      if (data.success) {
-        setAchievements(data.achievements);
+      // Make authenticated request
+      const response = await makeRequest("/api/admin/achievements");
+
+      if (response && response.data.success) {
+        setBadges(response.data.achievements);
       } else {
-        toast.error(data.message || "Failed to fetch achievements");
+        toast.error("Failed to fetch achievements. Please try again later.");
+        setBadges([]);
       }
     } catch (error: any) {
+      console.error("Error fetching achievements:", error);
       toast.error(
-        error.response?.data?.message || "Error loading achievements"
+        "Authentication error. Please login as admin to view achievements."
       );
+      setBadges([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle creating or updating an achievement
-  const handleSaveAchievement = async () => {
-    try {
-      if (!newAchievement.name) {
-        toast.error("Name is required");
-        return;
-      }
-
-      if (isEditing && currentAchievementId) {
-        // Update existing achievement
-        const { data } = await axios.put(
-          `${backendUrl}/api/admin/achievements/${currentAchievementId}`,
-          newAchievement
-        );
-
-        if (data.success) {
-          toast.success("Achievement updated successfully");
-          fetchAchievements();
-          resetAndCloseModal();
-        } else {
-          toast.error(data.message || "Failed to update achievement");
-        }
-      } else {
-        // Create new achievement
-        const { data } = await axios.post(
-          `${backendUrl}/api/admin/achievements`,
-          newAchievement
-        );
-
-        if (data.success) {
-          toast.success("Achievement created successfully");
-          fetchAchievements();
-          resetAndCloseModal();
-        } else {
-          toast.error(data.message || "Failed to create achievement");
-        }
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Error saving achievement");
-    }
-  };
-
-  // Handle deleting an achievement
-  const handleDeleteAchievement = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this achievement?"))
-      return;
-
-    try {
-      const { data } = await axios.delete(
-        `${backendUrl}/api/admin/achievements/${id}`
-      );
-
-      if (data.success) {
-        toast.success("Achievement deleted successfully");
-        fetchAchievements();
-      } else {
-        toast.error(data.message || "Failed to delete achievement");
-      }
-    } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Error deleting achievement"
-      );
-    }
-  };
-
-  // Handle editing an achievement
-  const handleEditAchievement = (achievement: Achievement) => {
-    setIsEditing(true);
-    setCurrentAchievementId(achievement._id || null);
-    setNewAchievement({
-      name: achievement.name,
-      rarity: achievement.rarity,
-      game: achievement.game,
+  // Handle editing a badge
+  const handleEditBadge = (badge: Badge) => {
+    setCurrentBadge(badge);
+    setEditForm({
+      name: badge.name,
+      description: badge.description || "",
     });
-    setNewAchievementModal(true);
-  };
-
-  // Reset form and close modal
-  const resetAndCloseModal = () => {
-    setNewAchievement({
-      name: "",
-      rarity: "common",
-      game: "All Games",
-    });
-    setIsEditing(false);
-    setCurrentAchievementId(null);
-    setNewAchievementModal(false);
+    setEditModalOpen(true);
   };
 
   // Handle form input changes
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setNewAchievement((prev) => ({
+    setEditForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  // Open the modal for creating a new achievement
-  const openNewAchievementModal = () => {
-    resetAndCloseModal();
-    setNewAchievementModal(true);
+  // Handle saving badge edits - UPDATED to use POST with correct path
+  const handleSaveBadge = async () => {
+    if (!currentBadge) return;
+
+    try {
+      if (!editForm.name.trim()) {
+        toast.error("Name is required");
+        return;
+      }
+
+      // Use POST with the correct path structure
+      const response = await makeRequest(
+        `/api/admin/achievements/${currentBadge._id}/update`,
+        {
+          method: "POST", // Explicitly set POST method
+          data: editForm,
+        }
+      );
+
+      if (response && response.data.success) {
+        toast.success("Badge updated successfully");
+        // Update the badge in the local state
+        setBadges((prev) =>
+          prev.map((badge) =>
+            badge._id === currentBadge._id
+              ? {
+                  ...badge,
+                  name: editForm.name,
+                  description: editForm.description,
+                }
+              : badge
+          )
+        );
+        closeEditModal();
+      } else {
+        toast.error("Failed to update badge");
+      }
+    } catch (error: any) {
+      toast.error("Error updating badge");
+    }
+  };
+
+  // Close the edit modal
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setCurrentBadge(null);
+    setEditForm({ name: "", description: "" });
+  };
+
+  // Get badge image URL based on index
+  const getBadgeImage = (index: number) => {
+    const badgeNumber = (index % 6) + 1;
+    return `/src/assets/badges/badge${badgeNumber}.png`;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Achievements</h1>
-        <button
-          className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded cursor-pointer"
-          onClick={openNewAchievementModal}
-        >
-          Add Achievement
-        </button>
+        <h1 className="text-3xl font-bold">Achievement Badges</h1>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="text-gray-300">Loading achievements...</div>
+          <div className="text-gray-300">Loading badges...</div>
         </div>
-      ) : achievements.length === 0 ? (
+      ) : badges.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <div className="text-gray-300">
-            No achievements found. Add your first one!
+            {isLoggedin
+              ? "No badges found."
+              : "Please log in as an administrator to view badges."}
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {achievements.map((achievement) => (
+          {badges.map((badge, index) => (
             <div
-              key={achievement._id || achievement.id}
+              key={badge._id}
               className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"
             >
-              <div
-                className={`h-2 ${
-                  achievement.rarity === "common"
-                    ? "bg-gray-400"
-                    : achievement.rarity === "uncommon"
-                    ? "bg-green-500"
-                    : achievement.rarity === "rare"
-                    ? "bg-blue-500"
-                    : achievement.rarity === "epic"
-                    ? "bg-purple-500"
-                    : "bg-yellow-500"
-                }`}
-              ></div>
+              <div className="h-2 bg-orange-500"></div>
               <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-xl font-bold text-white">
-                    {achievement.name}
-                  </h3>
-                </div>
-
-                <div className="mt-4 flex justify-between items-center text-sm">
-                  <div className="text-gray-500">
-                    Game:{" "}
-                    <span className="text-gray-300">{achievement.game}</span>
-                  </div>
-                  <div className="text-gray-500">
-                    Rarity:{" "}
-                    <span
-                      className={`
-                      ${
-                        achievement.rarity === "common"
-                          ? "text-gray-300"
-                          : achievement.rarity === "uncommon"
-                          ? "text-green-400"
-                          : achievement.rarity === "rare"
-                          ? "text-blue-400"
-                          : achievement.rarity === "epic"
-                          ? "text-purple-400"
-                          : "text-yellow-400"
-                      }
-                    `}
-                    >
-                      {achievement.rarity.charAt(0).toUpperCase() +
-                        achievement.rarity.slice(1)}
-                    </span>
+                <div className="flex flex-col items-center mb-6">
+                  <img
+                    src={getBadgeImage(index)}
+                    alt={badge.name}
+                    className="w-24 h-24 mb-4 object-contain"
+                  />
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-white">
+                      {badge.name}
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-2">
+                      {badge.description || "No description"}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-4 flex space-x-2">
+                <div className="mt-4">
                   <button
-                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-1 rounded text-sm cursor-pointer"
-                    onClick={() => handleEditAchievement(achievement)}
+                    className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded text-sm cursor-pointer flex items-center justify-center w-full"
+                    onClick={() => handleEditBadge(badge)}
                   >
-                    Edit
-                  </button>
-                  <button
-                    className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 py-1 rounded text-sm cursor-pointer"
-                    onClick={() =>
-                      handleDeleteAchievement(achievement._id || "")
-                    }
-                  >
-                    Delete
+                    <Pencil size={14} className="mr-2" /> Edit Badge Details
                   </button>
                 </div>
               </div>
@@ -266,12 +216,12 @@ const AdminAchievements: React.FC = () => {
         </div>
       )}
 
-      {/* Achievement Modal for Create/Edit */}
-      {newAchievementModal && (
+      {/* Edit Badge Modal */}
+      {editModalOpen && currentBadge && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-slate-800 p-8 rounded-lg max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4">
-              {isEditing ? "Edit Achievement" : "Add New Achievement"}
+              Edit Badge: {currentBadge.name}
             </h2>
             <div className="space-y-4">
               <div>
@@ -281,63 +231,39 @@ const AdminAchievements: React.FC = () => {
                 <input
                   type="text"
                   name="name"
-                  value={newAchievement.name}
+                  value={editForm.name}
                   onChange={handleInputChange}
                   className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                  placeholder="Achievement name"
+                  placeholder="Badge name"
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Rarity
-                  </label>
-                  <select
-                    name="rarity"
-                    value={newAchievement.rarity}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                  >
-                    <option value="common">Common</option>
-                    <option value="uncommon">Uncommon</option>
-                    <option value="rare">Rare</option>
-                    <option value="epic">Epic</option>
-                    <option value="legendary">Legendary</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Game
-                  </label>
-                  <select
-                    name="game"
-                    value={newAchievement.game}
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                  >
-                    <option value="All Games">All Games</option>
-                    <option value="Debug Detective">Debug Detective</option>
-                    <option value="Algorithm Adventure">
-                      Algorithm Adventure
-                    </option>
-                    <option value="Function Fighter">Function Fighter</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={editForm.description}
+                  onChange={handleInputChange}
+                  className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                  placeholder="Badge description"
+                  rows={3}
+                />
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded"
-                onClick={resetAndCloseModal}
+                onClick={closeEditModal}
               >
                 Cancel
               </button>
               <button
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
-                onClick={handleSaveAchievement}
+                onClick={handleSaveBadge}
               >
-                {isEditing ? "Update" : "Create"}
+                Save Changes
               </button>
             </div>
           </div>

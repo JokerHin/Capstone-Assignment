@@ -12,7 +12,6 @@ import {
 import axios from "axios";
 import { AppContent } from "../../context/AppContext";
 import { toast } from "react-toastify";
-import BadgeImg from "../../assets/badge.png";
 
 // Sample data for the leaderboard
 const leaderboardData = [
@@ -29,7 +28,8 @@ const leaderboardData = [
 ];
 
 const AdminOverview: React.FC = () => {
-  const [userData, setUserData] = useState<
+  // Rename userData to monthlyUserData to fix variable conflict
+  const [monthlyUserData, setMonthlyUserData] = useState<
     Array<{ name: string; users: number }>
   >([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -46,12 +46,15 @@ const AdminOverview: React.FC = () => {
   const [realmsLoading, setRealmsLoading] = useState(true);
   const [subquestsLoading, setSubquestsLoading] = useState(true);
 
+  // Remove admin credential state and forms
+  const [useDefaultData, setUseDefaultData] = useState(false);
+
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl } = appContext;
+  const { backendUrl, userData: contextUserData, isLoggedin } = appContext;
 
   // Scroll the badges container horizontally
   const scrollBadges = (direction: "left" | "right") => {
@@ -64,41 +67,63 @@ const AdminOverview: React.FC = () => {
     }
   };
 
-  // Fetch user data
+  // Fetch user data - simplified to use already logged in state
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-
-        // Add token to request headers
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-        const { data } = await axios.get(`${backendUrl}/api/admin/user-stats`, {
-          headers,
-          withCredentials: true,
-        });
-
-        if (data.success) {
-          // Process monthly data
-          const monthlyData = processMonthlyData(data.monthlyStats);
-          setUserData(monthlyData);
-          setTotalUsers(data.totalUsers || 0);
-        } else {
-          setError("Failed to fetch user data");
-          toast.error(data.message);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError("Failed to fetch user data");
-        toast.error("Error loading user statistics");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserData();
-  }, [backendUrl]);
+  }, [backendUrl, isLoggedin]);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+
+      if (!isLoggedin || !contextUserData || useDefaultData) {
+        console.log("Using demo data for admin overview");
+        const demoData = getDefaultMonthlyData();
+        setMonthlyUserData(demoData);
+        setTotalUsers(125);
+        return;
+      }
+
+      if (contextUserData.userType !== "admin") {
+        console.log("User is not an admin, using demo data");
+        const demoData = getDefaultMonthlyData();
+        setMonthlyUserData(demoData);
+        setTotalUsers(125);
+        setUseDefaultData(true);
+        return;
+      }
+
+      // Get auth token
+      const token = localStorage.getItem("token");
+      const headers: any = {};
+
+      headers["admin-email"] = contextUserData.email;
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const { data } = await axios.get(`${backendUrl}/api/admin/user-stats`, {
+        withCredentials: true,
+        headers: headers,
+      });
+
+      if (data.success) {
+        const monthlyData = processMonthlyData(data.monthlyStats);
+        setMonthlyUserData(monthlyData);
+        setTotalUsers(data.totalUsers || 0);
+      } else {
+        setError("Failed to fetch user data");
+        toast.error(data.message || "Error loading user data");
+        setUseDefaultData(true);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setError("Failed to fetch user data");
+      setUseDefaultData(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch realm and subquest data
   useEffect(() => {
@@ -137,38 +162,68 @@ const AdminOverview: React.FC = () => {
     fetchGameData();
   }, [backendUrl]);
 
-  // Fetch achievements
+  // Fetch achievements - simplified
   useEffect(() => {
-    const fetchAchievements = async () => {
-      try {
-        setAchievementsLoading(true);
-
-        // Add token to request headers
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-        const { data } = await axios.get(
-          `${backendUrl}/api/admin/achievements`,
-          { headers, withCredentials: true }
-        );
-
-        if (data.success) {
-          setAchievements(data.achievements);
-          setTotalAchievements(data.achievements.length);
-        } else {
-          toast.error(data.message || "Failed to fetch achievements");
-        }
-      } catch (error: any) {
-        toast.error(
-          error.response?.data?.message || "Error loading achievements"
-        );
-      } finally {
-        setAchievementsLoading(false);
-      }
-    };
-
     fetchAchievements();
-  }, [backendUrl]);
+  }, [backendUrl, isLoggedin]);
+
+  const fetchAchievements = async () => {
+    try {
+      setAchievementsLoading(true);
+
+      // If not logged in or using default data, show demo achievements
+      if (!isLoggedin || !contextUserData || useDefaultData) {
+        const demoAchievements = [];
+        for (let i = 1; i <= 6; i++) {
+          demoAchievements.push({
+            _id: `demo-${i}`,
+            name: `Achievement ${i}`,
+            description: `This is a demo achievement ${i}`,
+            rarity: "common",
+            points: 100 * i,
+          });
+        }
+        setAchievements(demoAchievements);
+        setTotalAchievements(demoAchievements.length);
+        return;
+      }
+
+      // Get auth token and set up headers
+      const token = localStorage.getItem("token");
+      const headers: any = {
+        "admin-email": contextUserData.email,
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Make GET request with admin headers
+      const { data } = await axios.get(`${backendUrl}/api/admin/achievements`, {
+        withCredentials: true,
+        headers: headers,
+      });
+
+      if (data.success) {
+        setAchievements(data.achievements);
+        setTotalAchievements(data.achievements.length);
+      } else {
+        toast.error(data.message || "Failed to fetch achievements");
+        setUseDefaultData(true);
+      }
+    } catch (error: any) {
+      toast.error("Using demo achievement data");
+      setUseDefaultData(true);
+    } finally {
+      setAchievementsLoading(false);
+    }
+  };
+
+  // Get badge image URL based on index
+  const getBadgeImage = (index: number) => {
+    const badgeNumber = (index % 6) + 1; // Cycle through badges 1-6
+    return `/src/assets/badges/badge${badgeNumber}.png`;
+  };
 
   // Process the monthly data from the API response
   const processMonthlyData = (monthlyStats: any) => {
@@ -242,8 +297,9 @@ const AdminOverview: React.FC = () => {
             {loading ? "Loading..." : totalUsers.toLocaleString()}
           </p>
           <p className="text-sm text-white/80 mt-1">
-            {userData.length > 0 && userData[new Date().getMonth()].users > 0
-              ? `↑ ${userData[new Date().getMonth()].users} this month`
+            {monthlyUserData.length > 0 &&
+            monthlyUserData[new Date().getMonth()].users > 0
+              ? `↑ ${monthlyUserData[new Date().getMonth()].users} this month`
               : "No new users this month"}
           </p>
         </div>
@@ -304,7 +360,7 @@ const AdminOverview: React.FC = () => {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={userData}
+                    data={monthlyUserData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -364,31 +420,17 @@ const AdminOverview: React.FC = () => {
                 className="flex space-x-6 overflow-x-auto py-2 scrollbar-hide"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
-                {achievements.map((badge) => (
+                {achievements.map((badge, index) => (
                   <div
                     key={badge._id}
-                    className="flex flex-col items-center w-24 flex-shrink-0"
+                    className="flex flex-col items-center w-32 flex-shrink-0"
                   >
-                    <div className="relative w-16 h-16 mb-2 group">
+                    <div className="relative w-20 h-20 mb-2 group">
                       <img
-                        src={BadgeImg}
+                        src={getBadgeImage(index)}
                         alt={badge.name}
-                        className={`w-full h-full object-contain hover:scale-110 transition-transform duration-200 
-                          ${
-                            badge.rarity === "legendary"
-                              ? "filter hue-rotate-60"
-                              : badge.rarity === "epic"
-                              ? "filter hue-rotate-270"
-                              : badge.rarity === "rare"
-                              ? "filter hue-rotate-180"
-                              : badge.rarity === "uncommon"
-                              ? "filter hue-rotate-90"
-                              : ""
-                          }`}
+                        className="w-full h-full object-contain hover:scale-110 transition-transform duration-200"
                       />
-                      <div className="absolute top-0 right-0 bg-gray-800 text-xs rounded-full w-5 h-5 flex items-center justify-center text-white">
-                        {badge.points}
-                      </div>
                     </div>
                     <span className="text-white text-xs text-center font-medium">
                       {badge.name}

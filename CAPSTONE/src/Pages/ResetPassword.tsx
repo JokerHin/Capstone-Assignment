@@ -1,110 +1,111 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import axios from "axios";
-import { AppContent } from "../context/AppContext";
 import { toast } from "react-toastify";
-import mail from "../assets/mail_icon.svg";
-import lock from "../assets/lock_icon.svg";
+import { AppContent } from "../context/AppContext";
 
-const ResetPassword = () => {
-  const { backendUrl } = useContext(AppContent)!;
-  axios.defaults.withCredentials = true;
+enum ResetStep {
+  RequestOTP,
+  EnterOTP,
+  ResetPassword,
+}
 
+export default function ResetPassword() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState<string>("");
-  const [newPassword, setNewPassword] = useState<string>("");
-  const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
-  const [otp, setOtp] = useState<string>("");
-  const [isOtpSubmited, setIsOtpSubmited] = useState<boolean>(false);
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [step, setStep] = useState<ResetStep>(ResetStep.RequestOTP);
 
-  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+  const appContext = React.useContext(AppContent);
+  if (!appContext) {
+    throw new Error("AppContent context is undefined");
+  }
 
-  const handleInput = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.target.value.length > 0 && index < inputRefs.current.length - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
+  const { backendUrl } = appContext;
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (
-      e.key === "Backspace" &&
-      (e.target as HTMLInputElement).value === "" &&
-      index > 0
-    ) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const paste = e.clipboardData.getData("text");
-    const pasteArray = paste.split("");
-    pasteArray.forEach((char, index: number) => {
-      if (inputRefs.current[index]) {
-        inputRefs.current[index]!.value = char;
-      }
-    });
-  };
-
-  const onSubmitEmail = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!email) {
+      toast.error("Please enter your email");
+      return;
+    }
+
     try {
       const { data } = await axios.post(
-        backendUrl + "/api/auth/send-reset-otp",
+        `${backendUrl}/api/auth/send-reset-otp`,
         {
           email,
-        }
+        },
+        { withCredentials: true }
       );
-      data.success ? toast.success(data.message) : toast.error(data.message);
-      data.success && setIsEmailSent(true);
+
+      if (data.success) {
+        toast.success("OTP sent to your email");
+        setStep(ResetStep.EnterOTP);
+      } else {
+        toast.error(data.message || "Failed to send OTP");
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "An error occurred");
     }
   };
 
-  const onSubmitOTP = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    const otpArray = inputRefs.current.map((e) => e!.value);
-    setOtp(otpArray.join(""));
-    setIsOtpSubmited(true);
+
+    if (!otp) {
+      toast.error("Please enter the OTP");
+      return;
+    }
+
+    setStep(ResetStep.ResetPassword);
   };
 
-  const onSubmitNewPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please enter and confirm your new password");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     try {
       const { data } = await axios.post(
-        backendUrl + "/api/auth/reset-password",
+        `${backendUrl}/api/auth/reset-password`,
         {
           email,
           otp,
           newPassword,
-        }
+        },
+        { withCredentials: true }
       );
-      data.success ? toast.success(data.message) : toast.error(data.message);
-      data.success && navigate("/login");
+
+      if (data.success) {
+        toast.success("Password reset successfully");
+        navigate("/login");
+      } else {
+        toast.error(data.message || "Failed to reset password");
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "An error occurred");
     }
   };
 
   return (
-    <div
-      className="flex items-center justify-center min-h-screen slide-in-right"
-      style={{
-        background:
-          "linear-gradient(180deg, #000000, #1a0e04, #2a1608, #3b1d0b, #4d240d, #5f2b0e, #72320e, #86390d)",
-      }}
-    >
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 sm:px-0 bg-gradient-to-b from-gray-900 to-black">
       <img
         onClick={() => navigate("/")}
         src={Logo}
-        alt=""
+        alt="Logo"
         className="absolute left-5 sm:left-20 top-5 w-28 sm:w-32 cursor-pointer"
       />
       <h2
@@ -114,104 +115,134 @@ const ResetPassword = () => {
         <span className="text-[#ff8800]">The</span> Codyssey
       </h2>
 
-      {/* Email input form */}
-
-      {!isEmailSent && (
-        <form
-          onSubmit={onSubmitEmail}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm inset-shadow-sm inset-shadow-amber-500"
-        >
-          <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            Reset Password
-          </h1>
-          <p className="text-center mb-6 text-[#ff8800]">
-            Enter your registered email address
-          </p>
-          <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-            <img src={mail} alt="" className="w-3 h-3" />
-            <input
-              type="email"
-              placeholder="Email id"
-              className="bg-transparent outline-none text-white"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <button className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-orange-900 text-white rounded-full cursor-pointer">
-            Submit
-          </button>
-        </form>
-      )}
-
-      {/* otp input form */}
-
-      {!isOtpSubmited && isEmailSent && (
-        <form
-          onSubmit={onSubmitOTP}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm inset-shadow-sm inset-shadow-amber-500"
-        >
-          <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            Reset password OTP
-          </h1>
-          <p className="text-center mb-6 text-[#ff8800]">
-            Enter the 6-digit code sent to your email id.
-          </p>
-          <div className="flex justify-between mb-8" onPaste={handlePaste}>
-            {Array(6)
-              .fill(0)
-              .map((_, index) => (
+      <div className="bg-slate-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+        {step === ResetStep.RequestOTP && (
+          <>
+            <h2 className="text-2xl font-semibold text-white mb-6 text-center">
+              Reset Password
+            </h2>
+            <form onSubmit={handleSendOTP}>
+              <div className="mb-4">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Email Address
+                </label>
                 <input
-                  className="text-center w-12 h-12 bg-[#333A5C] text-white text-2xl rounded-md"
-                  type="text"
-                  maxLength={1}
-                  key={index}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
+                  placeholder="Enter your email"
                   required
-                  ref={(e) => {
-                    inputRefs.current[index] = e;
-                  }}
-                  onInput={(e: any) => handleInput(e, index)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
                 />
-              ))}
-          </div>
-          <button className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-orange-900 text-white rounded-full cursor-pointer">
-            Submit
-          </button>
-        </form>
-      )}
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded transition-colors"
+              >
+                Send OTP
+              </button>
+            </form>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate("/login")}
+                className="text-gray-400 hover:text-white text-sm"
+              >
+                Back to Login
+              </button>
+            </div>
+          </>
+        )}
 
-      {/* Enter new Password */}
+        {step === ResetStep.EnterOTP && (
+          <>
+            <h2 className="text-2xl font-semibold text-white mb-6 text-center">
+              Enter OTP
+            </h2>
+            <p className="text-gray-300 text-sm mb-4 text-center">
+              We've sent a one-time password to your email.
+            </p>
+            <form onSubmit={handleVerifyOTP}>
+              <div className="mb-4">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  One-Time Password
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
+                  placeholder="Enter the 6-digit OTP"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded transition-colors"
+              >
+                Verify OTP
+              </button>
+            </form>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setStep(ResetStep.RequestOTP)}
+                className="text-gray-400 hover:text-white text-sm"
+              >
+                Back
+              </button>
+            </div>
+          </>
+        )}
 
-      {isOtpSubmited && isEmailSent && (
-        <form
-          onSubmit={onSubmitNewPassword}
-          className="bg-slate-900 p-8 rounded-lg shadow-lg w-96 text-sm inset-shadow-sm inset-shadow-amber-500"
-        >
-          <h1 className="text-white text-2xl font-semibold text-center mb-4">
-            New Password
-          </h1>
-          <p className="text-center mb-6 text-[#ff8800]">
-            Enter the new password below
-          </p>
-          <div className="mb-4 flex items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]">
-            <img src={lock} alt="" className="w-3 h-3" />
-            <input
-              type="password"
-              placeholder="Password"
-              className="bg-transparent outline-none text-white"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-orange-900 text-white rounded-full cursor-pointer">
-            Submit
-          </button>
-        </form>
-      )}
+        {step === ResetStep.ResetPassword && (
+          <>
+            <h2 className="text-2xl font-semibold text-white mb-6 text-center">
+              Set New Password
+            </h2>
+            <form onSubmit={handleResetPassword}>
+              <div className="mb-4">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
+                  placeholder="Enter new password"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded transition-colors"
+              >
+                Reset Password
+              </button>
+            </form>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setStep(ResetStep.EnterOTP)}
+                className="text-gray-400 hover:text-white text-sm"
+              >
+                Back
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
-};
-
-export default ResetPassword;
+}

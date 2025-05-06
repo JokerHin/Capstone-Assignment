@@ -1,6 +1,5 @@
 import express from "express";
 import { getQuests, updateQuest } from "../controllers/questController.js";
-import mongoose from "mongoose"; // Add this import
 
 const questRouter = express.Router();
 

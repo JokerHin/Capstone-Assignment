@@ -1,8 +1,17 @@
 import express from "express";
-import { getItems } from "../controllers/itemController.js";
+import {
+  getItems,
+  getItemById,
+  updateItem,
+} from "../controllers/itemController.js";
 
 const itemRouter = express.Router();
 
-itemRouter.get("/", getItems); // Add route to fetch item data
+// GET routes
+itemRouter.get("/", getItems);
+itemRouter.get("/:id", getItemById);
+
+// PUT route
+itemRouter.put("/:id", updateItem);
 
 export default itemRouter;

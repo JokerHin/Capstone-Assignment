@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const adminSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
   },
   email: {
     type: String,
@@ -13,6 +13,10 @@ const adminSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 });
 
