@@ -12,7 +12,6 @@ import {
 import axios from "axios";
 import { AppContent } from "../../context/AppContext";
 import { toast } from "react-toastify";
-import BadgeImg from "../../assets/badge.png";
 
 // Sample data for the leaderboard
 const leaderboardData = [
@@ -169,6 +168,12 @@ const AdminOverview: React.FC = () => {
 
     fetchAchievements();
   }, [backendUrl]);
+
+  // Get badge image URL based on index
+  const getBadgeImage = (index: number) => {
+    const badgeNumber = (index % 6) + 1; // Cycle through badges 1-6
+    return `/src/assets/badges/badge${badgeNumber}.png`;
+  };
 
   // Process the monthly data from the API response
   const processMonthlyData = (monthlyStats: any) => {
@@ -364,31 +369,17 @@ const AdminOverview: React.FC = () => {
                 className="flex space-x-6 overflow-x-auto py-2 scrollbar-hide"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
-                {achievements.map((badge) => (
+                {achievements.map((badge, index) => (
                   <div
                     key={badge._id}
-                    className="flex flex-col items-center w-24 flex-shrink-0"
+                    className="flex flex-col items-center w-32 flex-shrink-0"
                   >
-                    <div className="relative w-16 h-16 mb-2 group">
+                    <div className="relative w-20 h-20 mb-2 group">
                       <img
-                        src={BadgeImg}
+                        src={getBadgeImage(index)}
                         alt={badge.name}
-                        className={`w-full h-full object-contain hover:scale-110 transition-transform duration-200 
-                          ${
-                            badge.rarity === "legendary"
-                              ? "filter hue-rotate-60"
-                              : badge.rarity === "epic"
-                              ? "filter hue-rotate-270"
-                              : badge.rarity === "rare"
-                              ? "filter hue-rotate-180"
-                              : badge.rarity === "uncommon"
-                              ? "filter hue-rotate-90"
-                              : ""
-                          }`}
+                        className="w-full h-full object-contain hover:scale-110 transition-transform duration-200"
                       />
-                      <div className="absolute top-0 right-0 bg-gray-800 text-xs rounded-full w-5 h-5 flex items-center justify-center text-white">
-                        {badge.points}
-                      </div>
                     </div>
                     <span className="text-white text-xs text-center font-medium">
                       {badge.name}

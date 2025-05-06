@@ -4,15 +4,15 @@ import {
   getUserStats,
   getAllUsers,
   getUserById,
-  addUser,
   updateUser,
   deleteUser,
-  getAllAchievements,
-  getAchievementById,
-  createAchievement,
-  updateAchievement,
-  deleteAchievement,
+  addUser,
 } from "../controllers/adminController.js";
+import {
+  getItems,
+  getItemById,
+  updateItem,
+} from "../controllers/itemController.js";
 
 const adminRouter = express.Router();
 
@@ -28,10 +28,22 @@ adminRouter.put("/update-user/:id", updateUser);
 adminRouter.delete("/delete-user/:id", deleteUser);
 
 // Achievement management routes
-adminRouter.get("/achievements", getAllAchievements);
-adminRouter.get("/achievements/:id", getAchievementById);
-adminRouter.post("/achievements", createAchievement);
-adminRouter.put("/achievements/:id", updateAchievement);
-adminRouter.delete("/achievements/:id", deleteAchievement);
+adminRouter.get("/achievements", adminAuth, async (req, res) => {
+  try {
+    // Filter items to only get badges
+    req.query.type = "badge";
+    const items = await getItems(req, res);
+    return items;
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching achievements",
+      error: error.message,
+    });
+  }
+});
+
+adminRouter.get("/achievements/:id", adminAuth, getItemById);
+adminRouter.put("/achievements/:id", adminAuth, updateItem);
 
 export default adminRouter;

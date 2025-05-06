@@ -23,6 +23,14 @@ interface Subquest {
   admin_id?: number;
 }
 
+interface InventoryItem {
+  _id: string;
+  item_id: number;
+  name: string;
+  type: string;
+  description?: string;
+}
+
 const AdminContent: React.FC = () => {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [subquests, setSubquests] = useState<Subquest[]>([]);
@@ -33,6 +41,15 @@ const AdminContent: React.FC = () => {
   // Add state for title editing
   const [editingQuestId, setEditingQuestId] = useState<string | null>(null);
   const [editedTitle, setEditedTitle] = useState("");
+
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [currentItem, setCurrentItem] = useState<InventoryItem | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+  });
 
   const appContext = useContext(AppContent);
   if (!appContext) {
@@ -73,6 +90,47 @@ const AdminContent: React.FC = () => {
 
     fetchData();
   }, [backendUrl]);
+
+  // Create a function to make authenticated API requests
+  const makeAuthRequest = async (endpoint: string, options: any = {}) => {
+    const token = localStorage.getItem("token");
+    const headers = {
+      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    return axios({
+      url: `${backendUrl}${endpoint}`,
+      ...options,
+      headers,
+      withCredentials: true,
+    });
+  };
+
+  // Fetch inventory items data
+  useEffect(() => {
+    if (activeTab === "Inventory") {
+      const fetchInventoryItems = async () => {
+        setInventoryLoading(true);
+        try {
+          const response = await axios.get(`${backendUrl}/item`);
+
+          // Filter out badge type items - these are shown in the badges section
+          const items = response.data.filter(
+            (item: any) => item.type !== "badge"
+          );
+          setInventoryItems(items);
+        } catch (error) {
+          console.error("Error fetching inventory items:", error);
+          toast.error("Failed to load inventory items.");
+        } finally {
+          setInventoryLoading(false);
+        }
+      };
+
+      fetchInventoryItems();
+    }
+  }, [backendUrl, activeTab]);
 
   // Calculate subquest counts for each quest
   const questsWithCounts = quests.map((quest) => {
@@ -139,6 +197,86 @@ const AdminContent: React.FC = () => {
   // Cancel editing
   const handleCancelEdit = () => {
     setEditingQuestId(null);
+  };
+
+  // Handle editing an inventory item
+  const handleEditItem = (item: InventoryItem) => {
+    setCurrentItem(item);
+    setEditForm({
+      name: item.name || "",
+      description: item.description || "",
+    });
+    setEditModalOpen(true);
+  };
+
+  // Handle form input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle saving item edits
+  const handleSaveItem = async () => {
+    if (!currentItem) return;
+
+    try {
+      if (!editForm.name.trim()) {
+        toast.error("Name is required");
+        return;
+      }
+
+      const { data } = await makeAuthRequest(`/item/${currentItem._id}`, {
+        method: "PUT",
+        data: editForm,
+      });
+
+      if (data.success) {
+        toast.success("Item updated successfully");
+        // Update the item in the local state
+        setInventoryItems((prev) =>
+          prev.map((item) =>
+            item._id === currentItem._id
+              ? {
+                  ...item,
+                  name: editForm.name,
+                  description: editForm.description,
+                }
+              : item
+          )
+        );
+        closeEditModal();
+      } else {
+        toast.error(data.message || "Failed to update item");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Error updating item");
+    }
+  };
+
+  // Close the edit modal
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setCurrentItem(null);
+    setEditForm({ name: "", description: "" });
+  };
+
+  // Get item image based on type and index
+  const getItemImage = (type: string, index: number) => {
+    if (type === "quest") {
+      return "/src/assets/green_gem.png";
+    } else if (type === "milestone") {
+      return "/src/assets/potion.png";
+    } else if (type === "currency") {
+      return "/src/assets/coin.png";
+    } else {
+      const itemNumber = (index % 3) + 1;
+      return `/src/assets/items/item${itemNumber}.png`;
+    }
   };
 
   return (
@@ -279,12 +417,112 @@ const AdminContent: React.FC = () => {
         </div>
       )}
 
-      {/* Assets Content - Placeholder */}
+      {/* Inventory Content */}
       {activeTab === "Inventory" && (
-        <div className="bg-slate-800 rounded-lg shadow-lg p-6">
-          <p className="text-gray-300">
-            Assets management content will be displayed here
-          </p>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-medium">Game Items</h2>
+          </div>
+
+          {inventoryLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-gray-300">Loading inventory items...</div>
+            </div>
+          ) : inventoryItems.length === 0 ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-gray-300">No inventory items found.</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {inventoryItems.map((item, index) => (
+                <div
+                  key={item._id}
+                  className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"
+                >
+                  <div className="h-2 bg-orange-500"></div>
+                  <div className="p-6">
+                    <div className="flex flex-col items-center mb-6">
+                      <img
+                        src={getItemImage(item.type, index)}
+                        alt={item.name}
+                        className="w-24 h-24 mb-4 object-contain"
+                      />
+                      <div className="text-center">
+                        <h3 className="text-xl font-bold text-white">
+                          {item.name || `Item #${item.item_id}`}
+                        </h3>
+                        <p className="text-sm text-gray-400 mt-2">
+                          {item.description || `No description`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <button
+                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded text-sm cursor-pointer flex items-center justify-center w-full"
+                        onClick={() => handleEditItem(item)}
+                      >
+                        <Pencil size={14} className="mr-2" /> Edit Item Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Edit Item Modal */}
+      {editModalOpen && currentItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 p-8 rounded-lg max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4">
+              Edit Item: {currentItem.name || `Item #${currentItem.item_id}`}
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editForm.name}
+                  onChange={handleInputChange}
+                  className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                  placeholder="Item name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={editForm.description}
+                  onChange={handleInputChange}
+                  className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                  placeholder="Item description"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={closeEditModal}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+                onClick={handleSaveItem}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
