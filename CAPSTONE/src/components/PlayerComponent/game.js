@@ -4,6 +4,9 @@ import { Backdrop } from './backdrop.js';
 import { Door } from './door.js';
 import { IndoorScene } from './indoorScene.js';
 
+import axios from 'axios';
+
+
 class MainScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainScene' });
@@ -267,9 +270,10 @@ class MainScene extends Phaser.Scene {
 
         //Enter house button
         this.enterButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Enter house', {
-            fontSize: '20px',
+            // fontSize: '20px',
             fill: '#ffffff',
-            backgroundColor: '#000000'
+            backgroundColor: '#000000',
+            font: `${this.gameWidth.displayHeight*0.1}px 'Jersey 10'`
         })
         .setPadding(10)
         .setInteractive() // Make the text clickable
@@ -607,21 +611,14 @@ class MainScene extends Phaser.Scene {
         let scrollScale = (this.gameWidth - 50) / this.guideBg.width;
         this.guideBg.setScale(scrollScale);
     
-        // Add a title
-        // this.guideTitle = this.add.text(this.gameWidth / 2, this.guideBg.y - this.guideBg.displayHeight * 0.4, 'Game Guide', {
-        //     fontSize: `${this.guideBg.displayWidth * 0.05}px`,
-        //     fontStyle: 'bold',
-        //     fill: '#000000'
-        // }).setOrigin(0.5);
-        // this.guideTitle.setScrollFactor(0);
-
-        this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.1), 'GUIDE', {
-            fontStyle: 'bold',
+        // Guide title
+        this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.0875), 'GUIDE', {
             fill: '#000000',
-            font: `${this.guideBg.displayWidth*0.05}px 'Jersey 10'`
+            font: `${this.guideBg.displayWidth*0.07}px 'Jersey 10'`,
+            fontStyle: 'bold'
         }).setOrigin(0.5);
         this.guideTitle.setScrollFactor(0);
-        // this.guideTitle.setLetterSpacing(4);
+        this.guideTitle.setLetterSpacing(2);
 
         // Add guide content
         this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05,
@@ -631,10 +628,10 @@ class MainScene extends Phaser.Scene {
                 fill: '#000000',
                 align: 'center',
                 // wordWrap: { width: this.guideBg.displayWidth * 0.8 },
-                font: `${this.guideBg.displayWidth*0.03}px 'Jersey 10'`
+                font: `${this.guideBg.displayWidth*0.03}px 'VT323'`
             }).setOrigin(0.5);
         this.guideContent.setScrollFactor(0);
-        this.guideContent.setLetterSpacing(2);
+        this.guideContent.setLetterSpacing(0);
 
         // Add a close button
         this.closeGuideButton = this.add.image(this.gameWidth * 0.81, this.gameHeight * 0.3, 'close_icon') // Replace 'close_icon' with your image key
@@ -683,7 +680,7 @@ class MainScene extends Phaser.Scene {
             // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
             fontStyle: 'bold',
             fill: '#000000',
-            font: `${this.inventoryBg.displayWidth*0.05}px 'Jersey 10'`
+            font: `${this.inventoryBg.displayWidth*0.06}px 'Jersey 10'`
         }).setOrigin(0.5);
         this.inventoryTitle.setScrollFactor(0);
         this.inventoryTitle.setLetterSpacing(4);
@@ -913,68 +910,68 @@ class MainScene extends Phaser.Scene {
 }
 
 class Game {
-    constructor() {
-        this.userData = {};
+  constructor() {
+    this.userData = {};
 
-        this.gameWidth = window.innerWidth;
-        this.gameHeight = window.innerHeight;
-        this.createLoadingScreen();
-        this.fetchUserData();
-        this.fetchMongo().then(() => {
-            this.startGame(); // Start game only after fetching data
-        });
-    }
+    this.gameWidth = window.innerWidth;
+    this.gameHeight = window.innerHeight;
+    this.createLoadingScreen();
+    this.fetchUserData();
+    this.fetchMongo().then(() => {
+      this.startGame(); // Start game only after fetching data
+    });
+  }
 
-    createLoadingScreen() {
-        // Create a loading screen container
-        this.loadingScreen = document.createElement('div');
-        this.loadingScreen.id = 'loading-screen';
-        this.loadingScreen.style.position = 'fixed';
-        this.loadingScreen.style.top = '0';
-        this.loadingScreen.style.left = '0';
-        this.loadingScreen.style.width = '100%';
-        this.loadingScreen.style.height = '100%';
-        this.loadingScreen.style.backgroundColor = '#000';
-        this.loadingScreen.style.display = 'flex';
-        this.loadingScreen.style.flexDirection = 'column';
-        this.loadingScreen.style.justifyContent = 'center';
-        this.loadingScreen.style.alignItems = 'center';
-        this.loadingScreen.style.zIndex = '1000';
+  createLoadingScreen() {
+    // Create a loading screen container
+    this.loadingScreen = document.createElement("div");
+    this.loadingScreen.id = "loading-screen";
+    this.loadingScreen.style.position = "fixed";
+    this.loadingScreen.style.top = "0";
+    this.loadingScreen.style.left = "0";
+    this.loadingScreen.style.width = "100%";
+    this.loadingScreen.style.height = "100%";
+    this.loadingScreen.style.backgroundColor = "#000";
+    this.loadingScreen.style.display = "flex";
+    this.loadingScreen.style.flexDirection = "column";
+    this.loadingScreen.style.justifyContent = "center";
+    this.loadingScreen.style.alignItems = "center";
+    this.loadingScreen.style.zIndex = "1000";
 
-        // Add the logo
-        const logo = document.createElement('img');
-        logo.src = '../assets/logo.png'; // Path to the logo image
-        logo.alt = 'Game Logo';
-        logo.className = 'logo'; // Add the 'logo' class for animation
-        // logo.style.width = '150px'; // Adjust the size of the logo
-        // logo.style.marginBottom = '20px'; // Add spacing below the logo
-        this.loadingScreen.appendChild(logo);
+    // Add the logo
+    const logo = document.createElement("img");
+    logo.src = "../assets/logo.png"; // Path to the logo image
+    logo.alt = "Game Logo";
+    logo.className = "logo"; // Add the 'logo' class for animation
+    // logo.style.width = '150px'; // Adjust the size of the logo
+    // logo.style.marginBottom = '20px'; // Add spacing below the logo
+    this.loadingScreen.appendChild(logo);
 
-        // Add a spinner
-        const spinner = document.createElement('div');
-        spinner.className = 'spinner';
-        spinner.style.width = '60px';
-        spinner.style.height = '60px';
-        spinner.style.border = '5px solid #4E2900';
-        spinner.style.borderTop = '5px solid #ff8800';
-        spinner.style.borderRadius = '50%';
-        spinner.style.animation = 'spin 1s ease-in-out infinite';
-        this.loadingScreen.appendChild(spinner);
+    // Add a spinner
+    const spinner = document.createElement("div");
+    spinner.className = "spinner";
+    spinner.style.width = "60px";
+    spinner.style.height = "60px";
+    spinner.style.border = "5px solid #4E2900";
+    spinner.style.borderTop = "5px solid #ff8800";
+    spinner.style.borderRadius = "50%";
+    spinner.style.animation = "spin 1s ease-in-out infinite";
+    this.loadingScreen.appendChild(spinner);
 
-        // Add loading text
-        this.loadingText = document.createElement('p');
-        this.loadingText.textContent = 'Loading your adventure...';
-        this.loadingText.style.color = '#fff';
-        // this.loadingText.style.fontSize = '20px';
-        // this.loadingText.style.marginTop = '20px';
-        this.loadingScreen.appendChild(this.loadingText);
+    // Add loading text
+    this.loadingText = document.createElement("p");
+    this.loadingText.textContent = "Loading your adventure...";
+    this.loadingText.style.color = "#fff";
+    // this.loadingText.style.fontSize = '20px';
+    // this.loadingText.style.marginTop = '20px';
+    this.loadingScreen.appendChild(this.loadingText);
 
-        // Append the loading screen to the body
-        document.body.appendChild(this.loadingScreen);
+    // Append the loading screen to the body
+    document.body.appendChild(this.loadingScreen);
 
-        // Add spinner animation
-        const style = document.createElement('style');
-        style.innerHTML = `
+    // Add spinner animation
+    const style = document.createElement("style");
+    style.innerHTML = `
             .logo {
                 max-width: 200px;
                 animation: pulse 2s infinite;
@@ -1001,162 +998,170 @@ class Game {
                 }
             }
         `;
-        document.head.appendChild(style);
-    }
+    document.head.appendChild(style);
+  }
 
-    updateLoadingScreen(percentage) {
-        // Update the loading text with the percentage
-        this.loadingText.textContent = `Loading... ${percentage}%`;
-    }
+  updateLoadingScreen(percentage) {
+    // Update the loading text with the percentage
+    this.loadingText.textContent = `Loading... ${percentage}%`;
+  }
 
-    removeLoadingScreen() {
-        // Remove the loading screen from the DOM
-        if (this.loadingScreen) {
-            document.body.removeChild(this.loadingScreen);
+  removeLoadingScreen() {
+    // Remove the loading screen from the DOM
+    if (this.loadingScreen) {
+      document.body.removeChild(this.loadingScreen);
+    }
+  }
+
+  fetchMongo = async () => {
+    try {
+      const urls = [
+        "https://capstone-assignment-36lq.vercel.app/dialogue",
+        "https://capstone-assignment-36lq.vercel.app/quest",
+        "https://capstone-assignment-36lq.vercel.app/location",
+        "../components/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
+        "../components/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
+        "../components/PlayerComponent/game-data/action.json",
+        "https://capstone-assignment-36lq.vercel.app/package_detail",
+        "https://capstone-assignment-36lq.vercel.app/position",
+        "https://capstone-assignment-36lq.vercel.app/subquest",
+        "https://capstone-assignment-36lq.vercel.app/package",
+        "https://capstone-assignment-36lq.vercel.app/choice",
+        "https://capstone-assignment-36lq.vercel.app/player_progress",
+        "../components/PlayerComponent/game-data/npc_detail.json",
+        "../components/PlayerComponent/game-data/location_detail.json",
+        "../components/PlayerComponent/game-data/item_detail.json",
+      ];
+
+      const responses = await Promise.all(urls.map((url) => fetch(url)));
+      const [
+        dialogue,
+        quest,
+        location,
+        inventory,
+        item,
+        action,
+        packageDetail,
+        position,
+        subquest,
+        packageData,
+        choice,
+        playerProgress,
+        npcDetail,
+        locationDetail,
+        itemDetail,
+      ] = await Promise.all(responses.map((res) => res.json()));
+
+      this.dialogue = dialogue;
+      this.quest = quest;
+      this.location = location;
+      this.inventory = inventory;
+      this.item = item;
+      this.action = action;
+      this.packageDetail = packageDetail;
+      this.position = position;
+      this.subquest = subquest;
+      this.package = packageData;
+      this.choice = choice;
+      this.playerProgress = playerProgress;
+      this.npcDetail = npcDetail;
+      this.locationDetail = locationDetail;
+      this.itemDetail = itemDetail;
+
+      console.log("Fetched dialogue:", dialogue);
+      console.log("Fetched quest:", quest);
+      console.log("Fetched location:", location);
+      console.log("Fetched inventory:", inventory);
+      console.log("Fetched item:", item);
+      console.log("Fetched action:", action);
+      console.log("Fetched packageDetail:", packageDetail);
+      console.log("Fetched position:", position);
+      console.log("Fetched subquest:", subquest);
+      console.log("Fetched package:", packageData);
+      console.log("Fetched choice:", choice);
+      console.log("Fetched playerProgress:", playerProgress);
+      console.log("Fetched npcDetail:", npcDetail);
+      console.log("Fetched locationDetail:", locationDetail);
+      console.log("Fetched itemDetail:", itemDetail);
+    } catch (error) {
+      console.error("Error fetching data from MongoDB:", error);
+    }
+  };
+
+  async fetchUserData() {
+    try {
+      const email = localStorage.getItem('userEmail');
+      console.log(email);
+
+      const response = await fetch(
+        "https://capstone-assignment-36lq.vercel.app/api/user/data",
+        {
+          method: "POST", // Use POST method
+          headers: {
+            "Content-Type": "application/json", // Specify JSON content type
+          },
+          body: JSON.stringify({
+            email: email,
+          }), // Convert the payload to JSON
         }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user data: ${response.statusText}`);
+      }
+
+      this.userData = await response.json(); // Parse the JSON response
+      console.log("Fetched User Data:", this.userData);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null; // Return null if fetching fails
     }
+  }
 
-    fetchMongo = async () => {
-        try {
-            const urls = [
-                "https://capstone-assignment-36lq.vercel.app/dialogue",
-                "https://capstone-assignment-36lq.vercel.app/quest",
-                "https://capstone-assignment-36lq.vercel.app/location",
-                '../components/PlayerComponent/game-data/inventory_sample.json', // "https://capstone-assignment-36lq.vercel.app/inventory",
-                '../components/PlayerComponent/game-data/item_sample.json', //"https://capstone-assignment-36lq.vercel.app/item",
-                '../components/PlayerComponent/game-data/action.json',
-                "https://capstone-assignment-36lq.vercel.app/package_detail",
-                "https://capstone-assignment-36lq.vercel.app/position",
-                "https://capstone-assignment-36lq.vercel.app/subquest",
-                "https://capstone-assignment-36lq.vercel.app/package",
-                "https://capstone-assignment-36lq.vercel.app/choice",
-                "https://capstone-assignment-36lq.vercel.app/player_progress",
-                '../components/PlayerComponent/game-data/npc_detail.json',
-                '../components/PlayerComponent/game-data/location_detail.json',
-                '../components/PlayerComponent/game-data/item_detail.json'
-            ];
+  startGame() {
+    console.log("Starting game with user data:", this.userData);
 
-            const responses = await Promise.all(urls.map(url => fetch(url)));
-            const [
-                dialogue, quest, location,
-                inventory, item, action, packageDetail,
-                position, subquest, packageData, choice, playerProgress,
-                npcDetail, locationDetail, itemDetail
-            ] = await Promise.all(responses.map(res => res.json()));
+    this.removeLoadingScreen();
 
-            this.dialogue = dialogue;
-            this.quest = quest;
-            this.location = location;
-            this.inventory = inventory;
-            this.item = item;
-            this.action = action;
-            this.packageDetail = packageDetail;
-            this.position = position;
-            this.subquest = subquest;
-            this.package = packageData;
-            this.choice = choice;
-            this.playerProgress = playerProgress;
-            this.npcDetail = npcDetail;
-            this.locationDetail = locationDetail;
-            this.itemDetail = itemDetail;
-
-            console.log("Fetched dialogue:", dialogue);
-            console.log("Fetched quest:", quest);
-            console.log("Fetched location:", location);
-            console.log("Fetched inventory:", inventory);
-            console.log("Fetched item:", item);
-            console.log("Fetched action:", action);
-            console.log("Fetched packageDetail:", packageDetail);
-            console.log("Fetched position:", position);
-            console.log("Fetched subquest:", subquest);
-            console.log("Fetched package:", packageData);
-            console.log("Fetched choice:", choice);
-            console.log("Fetched playerProgress:", playerProgress);
-            console.log("Fetched npcDetail:", npcDetail);
-            console.log("Fetched locationDetail:", locationDetail);
-            console.log("Fetched itemDetail:", itemDetail);
-        } catch (error) {
-            console.error('Error fetching data from MongoDB:', error);
-        }
+    this.config = {
+      type: Phaser.AUTO,
+      width: this.gameWidth,
+      height: this.gameHeight,
+      physics: {
+        default: "arcade",
+        arcade: { gravity: { y: 0 }, debug: false },
+      },
+      scene: [MainScene, IndoorScene],
     };
 
-    async fetchUserData() {
-        try {
-            const response = await fetch('https://capstone-assignment-36lq.vercel.app/api/user/data', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include', // Include cookies if needed for authentication
-            });
-    
-            if (!response.ok) {
-                throw new Error(`Failed to fetch user data: ${response.statusText}`);
-            }
-    
-            this.userData = await response.json(); // Parse the JSON response
-            console.log('Fetched User Data:', this.userData);
-            return this.userData;
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            return null; // Return null if fetching fails
-        }
-    }
+    this.game = new Phaser.Game(this.config);
 
-    startGame() {
-        // const appContext = useContext(AppContent);
+    let sceneName = "town";
 
-        // if (!appContext) {
-        //     throw new Error("AppContent context is undefined");
-        // }
-
-        // const { userData } = appContext;
-
-        // console.log("Current User:", userData);
-
-        console.log("Starting game with user data:", this.userData);
-
-        this.removeLoadingScreen();
-
-        this.config = {
-            type: Phaser.AUTO,
-            width: this.gameWidth,
-            height: this.gameHeight,
-            physics: {
-                default: 'arcade',
-                arcade: { gravity: { y: 0 }, debug: false }
-            },
-            scene: [MainScene,IndoorScene]
-        };
-
-        this.game = new Phaser.Game(this.config);
-
-        let sceneName = "town";
-
-        // Start MainScene and pass gameWidth, gameHeight, and dialogues
-        this.game.scene.start('MainScene', {
-            width: this.gameWidth,
-            height: this.gameHeight,
-            sceneName: sceneName,
-            dialogue: this.dialogue,
-            quest: this.quest,
-            location: this.location,
-            inventory: this.inventory,
-            player: this.player,
-            item: this.item,
-            action: this.action,
-            packageDetail: this.packageDetail,
-            position: this.position,
-            subquest: this.subquest,
-            package: this.package,
-            choice: this.choice,
-            playerProgress: this.playerProgress,
-            npcDetail: this.npcDetail,
-            locationDetail: this.locationDetail,
-            itemDetail: this.itemDetail,
-            userData: this.userData,
-        });
-    }
+    // Start MainScene and pass gameWidth, gameHeight, and dialogues
+    this.game.scene.start("MainScene", {
+      width: this.gameWidth,
+      height: this.gameHeight,
+      sceneName: sceneName,
+      dialogue: this.dialogue,
+      quest: this.quest,
+      location: this.location,
+      inventory: this.inventory,
+      player: this.player,
+      item: this.item,
+      action: this.action,
+      packageDetail: this.packageDetail,
+      position: this.position,
+      subquest: this.subquest,
+      package: this.package,
+      choice: this.choice,
+      playerProgress: this.playerProgress,
+      npcDetail: this.npcDetail,
+      locationDetail: this.locationDetail,
+      itemDetail: this.itemDetail,
+      userData: this.userData,
+    });
+  }
 }
 
 

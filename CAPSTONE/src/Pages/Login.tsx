@@ -42,6 +42,7 @@ export default function Login() {
         });
 
         if (data.success) {
+          localStorage.setItem("userEmail", email);
           toast.success("Successfully registered");
           // Auto login after registration
           const loginSuccess = await login(email, password);
@@ -57,6 +58,7 @@ export default function Login() {
         const loginSuccess = await login(email, password, isAdminLogin);
 
         if (loginSuccess) {
+          localStorage.setItem("userEmail", email);
           toast.success("Successfully logged in");
           if (isAdminLogin) {
             navigate("/AdminHome");
