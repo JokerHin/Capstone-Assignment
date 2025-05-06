@@ -1,11 +1,16 @@
 import Item from "../models/item.js";
 
-// Get all items
+// Get all items - Modified to work in both function call and express handler contexts
 export const getItems = async (req, res) => {
   try {
     // Can filter by type if requested
     const filter = req.query.type ? { type: req.query.type } : {};
     const items = await Item.find(filter).sort({ item_id: 1 });
+
+    // If being called directly rather than as middleware, return items
+    if (!res || res.headersSent) {
+      return items;
+    }
 
     // Format the response for achievements when type=badge
     if (req.query.type === "badge") {
@@ -29,6 +34,12 @@ export const getItems = async (req, res) => {
     return res.json(items);
   } catch (error) {
     console.error("Error fetching items:", error);
+
+    // If being called directly, throw the error
+    if (!res || res.headersSent) {
+      throw error;
+    }
+
     return res.status(500).json({
       success: false,
       message: error.message,

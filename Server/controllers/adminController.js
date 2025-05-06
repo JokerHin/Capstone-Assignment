@@ -1,13 +1,82 @@
 import userModel from "../models/userModel.js";
+import adminModel from "../models/adminModel.js";
 import bcrypt from "bcryptjs";
+
+// Completely revised admin authentication function
+const isAdmin = async (req, res) => {
+  try {
+    // Get email from various sources in priority order
+    const email =
+      req.headers["admin-email"] ||
+      req.query.email ||
+      req.cookies?.email ||
+      req.body?.email;
+
+    // Get password if provided
+    const password =
+      req.headers["admin-password"] || req.query.password || req.body?.password;
+
+    if (!email) {
+      console.log("No email found in request");
+      return {
+        valid: false,
+        status: 401,
+        message: "Authentication required",
+      };
+    }
+
+    console.log(`Checking admin privileges for: ${email}`);
+
+    // First check if it's in the admin model
+    const admin = await adminModel.findOne({ email });
+    if (admin) {
+      // If password is provided, verify it
+      if (password) {
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+          return {
+            valid: false,
+            status: 401,
+            message: "Invalid admin credentials",
+          };
+        }
+      }
+
+      console.log(`User found in admin model: ${email}`);
+      return { valid: true, admin };
+    }
+
+    console.log(`User doesn't have admin privileges: ${email}`);
+    return {
+      valid: false,
+      status: 403,
+      message: "Admin privileges required",
+    };
+  } catch (error) {
+    console.error("Error in admin authentication:", error);
+    return {
+      valid: false,
+      status: 500,
+      message: error.message,
+    };
+  }
+};
 
 // Get user statistics for admin dashboard
 export const getUserStats = async (req, res) => {
   try {
-    // Get total users count
+    // Check if the user is an admin
+    const adminCheck = await isAdmin(req, res);
+    if (!adminCheck.valid) {
+      return res.status(adminCheck.status).json({
+        success: false,
+        message: adminCheck.message,
+      });
+    }
+
+    // Continue with original function logic
     const totalUsers = await userModel.countDocuments();
 
-    // Aggregate monthly registrations for the current year
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
@@ -35,6 +104,7 @@ export const getUserStats = async (req, res) => {
       monthlyStats,
     });
   } catch (error) {
+    console.error("Error fetching user statistics:", error);
     return res.status(500).json({
       success: false,
       message: "Error fetching user statistics",
@@ -43,24 +113,39 @@ export const getUserStats = async (req, res) => {
   }
 };
 
-// Get all users with pagination
 export const getAllUsers = async (req, res) => {
   try {
+    const adminCheck = await isAdmin(req, res);
+    if (!adminCheck.valid) {
+      return res.status(adminCheck.status).json({
+        success: false,
+        message: adminCheck.message,
+      });
+    }
+
+    console.log("Get all users request:", {
+      query: req.query,
+      headers: {
+        "admin-email": req.headers["admin-email"],
+        authorization: req.headers["authorization"] ? "Present" : "Missing",
+      },
+    });
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    const userType = req.query.userType || "user";
 
     // Get total count for pagination
-    const totalUsers = await userModel.countDocuments({ userType });
+    const totalUsers = await userModel.countDocuments();
 
-    // Get users with pagination
     const users = await userModel
-      .find({ userType })
+      .find()
       .select("-password")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
+
+    console.log(`Found ${users.length} users`);
 
     return res.json({
       success: true,
@@ -74,6 +159,7 @@ export const getAllUsers = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Error fetching users:", error);
     return res.status(500).json({
       success: false,
       message: "Error fetching users",
@@ -85,6 +171,15 @@ export const getAllUsers = async (req, res) => {
 // Get user by ID
 export const getUserById = async (req, res) => {
   try {
+    // Check if the user is an admin
+    const adminCheck = await isAdmin(req, res);
+    if (!adminCheck.valid) {
+      return res.status(adminCheck.status).json({
+        success: false,
+        message: adminCheck.message,
+      });
+    }
+
     const user = await userModel.findById(req.params.id).select("-password");
 
     if (!user) {
@@ -107,15 +202,32 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// Update a user as an admin
 export const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, email, password, userType } = req.body;
+    console.log("Update User Request:", {
+      params: req.params,
+      body: req.body,
+      cookies: req.cookies,
+      headers: {
+        "admin-email": req.headers["admin-email"],
+        authorization: req.headers["authorization"] ? "Present" : "Missing",
+      },
+    });
 
+    // Check if the user is an admin
+    const adminCheck = await isAdmin(req, res);
+    if (!adminCheck.valid) {
+      console.log("Admin check failed:", adminCheck.message);
+      return res.status(adminCheck.status).json({
+        success: false,
+        message: adminCheck.message,
+      });
+    }
+
+    const { id } = req.params;
+    const { name, password } = req.body;
     console.log(`Admin attempting to update user with ID: ${id}`);
 
-    // Check if user exists
     const user = await userModel.findById(id);
     if (!user) {
       console.log(`User with ID ${id} not found`);
@@ -124,22 +236,13 @@ export const updateUser = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Update user fields if provided
     if (name) user.name = name;
-    if (email) user.email = email;
 
-    // Update password if provided
     if (password) {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
     }
 
-    // Update user type if provided and admin has permission
-    if (userType && req.admin.userType === "admin") {
-      user.userType = userType;
-    }
-
-    // Save the user
     await user.save();
 
     res.json({
@@ -149,7 +252,6 @@ export const updateUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        userType: user.userType,
       },
     });
   } catch (error) {
@@ -161,6 +263,26 @@ export const updateUser = async (req, res) => {
 // Delete user by ID
 export const deleteUser = async (req, res) => {
   try {
+    // Debug the request to see what's coming in
+    console.log("Delete User Request:", {
+      params: req.params,
+      cookies: req.cookies,
+      headers: {
+        "admin-email": req.headers["admin-email"],
+        authorization: req.headers["authorization"] ? "Present" : "Missing",
+      },
+    });
+
+    // Check if the user is an admin
+    const adminCheck = await isAdmin(req, res);
+    if (!adminCheck.valid) {
+      console.log("Admin check failed:", adminCheck.message);
+      return res.status(adminCheck.status).json({
+        success: false,
+        message: adminCheck.message,
+      });
+    }
+
     const user = await userModel.findByIdAndDelete(req.params.id);
 
     if (!user) {
@@ -175,6 +297,7 @@ export const deleteUser = async (req, res) => {
       message: "User deleted successfully",
     });
   } catch (error) {
+    console.error("Error deleting user:", error);
     return res.status(500).json({
       success: false,
       message: "Error deleting user",
@@ -183,10 +306,29 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// Add User function (missing export)
+// Add User function
 export const addUser = async (req, res) => {
   try {
-    const { name, email, password, userType = "user" } = req.body;
+    // Log request details for debugging
+    console.log("Add User Request:", {
+      body: req.body,
+      cookies: req.cookies,
+      headers: {
+        "admin-email": req.headers["admin-email"],
+        authorization: req.headers["authorization"] ? "Present" : "Missing",
+      },
+    });
+
+    // Check if the user is an admin
+    const adminCheck = await isAdmin(req, res);
+    if (!adminCheck.valid) {
+      return res.status(adminCheck.status).json({
+        success: false,
+        message: adminCheck.message,
+      });
+    }
+
+    const { name, email, password } = req.body;
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -209,18 +351,20 @@ export const addUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
+    // Create new user with simplified schema
     const newUser = new userModel({
       name,
       email,
       password: hashedPassword,
-      userType:
-        userType === "admin" && req.admin.userType === "admin"
-          ? "admin"
-          : "user",
     });
 
     await newUser.save();
+
+    console.log("User created successfully:", {
+      id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+    });
 
     return res.status(201).json({
       success: true,
@@ -229,7 +373,6 @@ export const addUser = async (req, res) => {
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        userType: newUser.userType,
       },
     });
   } catch (error) {

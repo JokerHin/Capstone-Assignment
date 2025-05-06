@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
+import { Pencil, Trash, UserPlus, X, Check } from "lucide-react";
 
 interface User {
   _id: string;
@@ -13,170 +14,304 @@ interface User {
 
 const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [editUser, setEditUser] = useState({
-    _id: "",
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const [addForm, setAddForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl } = appContext;
+  const { backendUrl, userData, isLoggedin } = appContext;
 
+  // Create a utility function to get auth headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    const adminEmail = localStorage.getItem("adminEmail") || userData?.email;
+
+    const headers: any = {};
+
+    if (adminEmail) {
+      headers["admin-email"] = adminEmail;
+    }
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    console.log("Auth headers:", headers);
+    return headers;
+  };
+
+  // Fetch users on component mount and when page changes
   useEffect(() => {
-    fetchUsers();
-  }, [currentPage]);
+    if (isLoggedin && userData?.userType === "admin") {
+      fetchUsers(currentPage);
+    } else {
+      setLoading(false);
+    }
+  }, [currentPage, backendUrl, isLoggedin, userData]);
 
-  const fetchUsers = async () => {
+  // Create a function to fetch users
+  const fetchUsers = async (page = currentPage) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { data } = await axios.get(
-        `${backendUrl}/api/admin/users?page=${currentPage}&userType=user`
+      // If not logged in or not an admin user, show empty list with auth message
+      if (!isLoggedin || userData?.userType !== "admin") {
+        setUsers([]);
+        setTotalPages(1);
+        return;
+      }
+
+      console.log(
+        `Fetching users page ${page} from ${backendUrl}/api/admin/users`
       );
 
-      if (data.success) {
-        setUsers(data.users);
-        setTotalPages(data.totalPages || 1);
+      // Make the request with admin headers
+      const response = await axios.get(`${backendUrl}/api/admin/users`, {
+        params: { page },
+        withCredentials: true,
+        headers: getAuthHeaders(),
+      });
+
+      console.log("Users API response:", response.data);
+
+      if (response.data.success) {
+        if (response.data.users && Array.isArray(response.data.users)) {
+          setUsers(response.data.users);
+          setTotalPages(response.data.pagination.totalPages || 1);
+          console.log(`Loaded ${response.data.users.length} users`);
+        } else {
+          console.error(
+            "API returned success but users data is invalid:",
+            response.data
+          );
+          toast.error("Received invalid user data from server");
+          setUsers([]);
+        }
       } else {
-        toast.error(data.message || "Failed to fetch users");
+        console.log("API returned error:", response.data.message);
+        setUsers([]);
       }
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || error.message || "An error occurred"
-      );
+      console.error("Error fetching users:", error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Function to handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  // Function to open add user modal
+  const handleAddUserModal = () => {
+    setShowAddModal(true);
+  };
+
+  // Function to handle form input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    form: "add" | "edit"
+  ) => {
+    const { name, value } = e.target;
+    if (form === "add") {
+      setAddForm((prevForm) => ({ ...prevForm, [name]: value }));
+    } else {
+      setEditForm((prevForm) => ({ ...prevForm, [name]: value }));
+    }
+  };
+
+  // Function to add a new user
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newUser.name || !newUser.email || !newUser.password) {
+    if (
+      !addForm.name.trim() ||
+      !addForm.email.trim() ||
+      !addForm.password.trim()
+    ) {
       toast.error("All fields are required");
       return;
     }
 
+    setSubmitting(true);
     try {
-      const { data } = await axios.post(
+      console.log("Adding new user with data:", addForm);
+
+      const response = await axios.post(
         `${backendUrl}/api/admin/add-user`,
-        newUser
+        addForm,
+        {
+          withCredentials: true,
+          headers: getAuthHeaders(),
+        }
       );
 
-      if (data.success) {
+      console.log("Add user response:", response.data);
+
+      if (response.data.success) {
         toast.success("User added successfully");
-        setNewUser({ name: "", email: "", password: "" });
-        setIsAddUserModalOpen(false);
-        fetchUsers(); // Refresh user list
+        setShowAddModal(false);
+        setAddForm({ name: "", email: "", password: "" });
+
+        // Force a small delay to ensure backend has processed the new user
+        setTimeout(() => {
+          fetchUsers(currentPage);
+        }, 500);
       } else {
-        toast.error(data.message || "Failed to add user");
+        toast.error(response.data.message || "Failed to add user");
       }
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || error.message || "Failed to add user"
-      );
+      console.error("Error adding user:", error);
+      toast.error(error.response?.data?.message || "Failed to add user");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleEditUser = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Function to handle edit user - modified to use currentUser
+  const handleEditUser = (user: User) => {
+    setCurrentUser(user);
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      password: "", // Don't fill password for security
+    });
+  };
 
-    if (!editUser.name || !editUser.email) {
+  // Function to update a user - modified to use currentUser
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    if (!editForm.name.trim() || !editForm.email.trim()) {
       toast.error("Name and email are required");
       return;
     }
 
+    setSubmitting(true);
     try {
-      const payload = {
-        name: editUser.name,
-        email: editUser.email,
+      const updateData = {
+        ...editForm,
+        // Only include password if it was actually entered
+        ...(editForm.password.trim() ? { password: editForm.password } : {}),
       };
 
-      // Only include password if it was provided
-      if (editUser.password) {
-        Object.assign(payload, { password: editUser.password });
-      }
-
-      // Set withCredentials to ensure cookies are sent
-      axios.defaults.withCredentials = true;
-
-      console.log(`Updating user with ID: ${editUser._id}`);
-
-      const { data } = await axios.put(
-        `${backendUrl}/api/admin/update-user/${editUser._id}`,
-        payload
+      const response = await axios.post(
+        `${backendUrl}/api/admin/users/${currentUser._id}/update`,
+        updateData,
+        {
+          withCredentials: true,
+          headers: getAuthHeaders(),
+        }
       );
 
-      if (data.success) {
+      if (response.data.success) {
         toast.success("User updated successfully");
-        setIsEditUserModalOpen(false);
-        // Update the user in the local state to avoid needing to refetch
-        setUsers(
-          users.map((u) => (u._id === editUser._id ? { ...u, ...payload } : u))
-        );
+        setCurrentUser(null);
+        fetchUsers(); // Refresh user list
       } else {
-        toast.error(data.message || "Failed to update user");
+        toast.error(response.data.message || "Failed to update user");
       }
     } catch (error: any) {
       console.error("Error updating user:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.statusText ||
-        error.message ||
-        "Unknown error occurred";
-      toast.error(`Failed to update user: ${errorMessage}`);
+      toast.error(error.response?.data?.message || "Failed to update user");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const openEditModal = (user: User) => {
-    setEditUser({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      password: "",
-    });
-    setIsEditUserModalOpen(true);
-  };
-
+  // Function to delete user
   const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
 
     try {
-      const { data } = await axios.delete(
-        `${backendUrl}/api/admin/delete-user/${userId}`
+      // Make DELETE request with auth headers
+      const response = await axios.post(
+        `${backendUrl}/api/admin/users/${userId}/delete`,
+        {},
+        {
+          withCredentials: true,
+          headers: getAuthHeaders(),
+        }
       );
 
-      if (data.success) {
+      if (response.data.success) {
         toast.success("User deleted successfully");
-        fetchUsers(); // Refresh user list
+
+        // Remove user from local state
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== userId)
+        );
       } else {
-        toast.error(data.message || "Failed to delete user");
+        toast.error(response.data.message || "Error deleting user");
       }
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to delete user"
-      );
+      console.error("Error deleting user:", error);
+      toast.error(error.response?.data?.message || "Failed to delete user");
     }
+  };
+
+  // Render pagination controls
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-400">
+          Page {currentPage} of {totalPages}
+        </div>
+        <div className="space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded ${
+              currentPage === 1
+                ? "bg-slate-700 text-slate-500 cursor-not-allowed"
+                : "bg-slate-700 text-white hover:bg-slate-600"
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded ${
+              currentPage === totalPages
+                ? "bg-slate-700 text-slate-500 cursor-not-allowed"
+                : "bg-slate-700 text-white hover:bg-slate-600"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Filter users based on search term
+  const [searchTerm, setSearchTerm] = useState("");
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -191,17 +326,19 @@ const AdminUsers: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header section */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">User Management</h1>
         <button
-          onClick={() => setIsAddUserModalOpen(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded"
+          onClick={handleAddUserModal}
+          className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded flex items-center"
         >
-          Add New User
+          <UserPlus size={18} className="mr-2" />
+          Add User
         </button>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search bar */}
       <div className="flex items-center bg-slate-800 rounded-lg p-2">
         <input
           type="text"
@@ -210,207 +347,165 @@ const AdminUsers: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
-          Search
-        </button>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-gray-300">Loading users...</p>
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-gray-300">No users found</p>
-          </div>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-gray-700">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                >
-                  Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                >
-                  Email
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                >
-                  Joined
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-slate-800 divide-y divide-gray-700">
-              {filteredUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-slate-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white mr-3">
-                        {user.name[0].toUpperCase()}
-                      </div>
-                      <div className="text-sm font-medium text-white">
-                        {user.name}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {formatDate(user.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => openEditModal(user)}
-                      className="text-indigo-400 hover:text-indigo-300 mr-3 cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUser(user._id)}
-                      className="text-red-400 hover:text-red-300 cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-between items-center bg-slate-800 px-4 py-3 rounded-lg">
-          <div className="text-sm text-gray-400">
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 rounded text-white ${
-                currentPage === 1
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-gray-700 hover:bg-gray-600"
-              }`}
-            >
-              Previous
-            </button>
-            {[...Array(totalPages)]
-              .map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`px-3 py-1 rounded text-white ${
-                    currentPage === i + 1
-                      ? "bg-orange-500"
-                      : "bg-gray-700 hover:bg-gray-600"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))
-              .slice(
-                Math.max(0, currentPage - 2),
-                Math.min(totalPages, currentPage + 1)
-              )}
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className={`px-3 py-1 rounded text-white ${
-                currentPage === totalPages
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-gray-700 hover:bg-gray-600"
-              }`}
-            >
-              Next
-            </button>
-          </div>
+      {/* Loading state */}
+      {loading ? (
+        <div className="bg-slate-800 p-8 rounded-lg text-center">
+          <div className="animate-pulse text-gray-400">Loading users...</div>
         </div>
+      ) : (
+        <>
+          {/* Users table */}
+          <div className="bg-slate-800 rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-gray-700">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      Email
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      Joined
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-slate-800 divide-y divide-gray-700">
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-8 text-center text-gray-400"
+                      >
+                        {isLoggedin
+                          ? "No users found"
+                          : "Please log in as an administrator to view users"}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <tr key={user._id} className="hover:bg-slate-700">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-white">
+                            {user.name}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-300">
+                            {user.email}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                          {formatDate(user.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => handleEditUser(user)}
+                            className="text-blue-400 hover:text-blue-300 mr-3"
+                          >
+                            <Pencil size={16} className="inline" />
+                            <span className="ml-1 hidden sm:inline">Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user._id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash size={16} className="inline" />
+                            <span className="ml-1 hidden sm:inline">
+                              Delete
+                            </span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Pagination controls */}
+          {renderPagination()}
+        </>
       )}
 
       {/* Add User Modal */}
-      {isAddUserModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 p-8 rounded-lg max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4 cursor-pointer">
-              Add New User
-            </h2>
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">Add New User</h2>
             <form onSubmit={handleAddUser}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newUser.name}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, name: e.target.value })
-                    }
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, email: e.target.value })
-                    }
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, password: e.target.value })
-                    }
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                    required
-                  />
-                </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={addForm.name}
+                  onChange={(e) => handleInputChange(e, "add")}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Full Name"
+                  required
+                />
               </div>
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={addForm.email}
+                  onChange={(e) => handleInputChange(e, "add")}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Email Address"
+                  required
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={addForm.password}
+                  onChange={(e) => handleInputChange(e, "add")}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Password"
+                  required
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setIsAddUserModalOpen(false)}
-                  className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded cursor-pointer"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded cursor-pointer"
+                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded"
                 >
                   Add User
                 </button>
@@ -420,12 +515,19 @@ const AdminUsers: React.FC = () => {
         </div>
       )}
 
-      {/* Edit User Modal */}
-      {isEditUserModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 p-8 rounded-lg max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">Edit User</h2>
-            <form onSubmit={handleEditUser}>
+      {currentUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 p-6 rounded-lg max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Edit User</h2>
+              <button
+                onClick={() => setCurrentUser(null)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateUser}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -433,11 +535,10 @@ const AdminUsers: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    value={editUser.name}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, name: e.target.value })
-                    }
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                    name="name"
+                    value={editForm.name}
+                    onChange={(e) => handleInputChange(e, "edit")}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     required
                   />
                 </div>
@@ -447,42 +548,55 @@ const AdminUsers: React.FC = () => {
                   </label>
                   <input
                     type="email"
-                    value={editUser.email}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, email: e.target.value })
-                    }
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                    name="email"
+                    value={editForm.email}
+                    onChange={(e) => handleInputChange(e, "edit")}
+                    className="w-full bg-slate-700 text-gray-500 px-3 py-2 rounded border border-slate-600 cursor-not-allowed"
                     required
+                    disabled
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Email cannot be changed
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
-                    New Password (leave blank to keep current)
+                    Password (leave blank to keep unchanged)
                   </label>
                   <input
                     type="password"
-                    value={editUser.password}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, password: e.target.value })
-                    }
-                    className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
-                    placeholder="Leave blank to keep current password"
+                    name="password"
+                    value={editForm.password}
+                    onChange={(e) => handleInputChange(e, "edit")}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
               </div>
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setIsEditUserModalOpen(false)}
-                  className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                  onClick={() => setCurrentUser(null)}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded flex items-center"
+                  disabled={submitting}
                 >
-                  Update User
+                  {submitting ? (
+                    <>
+                      <span className="mr-2">Updating...</span>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} className="mr-2" />
+                      Update User
+                    </>
+                  )}
                 </button>
               </div>
             </form>

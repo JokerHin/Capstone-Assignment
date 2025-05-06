@@ -19,7 +19,7 @@ export default function Login() {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl, setIsLoggedin, getUserData } = appContext;
+  const { backendUrl, login } = appContext;
 
   const [state, setState] = useState("Sign Up");
   const [name, setName] = useState("");
@@ -32,10 +32,8 @@ export default function Login() {
     try {
       e.preventDefault();
 
-      axios.defaults.withCredentials = true;
-
       if (state === "Sign Up") {
-        // Regular user registration
+        // Handle registration
         const { data } = await axios.post(backendUrl + "/api/auth/register", {
           name,
           email,
@@ -44,60 +42,29 @@ export default function Login() {
         });
 
         if (data.success) {
-          setIsLoggedin(true);
-
-          // Save token to localStorage
-          if (data.token) {
-            localStorage.setItem("token", data.token);
-          }
-
-          getUserData();
-          const userType = data.userData?.userType;
-          if (userType === "admin") {
-            navigate("/AdminHome");
-          } else {
+          toast.success("Successfully registered");
+          // Auto login after registration
+          const loginSuccess = await login(email, password);
+          if (loginSuccess) {
             navigate("/");
           }
-          toast.success("Successfully registered");
         } else {
           toast.error(data.message);
         }
       } else {
-        const { data } = await axios.post(backendUrl + "/api/auth/login", {
-          email,
-          password,
-          isAdminLogin,
-        });
+        // Handle login - make sure to pass the isAdminLogin flag
+        console.log("Logging in as admin:", isAdminLogin);
+        const loginSuccess = await login(email, password, isAdminLogin);
 
-        if (data.success) {
-          setIsLoggedin(true);
-
-          // Save token to localStorage
-          if (data.token) {
-            localStorage.setItem("token", data.token);
-          }
-
-          getUserData();
-
-          // If admin login was requested, ensure we got admin privileges
+        if (loginSuccess) {
+          toast.success("Successfully logged in");
           if (isAdminLogin) {
-            if (data.userData?.userType === "admin") {
-              navigate("/AdminHome");
-              toast.success("Admin login successful");
-            } else {
-              toast.error("Something went wrong with admin login");
-            }
+            navigate("/AdminHome");
           } else {
-            // Regular user login
-            if (data.userData?.userType === "admin") {
-              navigate("/AdminHome");
-            } else {
-              navigate("/");
-            }
-            toast.success("Successfully logged in");
+            navigate("/");
           }
         } else {
-          toast.error(data.message);
+          toast.error("Login failed. Please check your credentials.");
         }
       }
     } catch (error: any) {
