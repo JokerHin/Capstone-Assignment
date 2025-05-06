@@ -3,17 +3,15 @@ import bcrypt from "bcryptjs";
 
 export const getUserData = async (req, res) => {
   try {
-    // Get user credentials from request body instead of middleware
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email is required",
       });
     }
 
-    // Find user by email
     const user = await userModal.findOne({ email });
 
     if (!user) {
@@ -23,25 +21,25 @@ export const getUserData = async (req, res) => {
       });
     }
 
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
+    if (password) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid credentials",
+        });
+      }
     }
 
-    // Return user data
-    res.json({
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    };
+
+    return res.json({
       success: true,
-      userData: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        isAccountVerified: user.isAccountVerified,
-        userType: user.userType,
-      },
+      userData: userData,
     });
   } catch (error) {
     console.error("Error getting user data:", error);
@@ -53,7 +51,6 @@ export const updateProfile = async (req, res) => {
   try {
     const { email, password, name, currentPassword, newPassword } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -61,7 +58,6 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Find user by email
     const user = await userModal.findOne({ email });
 
     if (!user) {
@@ -71,7 +67,6 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -80,14 +75,11 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Update name if provided
     if (name) {
       user.name = name;
     }
 
-    // If password is being changed, validate current password again
     if (newPassword) {
-      // Current password should match the password submitted for authentication
       const passwordsMatch =
         currentPassword === password ||
         (await bcrypt.compare(currentPassword, user.password));
