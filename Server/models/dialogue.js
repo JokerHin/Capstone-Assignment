@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const DialogueSchema = new mongoose.Schema(
   {
     text: { type: String, required: true },
-    dialogue_id: { type: Number, required: true },
-    subquest_id: { type: Number },
+    dialogue_id: { type: String, required: true },
+    subquest_id: { type: String },
     order: { type: Number, default: 0 },
   },
   {

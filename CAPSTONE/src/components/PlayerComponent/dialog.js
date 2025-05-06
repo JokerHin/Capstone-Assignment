@@ -148,7 +148,7 @@ export class Dialog{
                 if (nextActiveSubquest){
                     let nextQuest = nextActiveSubquest.quest_id;
                     this.game.registry.set("activeQuest", nextQuest);
-                    fetch("https://codyssey-mongodb.vercel.app/player_progress", {
+                    fetch("https://codyssey-mongodb.vercel.app/player_progress/update", {
                         method: "POST",
                         headers: {
                         "Content-Type": "application/json",

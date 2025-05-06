@@ -4,8 +4,8 @@ const SubquestSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String },
-    quest_id: { type: Number, required: true },
-    subquest_id: { type: Number, required: true },
+    quest_id: { type: String, required: true },
+    subquest_id: { type: String, required: true },
     admin_id: { type: Number },
   },
   {

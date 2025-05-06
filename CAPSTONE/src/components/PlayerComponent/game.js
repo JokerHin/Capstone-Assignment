@@ -361,17 +361,17 @@ class MainScene extends Phaser.Scene {
         // this.physics.add.collider(this.player, collisionLayer);
 
         //initiate first quest for new user
-        fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
-            method: "POST",
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-            player_id: this.player_id,
-            subquest_id: 1,
-            status: "In Progress",
-            }),
-        });
+        // fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
+        //     method: "POST",
+        //     headers: {
+        //     "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify({
+        //     player_id: this.player_id,
+        //     subquest_id: 1,
+        //     status: "In Progress",
+        //     }),
+        // });
 
         this.removeLoadingScreen();
     }
@@ -513,7 +513,8 @@ class MainScene extends Phaser.Scene {
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail,
-            itemDetail: this.itemDetail
+            itemDetail: this.itemDetail,
+            player_id : this.player_id
         });
     }
 

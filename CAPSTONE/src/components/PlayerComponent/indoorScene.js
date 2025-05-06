@@ -42,6 +42,8 @@ export class IndoorScene extends Phaser.Scene {
         this.npcDetail = data.npcDetail || {};
         this.locationDetail = data.locationDetail || {};
         this.itemDetail = data.itemDetail || {};
+        this.player_id = data.player_id || 1; // Default to 1 if not provided
+        console.log(this.player_id);
     }
 
     preload() {
