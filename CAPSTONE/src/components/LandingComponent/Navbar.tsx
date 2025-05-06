@@ -50,18 +50,58 @@ const Navbar = () => {
     throw new Error("AppContent context is undefined");
   }
 
-  const { userData, backendUrl, setUserData, setIsLoggedin } = appContext;
+  const { userData, backendUrl, setUserData, setIsLoggedin, isLoggedin } =
+    appContext;
+
+  // Get user name from localStorage if userData is not available in context
+  const getUsernameDisplay = () => {
+    if (userData?.name) {
+      return userData.name;
+    }
+
+    // Try to get from localStorage as fallback
+    try {
+      const storedUserData = localStorage.getItem("userData");
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData);
+        return parsedData.name || "User";
+      }
+    } catch (e) {
+      console.error("Error parsing userData from localStorage", e);
+    }
+
+    return "User";
+  };
+
+  // Get first letter of username for avatar
+  const getAvatarLetter = () => {
+    const name = getUsernameDisplay();
+    return name[0].toUpperCase();
+  };
 
   const logout = async () => {
     try {
       axios.defaults.withCredentials = true;
       const { data } = await axios.post(backendUrl + "/api/auth/logout");
+
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("token");
+      localStorage.removeItem("adminEmail");
+      localStorage.removeItem("isAdmin");
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("admin");
+      localStorage.removeItem("auth");
+      localStorage.removeItem("session");
+
+      setIsLoggedin(false);
+      setUserData(null);
+
+      navigate("/");
+
       if (data.success) {
-        setIsLoggedin(false);
-        setUserData(null);
-        navigate("/");
-      } else {
-        toast.error(data.message);
+        toast.success("Successfully logged out");
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -113,10 +153,10 @@ const Navbar = () => {
               Contributor
             </a>
           </nav>
-          {userData ? (
+          {isLoggedin || localStorage.getItem("userData") ? (
             <div className="flex items-center mt-7">
               <div className="w-10 h-10 flex justify-center items-center rounded-full bg-[#ff8800] text-white text-xl relative group">
-                {userData.name[0].toUpperCase()}
+                {getAvatarLetter()}
                 <div className="absolute hidden group-hover:block top-0 right-0 z-10 text-black rounded pt-10 text-3xl">
                   <ul className="list-none m-0 p-2 bg-gray-100 text-sm">
                     <li
@@ -135,7 +175,7 @@ const Navbar = () => {
                 </div>
               </div>
               <h1 className="ml-2 flex items-center gap-2 text-md sm:text-xl font-medium text-white">
-                {userData ? userData.name : null}
+                {getUsernameDisplay()}
               </h1>
             </div>
           ) : (

@@ -72,6 +72,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     try {
       axios.defaults.withCredentials = true;
       const { data } = await axios.post(backendUrl + "/api/auth/logout");
+
+      localStorage.removeItem("adminEmail");
+      localStorage.removeItem("token");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("isAdmin");
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("admin");
+      localStorage.removeItem("auth");
+      localStorage.removeItem("session");
+
       if (data.success) {
         setIsLoggedin(false);
         setUserData(null);

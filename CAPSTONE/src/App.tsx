@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import "./App.css";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { AdminProvider } from "./context/AdminContext";
 
@@ -12,6 +13,33 @@ import AdminSubquest from "./components/AdminComponents/AdminSubquest";
 import AdminDialogue from "./components/AdminComponents/AdminDialogue";
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminRoutes = () => {
+      const pathname = window.location.pathname;
+
+      if (pathname.startsWith("/AdminHome") || pathname.startsWith("/admin/")) {
+        const isAdmin = localStorage.getItem("isAdmin") === "true";
+        const isLoggedIn = Boolean(localStorage.getItem("userData"));
+
+        if (!isLoggedIn || !isAdmin) {
+          navigate("/login");
+        }
+      }
+
+      if (pathname === "/profile") {
+        const isLoggedIn = Boolean(localStorage.getItem("userData"));
+
+        if (!isLoggedIn) {
+          navigate("/login");
+        }
+      }
+    };
+
+    checkAdminRoutes();
+  }, [navigate]);
+
   return (
     <div>
       <ToastContainer />

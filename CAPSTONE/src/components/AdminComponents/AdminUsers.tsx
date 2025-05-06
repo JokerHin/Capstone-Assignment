@@ -43,7 +43,10 @@ const AdminUsers: React.FC = () => {
   // Create a utility function to get auth headers
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
-    const adminEmail = localStorage.getItem("adminEmail") || userData?.email;
+    const adminEmail =
+      localStorage.getItem("adminEmail") ||
+      userData?.email ||
+      localStorage.getItem("userEmail");
 
     const headers: any = {};
 
