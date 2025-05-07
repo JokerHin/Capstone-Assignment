@@ -21,6 +21,7 @@ export class IndoorScene extends Phaser.Scene {
     this.uistatus = 0;
   }
 
+<<<<<<< HEAD
   init(data) {
     this.gameWidth = data.width;
     this.gameHeight = data.height;
@@ -41,6 +42,30 @@ export class IndoorScene extends Phaser.Scene {
     this.locationDetail = data.locationDetail || {};
     this.itemDetail = data.itemDetail || {};
   }
+=======
+    init(data) {
+        this.gameWidth = data.width;
+        this.gameHeight = data.height;
+        this.locationId = data.locationId;
+        this.dialogue = data.dialogue || {};
+        this.quest = data.quest || {};
+        this.location = data.location || {};
+        this.inventory = data.inventory || [];
+        this.item = data.item || {};
+        this.action = data.action || {};
+        this.packageDetail = data.packageDetail || {};
+        this.position = data.position || {};
+        this.subquest = data.subquest || {};
+        this.package = data.package || {};
+        this.choice = data.choice || {};
+        this.playerProgress = data.playerProgress || {};
+        this.npcDetail = data.npcDetail || {};
+        this.locationDetail = data.locationDetail || {};
+        this.itemDetail = data.itemDetail || {};
+        this.player_id = data.player_id || 1; // Default to 1 if not provided
+        console.log(this.player_id);
+    }
+>>>>>>> 8fe17d82285914cf6542e68d2fd15c5cfaef4d62
 
   preload() {}
 

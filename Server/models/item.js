@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const ItemSchema = new mongoose.Schema(
   {
     item_id: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
     },

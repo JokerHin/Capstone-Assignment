@@ -21,8 +21,8 @@ class MainScene extends Phaser.Scene {
         this.movementSpeed=200; //200
         this.player_direction=-1;
         this.zoomFactor=1.8; //1.8
-        this.locationId=0;
-        this.player_id=1; //need change to cookie player
+        this.locationId="0";
+        this.player_id="1"; //need change to cookie player
         this.uistatus=0;
         this.createLoadingScreen();
     }
@@ -49,6 +49,8 @@ class MainScene extends Phaser.Scene {
         this.itemDetail = data.itemDetail || {};
         this.userData = data.userData || {};
         console.log("User Data in MainScene:", this.userData);
+        this.player_id = this.userData.id || 1;
+        console.log(this.player_id)
     }
 
     preload() {
@@ -191,11 +193,11 @@ class MainScene extends Phaser.Scene {
     create() {
         //set initial quest and subquest in the beginning
         //use registry to store data across all scenes
-        // let activeQuest = this.quest.init; //comment this before committing
-        // let activeQuest = "quest2"; //uncomment this before committing
-        let activeQuest = 1;
+        // let activeQuest = 1;
         // let activeSubQuest = this.quest[activeQuest].startquest;
-        let activeSubQuest = 1;
+        let activeSubQuest = this.playerProgress.find(progress => progress.player_id === this.player_id).subquest_id;
+        console.log(activeSubQuest);
+        let activeQuest = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).quest_id;
         this.registry.set("activeQuest", activeQuest);
         this.registry.set("activeSubQuest", activeSubQuest);
         this.registry.set("inventory", this.inventory);
@@ -359,17 +361,17 @@ class MainScene extends Phaser.Scene {
         // this.physics.add.collider(this.player, collisionLayer);
 
         //initiate first quest for new user
-        fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
-            method: "POST",
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-            player_id: this.player_id,
-            subquest_id: 1,
-            status: "In Progress",
-            }),
-        });
+        // fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
+        //     method: "POST",
+        //     headers: {
+        //     "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify({
+        //     player_id: this.player_id,
+        //     subquest_id: 1,
+        //     status: "In Progress",
+        //     }),
+        // });
 
         this.removeLoadingScreen();
     }
@@ -511,7 +513,8 @@ class MainScene extends Phaser.Scene {
             playerProgress: this.playerProgress,
             npcDetail: this.npcDetail,
             locationDetail: this.locationDetail,
-            itemDetail: this.itemDetail
+            itemDetail: this.itemDetail,
+            player_id : this.player_id
         });
     }
 
@@ -915,11 +918,24 @@ class Game {
 
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
-    this.createLoadingScreen();
-    this.fetchUserData();
-    this.fetchMongo().then(() => {
-      this.startGame(); // Start game only after fetching data
-    });
+    this.initGame();
+  }
+
+  async initGame() {
+    try {
+      this.createLoadingScreen();
+
+      // Wait for fetchUserData to complete
+      await this.fetchUserData();
+
+      // Wait for fetchMongo to complete
+      await this.fetchMongo();
+
+      // Start the game after all data is fetched
+      this.startGame();
+    } catch (error) {
+      console.error("Error initializing the game:", error);
+    }
   }
 
   createLoadingScreen() {
@@ -1111,6 +1127,7 @@ class Game {
       }
 
       this.userData = await response.json(); // Parse the JSON response
+      this.userData = this.userData.userData;
       console.log("Fetched User Data:", this.userData);
     } catch (error) {
       console.error("Error fetching user data:", error);
