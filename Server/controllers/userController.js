@@ -25,6 +25,8 @@ export const getUserData = async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      location_id: user.location_id || null,
+      coordinate: user.coordinate || null,
     };
 
     return res.json({
@@ -89,6 +91,47 @@ export const updateProfile = async (req, res) => {
     res.json({ success: true, message: "Profile updated successfully" });
   } catch (error) {
     console.error("Error updating profile:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateUserLocation = async (req, res) => {
+  try {
+    const { id, location_id, x, y } = req.body;
+
+    if (!id || !location_id || x === undefined || y === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID, location_id, and coordinates (x, y) are required",
+      });
+    }
+
+    const user = await userModal.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.location_id = location_id;
+    user.coordinate = { x, y };
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Location updated successfully",
+      data: {
+        id: user._id,
+        email: user.email,
+        location_id: user.location_id,
+        coordinate: user.coordinate,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating user location:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
