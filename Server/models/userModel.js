@@ -14,6 +14,20 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  location_id: {
+    type: Number,
+    default: null,
+  },
+  coordinates: {
+    x: {
+      type: Number,
+      default: 376,
+    },
+    y: {
+      type: Number,
+      default: 215,
+    },
+  },
   createdAt: {
     type: Date,
     default: Date.now,

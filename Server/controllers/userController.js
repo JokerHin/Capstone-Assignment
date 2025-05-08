@@ -25,8 +25,8 @@ export const getUserData = async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      location_id: user.location_id || null,
-      coordinate: user.coordinate || null,
+      location_id: user.location_id,
+      coordinate: user.coordinate,
     };
 
     return res.json({
