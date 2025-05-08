@@ -15,8 +15,8 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   location_id: {
-    type: Number,
-    default: null,
+    type: String,
+    default: "0",
   },
   coordinates: {
     x: {
