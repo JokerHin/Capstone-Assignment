@@ -245,5 +245,119 @@
             }
         },
         "initialFrame": 0
+    },
+    "airbot":{
+        "name": "Air Bot",
+        "type": "spritesheet",
+        "img": "airbot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "icebot":{
+        "name": "Ice Bot",
+        "type": "spritesheet",
+        "img": "icebot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "lightningbot":{
+        "name": "Lightning Bot",
+        "type": "spritesheet",
+        "img": "lightningbot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "firebot":{
+        "name": "Fire Bot",
+        "type": "spritesheet",
+        "img": "firebot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "earthbot":{
+        "name": "Earth Bot",
+        "type": "spritesheet",
+        "img": "earthbot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "waterbot":{
+        "name": "Water Bot",
+        "type": "spritesheet",
+        "img": "waterbot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
     }
 }
