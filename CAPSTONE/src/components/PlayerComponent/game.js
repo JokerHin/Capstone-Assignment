@@ -4,9 +4,6 @@ import { Backdrop } from './backdrop.js';
 import { Door } from './door.js';
 import { IndoorScene } from './indoorScene.js';
 
-import axios from 'axios';
-
-
 class MainScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainScene' });

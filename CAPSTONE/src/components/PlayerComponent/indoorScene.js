@@ -21,28 +21,6 @@ export class IndoorScene extends Phaser.Scene {
     this.uistatus = 0;
   }
 
-<<<<<<< HEAD
-  init(data) {
-    this.gameWidth = data.width;
-    this.gameHeight = data.height;
-    this.locationId = data.locationId;
-    this.dialogue = data.dialogue || {};
-    this.quest = data.quest || {};
-    this.location = data.location || {};
-    this.inventory = data.inventory || [];
-    this.item = data.item || {};
-    this.action = data.action || {};
-    this.packageDetail = data.packageDetail || {};
-    this.position = data.position || {};
-    this.subquest = data.subquest || {};
-    this.package = data.package || {};
-    this.choice = data.choice || {};
-    this.playerProgress = data.playerProgress || {};
-    this.npcDetail = data.npcDetail || {};
-    this.locationDetail = data.locationDetail || {};
-    this.itemDetail = data.itemDetail || {};
-  }
-=======
     init(data) {
         this.gameWidth = data.width;
         this.gameHeight = data.height;
@@ -65,7 +43,6 @@ export class IndoorScene extends Phaser.Scene {
         this.player_id = data.player_id || 1; // Default to 1 if not provided
         console.log(this.player_id);
     }
->>>>>>> 8fe17d82285914cf6542e68d2fd15c5cfaef4d62
 
   preload() {}
 
@@ -475,7 +452,7 @@ export class IndoorScene extends Phaser.Scene {
 
   openGuide() {
     if (this.uistatus != 0) {
-      return;
+        return;
     }
     this.uistatus = 1;
     this.collisionHappened = true;
@@ -487,63 +464,44 @@ export class IndoorScene extends Phaser.Scene {
     this.darkOverlayGuide.setScrollFactor(0);
 
     // Add the scroll background as the guide background
-    this.guideBg = this.add.image(
-      this.gameWidth / 2,
-      (this.gameHeight - 30) / 2,
-      "scroll_background"
-    );
+    this.guideBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-30) / 2), 'scroll_background');
     this.guideBg.setScrollFactor(0);
     let scrollScale = (this.gameWidth - 50) / this.guideBg.width;
     this.guideBg.setScale(scrollScale);
 
-    // Add a title
-    this.guideTitle = this.add
-      .text(
-        this.gameWidth / 2,
-        this.guideBg.y - this.guideBg.displayHeight * 0.4,
-        "Game Guide",
-        {
-          fontSize: `${this.guideBg.displayWidth * 0.05}px`,
-          fontStyle: "bold",
-          fill: "#000000",
-        }
-      )
-      .setOrigin(0.5);
+    // Guide title
+    this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.0875), 'GUIDE', {
+        fill: '#000000',
+        font: `${this.guideBg.displayWidth*0.07}px 'Jersey 10'`,
+        fontStyle: 'bold'
+    }).setOrigin(0.5);
     this.guideTitle.setScrollFactor(0);
+    this.guideTitle.setLetterSpacing(2);
 
     // Add guide content
-    this.guideContent = this.add
-      .text(
-        this.gameWidth / 2,
-        this.guideBg.y,
-        "Welcome to the game! Here are some tips:\n\n" +
-          "- Use W/A/S/D or Arrow keys to move.\n" +
-          "- Click on NPCs to interact with them.\n" +
-          "- Open your inventory to manage items.\n" +
-          "- Complete quests to progress in the game.\n\n" +
-          "Good luck and have fun!",
+    this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05,
+        'Use W/A/S/D or Arrow keys to move.\n' +
+        'Click on NPCs to interact with them.\n',
         {
-          fontSize: `${this.guideBg.displayWidth * 0.03}px`,
-          fill: "#000000",
-          align: "center",
-          wordWrap: { width: this.guideBg.displayWidth * 0.8 },
-        }
-      )
-      .setOrigin(0.5);
+            fill: '#000000',
+            align: 'center',
+            // wordWrap: { width: this.guideBg.displayWidth * 0.8 },
+            font: `${this.guideBg.displayWidth*0.03}px 'VT323'`
+        }).setOrigin(0.5);
     this.guideContent.setScrollFactor(0);
+    this.guideContent.setLetterSpacing(0);
 
     // Add a close button
-    this.closeGuideButton = this.add
-      .image(this.gameWidth * 0.81, this.gameHeight * 0.3, "close_icon") // Replace 'close_icon' with your image key
-      .setScale(this.gameWidth / 2e4) // Scale the image if needed
-      .setInteractive() // Make the image clickable
-      .on("pointerdown", () => {
-        this.closeGuide(); // Close the guide UI
-      });
+    this.closeGuideButton = this.add.image(this.gameWidth * 0.81, this.gameHeight * 0.3, 'close_icon') // Replace 'close_icon' with your image key
+        .setScale(this.gameWidth / 2e4) // Scale the image if needed
+        .setInteractive() // Make the image clickable
+        .on('pointerdown', () => {
+            this.closeGuide(); // Close the guide UI
+        });
     this.closeGuideButton.setScrollFactor(0);
-  }
+}
 
-  closeGuide() {
+closeGuide() {
     // Destroy all guide UI elements
     this.darkOverlayGuide.destroy();
     this.guideBg.destroy();
@@ -553,13 +511,13 @@ export class IndoorScene extends Phaser.Scene {
 
     this.collisionHappened = false;
     this.uistatus = 0;
-  }
+}
 
-  openInventory() {
-    if (this.uistatus != 0) {
-      return;
+openInventory(){
+    if (this.uistatus!=0){
+        return;
     }
-    this.uistatus = 1;
+    this.uistatus=1;
     this.collisionHappened = true;
     let displayCat = 0;
 
@@ -570,29 +528,18 @@ export class IndoorScene extends Phaser.Scene {
     this.darkOverlay.setScrollFactor(0);
 
     // Add the scroll background as the menu background
-    this.inventoryBg = this.add.image(
-      this.gameWidth / 2,
-      (this.gameHeight - 30) / 2,
-      "scroll_background"
-    );
+    this.inventoryBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-30) / 2), 'scroll_background')
     this.inventoryBg.setScrollFactor(0);
-    let scrollScale = (this.gameWidth - 50) / this.inventoryBg.width;
+    let scrollScale = (this.gameWidth-50)/this.inventoryBg.width;
     this.inventoryBg.setScale(scrollScale);
 
     // Add a title
-    this.inventoryTitle = this.add
-      .text(
-        this.gameWidth / 2,
-        this.inventoryBg.y - this.inventoryBg.displayHeight * 0.1,
-        "INVENTORY",
-        {
-          // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
-          fontStyle: "bold",
-          fill: "#000000",
-          font: `${this.inventoryBg.displayWidth * 0.05}px 'Jersey 10'`,
-        }
-      )
-      .setOrigin(0.5);
+    this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.1), 'INVENTORY', {
+        // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
+        fontStyle: 'bold',
+        fill: '#000000',
+        font: `${this.inventoryBg.displayWidth*0.06}px 'Jersey 10'`
+    }).setOrigin(0.5);
     this.inventoryTitle.setScrollFactor(0);
     this.inventoryTitle.setLetterSpacing(4);
 
@@ -600,222 +547,162 @@ export class IndoorScene extends Phaser.Scene {
     this.inventoryItems = [];
 
     // Add category slots on the left
-    let categoryLength = this.inventoryBg.displayWidth * 0.05;
+    let categoryLength = this.inventoryBg.displayWidth*0.05;
     let categoryGap = this.inventoryBg.displayHeight * 0.02;
-    let categoryStartX = this.gameWidth * 0.3;
-    let categoryStartY =
-      this.inventoryBg.y * 1.3 - categoryLength * 1.5 - categoryGap;
+    let categoryStartX = this.gameWidth*0.3;
+    let categoryStartY = this.inventoryBg.y*1.3 - categoryLength*1.5 - categoryGap;
 
     // Category 1
     let category1 = this.add.graphics();
-    category1.fillStyle(0xc48441, 1); // Light blue color
-    category1.fillRect(
-      categoryStartX - categoryLength / 2,
-      categoryStartY - categoryLength / 2,
-      categoryLength,
-      categoryLength
-    );
-    category1
-      .setInteractive(
-        new Phaser.Geom.Rectangle(
-          categoryStartX - categoryLength / 2,
-          categoryStartY - categoryLength / 2,
-          categoryLength,
-          categoryLength
-        ),
-        Phaser.Geom.Rectangle.Contains
-      )
-      .on("pointerdown", () => {
-        console.log("Category 1 clicked");
-        displayCat = 0;
-        this.showCatItem(displayCat);
+    category1.fillStyle(0xC48441, 1); // Light blue color
+    category1.fillRect(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength);
+    category1.setInteractive(new Phaser.Geom.Rectangle(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength), Phaser.Geom.Rectangle.Contains)
+        .on('pointerdown', () => {
+            console.log('Category 1 clicked');
+            displayCat = 0;
+            this.showCatItem(displayCat);
 
-        // Change color of Category 1
-        category1.clear(); // Clear the previous graphics
-        category1.fillStyle(0xc48441, 1); // New color (Gold)
-        category1.fillRect(
-          categoryStartX - categoryLength / 2,
-          categoryStartY - categoryLength / 2,
-          categoryLength,
-          categoryLength
-        );
+            // Change color of Category 1
+            category1.clear(); // Clear the previous graphics
+            category1.fillStyle(0xC48441, 1); // New color (Gold)
+            category1.fillRect(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength);
 
-        // Reset Category 2 color
-        category2.clear();
-        category2.fillStyle(0xdeb369, 1); // Reset to original color
-        category2.fillRect(
-          categoryStartX - categoryLength / 2,
-          categoryStartY + categoryLength + categoryGap - categoryLength / 2,
-          categoryLength,
-          categoryLength
-        );
-      });
+            // Reset Category 2 color
+            category2.clear();
+            category2.fillStyle(0xDEB369, 1); // Reset to original color
+            category2.fillRect(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength);
+        });
     category1.setScrollFactor(0);
     this.inventoryItems.push(category1);
 
     // Add an image inside Category 1
-    let category1Image = this.add
-      .image(categoryStartX, categoryStartY, "inventory_cat1") // Replace 'weapons_icon' with your image key
-      .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
+    let category1Image = this.add.image(categoryStartX, categoryStartY, 'inventory_cat1') // Replace 'weapons_icon' with your image key
+    .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
     category1Image.setScrollFactor(0);
     this.inventoryItems.push(category1Image);
 
     // Category 2
     let category2 = this.add.graphics();
-    category2.fillStyle(0xdeb369, 1); // Light green color
-    category2.fillRect(
-      categoryStartX - categoryLength / 2,
-      categoryStartY + categoryLength + categoryGap - categoryLength / 2,
-      categoryLength,
-      categoryLength
-    );
-    category2
-      .setInteractive(
-        new Phaser.Geom.Rectangle(
-          categoryStartX - categoryLength / 2,
-          categoryStartY + categoryLength + categoryGap - categoryLength / 2,
-          categoryLength,
-          categoryLength
-        ),
-        Phaser.Geom.Rectangle.Contains
-      )
-      .on("pointerdown", () => {
-        console.log("Category 2 clicked");
-        displayCat = 1;
-        this.showCatItem(displayCat);
+    category2.fillStyle(0xDEB369, 1); // Light green color
+    category2.fillRect(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength);
+    category2.setInteractive(new Phaser.Geom.Rectangle(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength), Phaser.Geom.Rectangle.Contains)
+        .on('pointerdown', () => {
+            console.log('Category 2 clicked');
+            displayCat = 1;
+            this.showCatItem(displayCat);
 
-        // Change color of Category 2
-        category2.clear(); // Clear the previous graphics
-        category2.fillStyle(0xc48441, 1); // New color (Gold)
-        category2.fillRect(
-          categoryStartX - categoryLength / 2,
-          categoryStartY + categoryLength + categoryGap - categoryLength / 2,
-          categoryLength,
-          categoryLength
-        );
+            // Change color of Category 2
+            category2.clear(); // Clear the previous graphics
+            category2.fillStyle(0xC48441, 1); // New color (Gold)
+            category2.fillRect(categoryStartX - categoryLength / 2, categoryStartY + categoryLength + categoryGap - categoryLength / 2, categoryLength, categoryLength);
 
-        // Reset Category 1 color
-        category1.clear();
-        category1.fillStyle(0xdeb369, 1); // Reset to original color
-        category1.fillRect(
-          categoryStartX - categoryLength / 2,
-          categoryStartY - categoryLength / 2,
-          categoryLength,
-          categoryLength
-        );
-      });
+            // Reset Category 1 color
+            category1.clear();
+            category1.fillStyle(0xDEB369, 1); // Reset to original color
+            category1.fillRect(categoryStartX - categoryLength / 2, categoryStartY - categoryLength / 2, categoryLength, categoryLength);
+        });
     category2.setScrollFactor(0);
     this.inventoryItems.push(category2);
 
     // Add an image inside Category 2
-    let category2Image = this.add
-      .image(
-        categoryStartX,
-        categoryStartY + categoryLength + categoryGap,
-        "inventory_cat2"
-      ) // Replace 'potions_icon' with your image key
-      .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
+    let category2Image = this.add.image(categoryStartX, categoryStartY + categoryLength + categoryGap, 'inventory_cat2') // Replace 'potions_icon' with your image key
+        .setDisplaySize(categoryLength * 0.8, categoryLength * 0.8); // Scale the image to fit the box
     category2Image.setScrollFactor(0);
     this.inventoryItems.push(category2Image);
 
     this.showCatItem(displayCat);
 
     // Add a close button
-    this.closeButton = this.add
-      .image(this.gameWidth * 0.81, this.gameHeight * 0.3, "close_icon") // Replace 'close_icon' with your image key
-      .setScale(this.gameWidth / 2e4) // Scale the image if needed
-      .setInteractive() // Make the image clickable
-      .on("pointerdown", () => {
+    this.closeButton = this.add.image(this.gameWidth *0.81, this.gameHeight *0.3, 'close_icon') // Replace 'close_icon' with your image key
+    .setScale(this.gameWidth/2e4) // Scale the image if needed
+    .setInteractive() // Make the image clickable
+    .on('pointerdown', () => {
         this.closeInventory(); // Close the inventory UI
-      });
+    });
     this.closeButton.setScrollFactor(0);
-  }
+}
 
-  showCatItem(catType = 0) {
+showCatItem(catType=0){
     let catItemType = [];
-    if (catType == 0) {
-      catItemType = ["quest"];
-    } else {
-      catItemType = ["badge"];
+    if (catType==0){
+        catItemType = ['quest'];
+    }else{
+        catItemType = ['badge'];
     }
 
-    let playerInventory = this.inventory.filter(
-      (item) => item.player_id === this.player_id
-    );
+    let playerInventory = this.inventory.filter(item => item.player_id === this.player_id);
 
-    let filteredInventory = playerInventory.filter((inventoryItem) => {
-      let itemDetails = this.item.find(
-        (item) => item.item_id === inventoryItem.item_id
-      ); // Access item details from this.item
-      return itemDetails && catItemType.includes(itemDetails.type); // Check if the type matches
+    let filteredInventory = playerInventory.filter(inventoryItem => {
+        let itemDetails = this.item.find(item => item.item_id === inventoryItem.item_id); // Access item details from this.item
+        return itemDetails && catItemType.includes(itemDetails.type); // Check if the type matches
     });
 
-    let itemLength = this.inventoryBg.displayWidth * 0.045;
-    let itemGapX = this.inventoryBg.displayWidth * 0.02;
-    let itemGapY = this.inventoryBg.displayHeight * 0.008;
-    let startX = this.gameWidth * 0.4;
-    let startY = this.inventoryBg.y * 1.1 - itemLength * 1.5 - itemGapY;
+    let itemLength = this.inventoryBg.displayWidth*0.045;
+    let itemGapX = this.inventoryBg.displayWidth*0.02;
+    let itemGapY = this.inventoryBg.displayHeight*0.008;
+    let startX = this.gameWidth*0.4;
+    let startY = this.inventoryBg.y*1.1 - itemLength*1.5 - itemGapY;
     // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
     let itemsPerRow = 5;
     let totalSlots = 15; // Fixed number of slots
 
     for (let i = 0; i < totalSlots; i++) {
-      let x = startX + (i % itemsPerRow) * (itemLength + itemGapX);
-      let y = startY + Math.floor(i / itemsPerRow) * (itemLength + itemGapY);
+        let x = startX + (i % itemsPerRow) * (itemLength+itemGapX);
+        let y = startY + Math.floor(i / itemsPerRow) * (itemLength+itemGapY);
 
-      // Add a square for the slot
-      let itemBg = this.add.graphics();
-      itemBg.fillStyle(0xdeb369, 1); // White background
-      itemBg.fillRect(x, y, itemLength, itemLength);
-      itemBg.setScrollFactor(0);
-      this.inventoryItems.push(itemBg);
+        // Add a square for the slot
+        let itemBg = this.add.graphics();
+        itemBg.fillStyle(0xDEB369, 1); // White background
+        itemBg.fillRect(x, y, itemLength, itemLength);
+        itemBg.setScrollFactor(0);
+        this.inventoryItems.push(itemBg);
 
-      // If there's an item for this slot, display it
-      if (i < filteredInventory.length) {
-        let item = filteredInventory[i];
-        let itemId = item.item_id;
-        let itemDetails = this.itemDetail[itemId];
+        // If there's an item for this slot, display it
+        if (i < filteredInventory.length) {
+            let item = filteredInventory[i];
+            let itemId = item.item_id;
+            let itemDetails = this.itemDetail[itemId];
 
-        // Add the item image
-        let itemImage = this.add
-          .image(x + itemLength / 2, y + itemLength / 2, itemDetails.tag)
-          .setDisplaySize(itemLength * 0.8, itemLength * 0.8); // Scale the image to fit the slot
-        itemImage.setScrollFactor(0);
-        this.inventoryItems.push(itemImage);
+            // Add the item image
+            let itemImage = this.add.image(x + itemLength / 2, y + itemLength / 2, itemDetails.tag)
+                .setDisplaySize(itemLength * 0.8, itemLength * 0.8); // Scale the image to fit the slot
+            itemImage.setScrollFactor(0);
+            this.inventoryItems.push(itemImage);
 
-        if (item.amount > 1) {
-          // item amount display on top right of each item
-          let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
-            fontSize: `${itemLength * 0.3}px`,
-            fontStyle: "bold",
-            fill: "#000000",
-          });
-          itemText.setOrigin(1, 0);
-          itemText.setScrollFactor(0);
-          this.inventoryItems.push(itemText);
+            if (item.amount>1){
+                // item amount display on top right of each item
+                let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
+                    fontSize: `${itemLength*0.3}px`,
+                    fontStyle: 'bold',
+                    fill: '#000000'
+                });
+                itemText.setOrigin(1, 0);
+                itemText.setScrollFactor(0);
+                this.inventoryItems.push(itemText);
+            }
+            
         }
-      }
     }
-  }
+}
 
-  closeInventory() {
+closeInventory() {
     // Destroy all inventory UI elements
     this.darkOverlay.destroy();
     this.inventoryBg.destroy();
     this.inventoryTitle.destroy();
     this.closeButton.destroy();
-    this.inventoryItems.forEach((item) => item.destroy());
+    this.inventoryItems.forEach(item => item.destroy());
     this.inventoryItems = [];
     this.inventoryButton.setVisible(true);
     this.collisionHappened = false;
-    this.uistatus = 0;
-  }
+    this.uistatus=0;
+}
 
-  openMenu() {
-    if (this.uistatus != 0) {
-      return;
+openMenu() {
+    if (this.uistatus!=0){
+        return;
     }
-    this.uistatus = 1;
+    this.uistatus=1;
     this.collisionHappened = true;
 
     // Create a semi-transparent dark overlay
@@ -825,54 +712,41 @@ export class IndoorScene extends Phaser.Scene {
     this.darkOverlay2.setScrollFactor(0);
 
     // Add the scroll background as the menu background
-    this.menuBg = this.add.image(
-      this.gameWidth / 2,
-      (this.gameHeight - 30) / 2,
-      "scroll_background"
-    );
-    // .setOrigin(0.5)
-    // .setDisplaySize(this.gameWidth - 100, this.gameHeight - 100); // Adjust size to fit the menu
+    this.menuBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-30) / 2), 'scroll_background')
+        // .setOrigin(0.5)
+        // .setDisplaySize(this.gameWidth - 100, this.gameHeight - 100); // Adjust size to fit the menu
     this.menuBg.setScrollFactor(0);
-    let scrollScale = (this.gameWidth - 50) / this.menuBg.width;
+    let scrollScale = (this.gameWidth-50)/this.menuBg.width;
     this.menuBg.setScale(scrollScale);
 
     // Add "Game Paused" text
-    this.menuTitle = this.add
-      .text(
-        this.gameWidth / 2,
-        this.menuBg.y - this.menuBg.displayHeight * 0.0875,
-        "GAME PAUSED",
-        {
-          fill: "#000000",
-          font: `${this.menuBg.displayWidth * 0.07}px 'Jersey 10'`,
-        }
-      )
-      .setOrigin(0.5);
+    this.menuTitle = this.add.text(this.gameWidth / 2, (this.menuBg.y - this.menuBg.displayHeight * 0.0875), 'GAME PAUSED', {
+        fill: '#000000',
+        font: `${this.menuBg.displayWidth*0.07}px 'Jersey 10'`
+    }).setOrigin(0.5);
     this.menuTitle.setScrollFactor(0);
     this.menuTitle.setLetterSpacing(2);
 
     // Add Resume button as an image
-    this.resumeButton = this.add
-      .image(this.gameWidth / 2, this.gameHeight * 0.48, "resume_icon") // Replace 'resume_icon' with your image key
-      .setScale(this.gameWidth / 8e3) // Scale the image if needed
-      .setInteractive()
-      .on("pointerdown", () => {
+    this.resumeButton = this.add.image(this.gameWidth / 2, this.gameHeight * 0.48, 'resume_icon') // Replace 'resume_icon' with your image key
+    .setScale(this.gameWidth / 8e3) // Scale the image if needed
+    .setInteractive()
+    .on('pointerdown', () => {
         this.closeMenu(); // Resume the game
-      });
-    this.resumeButton.setScrollFactor(0);
+    });
+this.resumeButton.setScrollFactor(0);
 
-    // Add Save & Exit button as an image
-    this.saveExitButton = this.add
-      .image(this.gameWidth / 2, this.gameHeight * 0.63, "exit_icon") // Replace 'exit_icon' with your image key
-      .setScale(this.gameWidth / 8e3) // Scale the image if needed
-      .setInteractive()
-      .on("pointerdown", () => {
+// Add Save & Exit button as an image
+this.saveExitButton = this.add.image(this.gameWidth / 2, this.gameHeight * 0.63, 'exit_icon') // Replace 'exit_icon' with your image key
+    .setScale(this.gameWidth / 8e3) // Scale the image if needed
+    .setInteractive()
+    .on('pointerdown', () => {
         this.saveAndExit(); // Save the game and exit
-      });
-    this.saveExitButton.setScrollFactor(0);
-  }
+    });
+this.saveExitButton.setScrollFactor(0);
+}
 
-  closeMenu() {
+closeMenu() {
     // Destroy menu UI elements
     this.darkOverlay2.destroy();
     this.menuBg.destroy();
@@ -882,15 +756,15 @@ export class IndoorScene extends Phaser.Scene {
     this.menuButton.setVisible(true);
 
     this.collisionHappened = false;
-    this.uistatus = 0;
-  }
+    this.uistatus=0;
+}
 
-  saveAndExit() {
-    console.log("Game saved! Exiting...");
-    this.scene.stop("MainScene");
-    this.scene.stop("IndoorScene");
-    window.location.href = "/"; // Redirect to the main menu or home page
-  }
+saveAndExit() {
+    console.log('Game saved! Exiting...');    
+    this.scene.stop('MainScene');
+    this.scene.stop('IndoorScene');
+    window.location.href = '/'; // Redirect to the main menu or home page
+}
 
   exitHouse() {
     console.log("Exiting house...");
