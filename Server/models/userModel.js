@@ -21,11 +21,11 @@ const userSchema = new mongoose.Schema({
   coordinates: {
     x: {
       type: Number,
-      default: 376,
+      default: 672,
     },
     y: {
       type: Number,
-      default: 215,
+      default: 185,
     },
   },
   createdAt: {

@@ -19,30 +19,33 @@ export class IndoorScene extends Phaser.Scene {
     this.zoomFactor = 6;
     this.player_id = 1;
     this.uistatus = 0;
+    this.inScene=false;
+    setInterval(() => {this.saveLocation()}, 5000); // Update every 5 seconds
   }
 
-    init(data) {
-        this.gameWidth = data.width;
-        this.gameHeight = data.height;
-        this.locationId = data.locationId;
-        this.dialogue = data.dialogue || {};
-        this.quest = data.quest || {};
-        this.location = data.location || {};
-        this.inventory = data.inventory || [];
-        this.item = data.item || {};
-        this.action = data.action || {};
-        this.packageDetail = data.packageDetail || {};
-        this.position = data.position || {};
-        this.subquest = data.subquest || {};
-        this.package = data.package || {};
-        this.choice = data.choice || {};
-        this.playerProgress = data.playerProgress || {};
-        this.npcDetail = data.npcDetail || {};
-        this.locationDetail = data.locationDetail || {};
-        this.itemDetail = data.itemDetail || {};
-        this.player_id = data.player_id || 1; // Default to 1 if not provided
-        console.log(this.player_id);
-    }
+  init(data) {
+      this.gameWidth = data.width;
+      this.gameHeight = data.height;
+      this.locationId = data.locationId;
+      this.dialogue = data.dialogue || {};
+      this.quest = data.quest || {};
+      this.location = data.location || {};
+      this.inventory = data.inventory || [];
+      this.item = data.item || {};
+      this.action = data.action || {};
+      this.packageDetail = data.packageDetail || {};
+      this.position = data.position || {};
+      this.subquest = data.subquest || {};
+      this.package = data.package || {};
+      this.choice = data.choice || {};
+      this.playerProgress = data.playerProgress || {};
+      this.npcDetail = data.npcDetail || {};
+      this.locationDetail = data.locationDetail || {};
+      this.itemDetail = data.itemDetail || {};
+      this.player_id = data.player_id || 1; // Default to 1 if not provided
+      console.log(this.player_id);
+      this.coordinates = data.coordinates || null;
+  }
 
   preload() {}
 
@@ -203,10 +206,15 @@ export class IndoorScene extends Phaser.Scene {
       this
     );
 
+    //player position
+    if (this.coordinates) {
+      spawnPos = this.coordinates;
+    }
     let playerStartPosX = spawnPos.x * this.zoomFactor;
     let playerStartPosY = spawnPos.y * this.zoomFactor;
     this.player.setPosition(playerStartPosX, playerStartPosY);
     this.player.setScale(0.1);
+    this.inScene = true;
 
     this.cameras.main.startFollow(this.player);
   }
@@ -284,6 +292,35 @@ export class IndoorScene extends Phaser.Scene {
     //     this.player.getBounds().width,
     //     this.player.getBounds().height
     // );
+  }
+
+  saveLocation() {
+    if (!this.inScene){
+      return;
+  }
+    const currentX = this.player.x/this.zoomFactor; // Assuming your player's x position
+    const currentY = this.player.y/this.zoomFactor; // Assuming your player's y position
+    const locationId = this.locationId; // Your custom function to get location ID
+
+    fetch('https://capstone-assignment-36lq.vercel.app/api/user/update-location', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: this.player_id,
+        location_id: locationId,
+        x: currentX,
+        y: currentY,
+      }),
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Location updated:', data);
+    })
+    .catch(err => {
+      console.error('Error updating location:', err);
+    });
   }
 
   spawnNpc() {
@@ -770,5 +807,6 @@ saveAndExit() {
     console.log("Exiting house...");
     this.scene.switch("MainScene");
     this.scene.stop("IndoorScene");
+    this.inScene=false;
   }
 }

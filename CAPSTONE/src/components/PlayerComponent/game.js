@@ -21,6 +21,7 @@ class MainScene extends Phaser.Scene {
         this.locationId="0";
         this.player_id="1"; //need change to cookie player
         this.uistatus=0;
+        this.inScene=true;
         this.createLoadingScreen();
     }
 
@@ -258,10 +259,12 @@ class MainScene extends Phaser.Scene {
         this.talkButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Talk to someone', {
             fontSize: '20px',
             fill: '#ffffff',
-            backgroundColor: '#000000'
+            backgroundColor: '#000000',
+            font: `${this.gameWidth*0.02}px 'Jersey 10'`
         })
         .setPadding(10)
         .setInteractive() // Make the text clickable
+        .setLetterSpacing(2)
         .on('pointerdown', () => {
             this.talk();
         });
@@ -272,10 +275,11 @@ class MainScene extends Phaser.Scene {
             // fontSize: '20px',
             fill: '#ffffff',
             backgroundColor: '#000000',
-            font: `${this.gameWidth.displayHeight*0.1}px 'Jersey 10'`
+            font: `${this.gameWidth*0.02}px 'Jersey 10'`
         })
         .setPadding(10)
         .setInteractive() // Make the text clickable
+        .setLetterSpacing(2)
         .on('pointerdown', () => {
             this.enterDoor();
         });
@@ -324,13 +328,45 @@ class MainScene extends Phaser.Scene {
         this.physics.add.overlap(this.player, this.doorList, this.showEnter, null, this);
 
         //Initial position of the player
-        let spawnPos = this.location.find(location => location.location_id === this.locationId).spawn_position;
-        let playerStartPosX = spawnPos.x * this.zoomFactor;
-        let playerStartPosY = spawnPos.y * this.zoomFactor;
-        this.player.setPosition(playerStartPosX,playerStartPosY);
+        if (this.userData.location_id !== this.locationId) {
+            let entrancePos = this.location.find(location => location.location_id === this.userData.location_id).entrance_position;
+            let playerStartPosX = (entrancePos.x1+entrancePos.x2)/2 * this.zoomFactor;
+            let playerStartPosY = (entrancePos.y1+entrancePos.y2)/2 * this.zoomFactor;
+            this.player.setPosition(playerStartPosX,playerStartPosY);
+            this.inScene=false;
+            this.scene.switch('IndoorScene', {
+                width: this.gameWidth,
+                height: this.gameHeight,
+                locationId: this.userData.location_id,
+                dialogue: this.dialogue,
+                quest: this.quest,
+                location: this.location,
+                inventory: this.inventory,
+                item: this.item,
+                action: this.action,
+                packageDetail: this.packageDetail,
+                position: this.position,
+                subquest: this.subquest,
+                package: this.package,
+                choice: this.choice,
+                playerProgress: this.playerProgress,
+                npcDetail: this.npcDetail,
+                locationDetail: this.locationDetail,
+                itemDetail: this.itemDetail,
+                player_id : this.player_id,
+                coordinates: this.userData.coordinates
+            });
+        }else{
+            let spawnPos = this.userData.coordinates;
+            let playerStartPosX = spawnPos.x * this.zoomFactor;
+            let playerStartPosY = spawnPos.y * this.zoomFactor;
+            this.player.setPosition(playerStartPosX,playerStartPosY);
+            console.log(`Player Start Position: (${playerStartPosX}, ${playerStartPosY})`);
+        }
 
         //detect back to mainscene from indoor scene
         this.events.on("wake", () => {
+            this.inScene=true;
             console.log("MainScene Resumed");
             console.log(this.registry.get("activeQuest"));
             console.log(this.registry.get("activeSubQuest"));
@@ -371,6 +407,8 @@ class MainScene extends Phaser.Scene {
         // });
 
         this.removeLoadingScreen();
+
+        setInterval(() => {this.saveLocation()}, 5000);
     }
 
     update() {
@@ -432,6 +470,35 @@ class MainScene extends Phaser.Scene {
         }
     }
 
+    saveLocation() {
+        if (!this.inScene){
+            return;
+        }
+        const currentX = this.player.x/this.zoomFactor; // Assuming your player's x position
+        const currentY = this.player.y/this.zoomFactor; // Assuming your player's y position
+        const locationId = this.locationId; // Your custom function to get location ID
+    
+        fetch('https://capstone-assignment-36lq.vercel.app/api/user/update-location', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: this.player_id,
+            location_id: locationId,
+            x: currentX,
+            y: currentY,
+          }),
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log('Location updated:', data);
+        })
+        .catch(err => {
+          console.error('Error updating location:', err);
+        });
+      }
+
     spawnNpc(){
         for (let npc of Object.values(this.npc)){
             npc.anims.stop();
@@ -490,6 +557,7 @@ class MainScene extends Phaser.Scene {
         this.enterButton.setVisible(false);
         let objectName = this.touching['door'].label;
         console.log(`Entering ${objectName}...`);
+        this.inScene=false;
 
         //switch to indoor scene without pausing or shutdown MainScene
         this.scene.switch('IndoorScene', {
@@ -551,15 +619,15 @@ class MainScene extends Phaser.Scene {
         let npc = this.npc[npc_tag];
         const directionX = targetX - npc.x;
         const directionY = targetY - npc.y;
-    
+
         // Normalize the direction vector
         const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
         const normalizedX = directionX / magnitude;
         const normalizedY = directionY / magnitude;
-    
+
         // Set velocity based on the direction and speed
         npc.setVelocity(normalizedX * speed, normalizedY * speed);
-    
+
         // Play walking animation based on direction
         // if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
         //     // Horizontal movement
@@ -576,7 +644,7 @@ class MainScene extends Phaser.Scene {
         //         npc.anims.play('npc_walk_up', true); // Replace with your up-walking animation key
         //     }
         // }
-    
+
         // Stop movement when the NPC reaches the target
         const checkArrival = this.time.addEvent({
             delay: 50, // Check every 50ms
@@ -903,6 +971,7 @@ class MainScene extends Phaser.Scene {
 
     saveAndExit() {
         console.log('Game saved! Exiting...');    
+        this.saveLocation();
         this.scene.stop('MainScene');
         this.scene.stop('IndoorScene');
         window.location.href = '/'; // Redirect to the main menu or home page
