@@ -26,7 +26,7 @@ export const getUserData = async (req, res) => {
       name: user.name,
       email: user.email,
       location_id: user.location_id,
-      coordinate: user.coordinate,
+      coordinates: user.coordinates,
     };
 
     return res.json({
@@ -116,7 +116,7 @@ export const updateUserLocation = async (req, res) => {
     }
 
     user.location_id = location_id;
-    user.coordinate = { x, y };
+    user.coordinates = { x, y };
 
     await user.save();
 
@@ -127,7 +127,7 @@ export const updateUserLocation = async (req, res) => {
         id: user._id,
         email: user.email,
         location_id: user.location_id,
-        coordinate: user.coordinate,
+        coordinates: user.coordinates,
       },
     });
   } catch (error) {
