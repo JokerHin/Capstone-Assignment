@@ -7,8 +7,23 @@ import Games from "../components/LandingComponent/Games";
 import Map from "../assets/town_map.jpg";
 import kid from "../assets/kid.gif";
 import bird from "../assets/bird.gif";
+import { useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppContent } from "../context/AppContext";
 
-export default function Home() {
+const Home = () => {
+  const context = useContext(AppContent);
+  const userData = context?.userData;
+  const isLoggedin = context?.isLoggedin;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect admin users to the admin dashboard
+    if (isLoggedin && userData?.userType === "admin") {
+      navigate("/AdminHome");
+    }
+  }, [isLoggedin, userData, navigate]);
+
   return (
     <div>
       <Navbar />
@@ -53,7 +68,7 @@ export default function Home() {
       <Footer />
     </div>
   );
-}
+};
 
 const Contributors = [
   { quote: "Cho Kar Hin", name: "Frontend Developer" },
@@ -63,3 +78,5 @@ const Contributors = [
   { quote: "Aimy Chong", name: "Leader" },
   { quote: "Chan Ying Yi", name: "Designer" },
 ];
+
+export default Home;

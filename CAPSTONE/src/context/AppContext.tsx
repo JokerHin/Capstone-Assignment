@@ -1,6 +1,7 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 interface UserData {
   id?: string;
@@ -27,6 +28,29 @@ interface AppContextProps {
 
 export const AppContent = createContext<AppContextProps | undefined>(undefined);
 
+// Create a separate context provider component to handle navigation
+export const AppContextNavigationProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const appContext = useContext(AppContent);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user is logged in as admin and we're on the landing page, redirect to admin dashboard
+    if (appContext?.isLoggedin && appContext?.userData?.userType === "admin") {
+      const path = window.location.pathname;
+      // Check if we're on the root/landing page
+      if (path === "/" || path === "") {
+        navigate("/AdminHome");
+      }
+    }
+  }, [appContext?.isLoggedin, appContext?.userData?.userType, navigate]);
+
+  return <>{children}</>;
+};
+
 export const AppContextProvider = ({
   children,
 }: {
@@ -48,6 +72,14 @@ export const AppContextProvider = ({
             const parsedUserData = JSON.parse(storedUserData);
             setUserData(parsedUserData);
             setIsLoggedin(true);
+
+            // Check if admin and redirect if needed
+            if (
+              parsedUserData.userType === "admin" &&
+              window.location.pathname === "/"
+            ) {
+              window.location.href = "/AdminHome";
+            }
           } else {
             // If we have email but no userData, try to fetch it
             await getUserData();

@@ -3,6 +3,7 @@ import "./App.css";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { AdminProvider } from "./context/AdminContext";
+import { AppContextNavigationProvider } from "./context/AppContext";
 
 import Home from "./Pages/Home";
 import Login from "./Pages/Login";
@@ -44,18 +45,23 @@ function App() {
     <div>
       <ToastContainer />
       <AdminProvider>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />}></Route>
-          <Route path="/reset-password" element={<ResetPassword />}></Route>
-          <Route path="/AdminHome" element={<AdminHome />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin/subquests/:questId" element={<AdminSubquest />} />
-          <Route
-            path="/admin/dialogues/:questId/:subquestId"
-            element={<AdminDialogue />}
-          />
-        </Routes>
+        <AppContextNavigationProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />}></Route>
+            <Route path="/reset-password" element={<ResetPassword />}></Route>
+            <Route path="/AdminHome" element={<AdminHome />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route
+              path="/admin/subquests/:questId"
+              element={<AdminSubquest />}
+            />
+            <Route
+              path="/admin/dialogues/:questId/:subquestId"
+              element={<AdminDialogue />}
+            />
+          </Routes>
+        </AppContextNavigationProvider>
       </AdminProvider>
     </div>
   );
