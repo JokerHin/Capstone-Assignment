@@ -28,7 +28,6 @@ export class IndoorScene extends Phaser.Scene {
       this.gameHeight = data.height;
       this.locationId = data.locationId;
       this.dialogue = data.dialogue || {};
-      this.quest = data.quest || {};
       this.location = data.location || {};
       this.inventory = data.inventory || [];
       this.item = data.item || {};

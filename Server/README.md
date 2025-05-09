@@ -42,3 +42,6 @@ When a dialogue is meant to proceed to the next subquest:
 2. Use the item with item with type milestone, only one milestone item is required in the game
 3. Create package detail for the milestone item with amount 1 referencing the milestone item and the package id
 4. If there are other items that the dialogue will provide, create package detail for the other items with amount and referencing the same package id for the milestone item
+
+Current available npc:
+grand_compiler, auntie_ang, uncle_chong, ava, gatekeeper_axion, grandpa, wai, sir_ben, karbot_A, karbot_B, karbot, cipher, lina, airbot, icebot, lightningbot, firebot, earthbot, waterbot

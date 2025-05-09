@@ -34,7 +34,6 @@ class MainScene extends Phaser.Scene {
         this.gameHeight = data.height;
         this.sceneName = data.sceneName; //town (default scene)
         this.dialogue = data.dialogue || {};
-        this.quest = data.quest || {};
         this.location = data.location || {};
         this.inventory = data.inventory || [];
         this.item = data.item || {};
@@ -355,7 +354,6 @@ class MainScene extends Phaser.Scene {
                 height: this.gameHeight,
                 locationId: this.userData.location_id,
                 dialogue: this.dialogue,
-                quest: this.quest,
                 location: this.location,
                 inventory: this.inventory,
                 item: this.item,
@@ -590,7 +588,6 @@ class MainScene extends Phaser.Scene {
             height: this.gameHeight,
             locationId: this.touching['door'].target,
             dialogue: this.dialogue,
-            quest: this.quest,
             location: this.location,
             inventory: this.inventory,
             item: this.item,
@@ -1146,7 +1143,6 @@ class Game {
     try {
       const urls = [
         "https://capstone-assignment-36lq.vercel.app/dialogue",
-        "https://capstone-assignment-36lq.vercel.app/quest",
         "https://capstone-assignment-36lq.vercel.app/location",
         "src/components/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
         "src/components/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
@@ -1165,7 +1161,6 @@ class Game {
       const responses = await Promise.all(urls.map((url) => fetch(url)));
       const [
         dialogue,
-        quest,
         location,
         inventory,
         item,
@@ -1182,7 +1177,6 @@ class Game {
       ] = await Promise.all(responses.map((res) => res.json()));
 
       this.dialogue = dialogue;
-      this.quest = quest;
       this.location = location;
       this.inventory = inventory;
       this.item = item;
@@ -1198,7 +1192,6 @@ class Game {
       this.itemDetail = itemDetail;
 
       console.log("Fetched dialogue:", dialogue);
-      console.log("Fetched quest:", quest);
       console.log("Fetched location:", location);
       console.log("Fetched inventory:", inventory);
       console.log("Fetched item:", item);
@@ -1274,7 +1267,6 @@ class Game {
       height: this.gameHeight,
       sceneName: sceneName,
       dialogue: this.dialogue,
-      quest: this.quest,
       location: this.location,
       inventory: this.inventory,
       player: this.player,

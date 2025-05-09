@@ -101,6 +101,12 @@ export class Dialog{
         let actionDetail = this.game.action[action];
         if (actionDetail.type === "movement"){
             this.game.moveNpcTo(actionDetail.npc, actionDetail.endPosition.x, actionDetail.endPosition.y, actionDetail.speed);
+        }else if (actionDetail.type === "spawn"){
+            let npcs = actionDetail.npc
+            let positions = actionDetail.position
+            for (let i=0; i<npcs.length; i++){
+                // this.game.npc[tag] = new Npc(this, positions.x, positions.y, tag, npcData.name, npcData.scale);
+            }
         }
     }
 
