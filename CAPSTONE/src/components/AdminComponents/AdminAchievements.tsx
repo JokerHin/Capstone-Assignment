@@ -4,19 +4,15 @@ import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
 import { Pencil } from "lucide-react";
 
-// Update the Badge interface to allow string for rarity
+// Update the Badge interface to match our item model
 interface Badge {
   _id: string;
-  item_id?: number;
+  item_id: string;
   name: string;
   description?: string;
-  rarity?: string;
-  game?: string;
-  points?: number;
-  image?: string;
+  type: string; // Should be "badge"
 }
 
-// Updated to only show and edit badges, not add or delete
 const AdminAchievements: React.FC = () => {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,56 +28,32 @@ const AdminAchievements: React.FC = () => {
     throw new Error("AppContent context is undefined");
   }
 
-  const { backendUrl, isLoggedin } = appContext;
+  const { backendUrl } = appContext;
 
-  // Simplified makeRequest function
-  const makeRequest = async (endpoint: string, options: any = {}) => {
-    try {
-      return await axios({
-        url: `${backendUrl}${endpoint}`,
-        method: options.method || "GET",
-        data: options.data,
-        withCredentials: true,
-      });
-    } catch (error) {
-      console.error("API request error:", error);
-      return null;
-    }
-  };
-
-  // Fetch badges - simplified without demo data
+  // Fetch badges directly from the item endpoint with type=badge filter
   useEffect(() => {
-    if (isLoggedin) {
-      fetchBadges();
-    } else {
-      setLoading(false);
-      toast.error("Please log in as an administrator to access achievements");
-    }
-  }, [backendUrl, isLoggedin]);
+    const fetchBadges = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${backendUrl}/item?type=badge`);
 
-  const fetchBadges = async () => {
-    try {
-      setLoading(true);
-
-      // Make authenticated request
-      const response = await makeRequest("/api/admin/achievements");
-
-      if (response && response.data.success) {
-        setBadges(response.data.achievements);
-      } else {
+        if (response.data) {
+          setBadges(response.data);
+        } else {
+          toast.error("Failed to fetch achievements. Please try again later.");
+          setBadges([]);
+        }
+      } catch (error) {
+        console.error("Error fetching achievements:", error);
         toast.error("Failed to fetch achievements. Please try again later.");
         setBadges([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error: any) {
-      console.error("Error fetching achievements:", error);
-      toast.error(
-        "Authentication error. Please login as admin to view achievements."
-      );
-      setBadges([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchBadges();
+  }, [backendUrl]);
 
   // Handle editing a badge
   const handleEditBadge = (badge: Badge) => {
@@ -104,7 +76,7 @@ const AdminAchievements: React.FC = () => {
     }));
   };
 
-  // Handle saving badge edits - UPDATED to use POST with correct path
+  // Handle saving badge edits - Updated to use the item endpoint
   const handleSaveBadge = async () => {
     if (!currentBadge) return;
 
@@ -114,16 +86,15 @@ const AdminAchievements: React.FC = () => {
         return;
       }
 
-      // Use POST with the correct path structure
-      const response = await makeRequest(
-        `/api/admin/achievements/${currentBadge._id}/update`,
+      const response = await axios.put(
+        `${backendUrl}/item/${currentBadge._id}`,
         {
-          method: "POST", // Explicitly set POST method
-          data: editForm,
+          name: editForm.name,
+          description: editForm.description,
         }
       );
 
-      if (response && response.data.success) {
+      if (response.data && response.data.success) {
         toast.success("Badge updated successfully");
         // Update the badge in the local state
         setBadges((prev) =>
@@ -142,7 +113,8 @@ const AdminAchievements: React.FC = () => {
         toast.error("Failed to update badge");
       }
     } catch (error: any) {
-      toast.error("Error updating badge");
+      console.error("Error updating badge:", error);
+      toast.error(error.response?.data?.message || "Error updating badge");
     }
   };
 
@@ -153,7 +125,7 @@ const AdminAchievements: React.FC = () => {
     setEditForm({ name: "", description: "" });
   };
 
-  // Get badge image URL based on index
+  // Get badge image based on index
   const getBadgeImage = (index: number) => {
     const badgeNumber = (index % 6) + 1;
     return `/src/assets/badges/badge${badgeNumber}.png`;
@@ -171,11 +143,7 @@ const AdminAchievements: React.FC = () => {
         </div>
       ) : badges.length === 0 ? (
         <div className="flex justify-center items-center h-64">
-          <div className="text-gray-300">
-            {isLoggedin
-              ? "No badges found."
-              : "Please log in as an administrator to view badges."}
-          </div>
+          <div className="text-gray-300">No badges found.</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

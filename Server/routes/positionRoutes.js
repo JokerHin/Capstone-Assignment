@@ -1,8 +1,15 @@
 import express from "express";
-import { getPositions } from "../controllers/positionController.js";
+import {
+  getPositions,
+  getPositionById,
+  getPositionsBySubquest,
+} from "../controllers/positionController.js";
 
 const positionRouter = express.Router();
 
-positionRouter.get("/", getPositions); // Add route to fetch position data
+// GET routes
+positionRouter.get("/", getPositions);
+positionRouter.get("/:id", getPositionById);
+positionRouter.get("/subquest/:subquestId", getPositionsBySubquest);
 
 export default positionRouter;

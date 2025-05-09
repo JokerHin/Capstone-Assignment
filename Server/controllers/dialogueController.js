@@ -26,7 +26,7 @@ export const getDialogueById = async (req, res) => {
 // Create new dialogue
 export const createDialogue = async (req, res) => {
   try {
-    const { text, dialogue_id, subquest_id, order } = req.body;
+    const { text, dialogue_id, position_id, package_id, action_id } = req.body;
 
     // Validate required fields
     if (!text || !dialogue_id) {
@@ -35,11 +35,13 @@ export const createDialogue = async (req, res) => {
         .json({ message: "Text and dialogue_id are required" });
     }
 
+    // Make sure all IDs are stored as strings to match DB structure
     const newDialogue = new Dialogue({
       text,
-      dialogue_id,
-      subquest_id,
-      order,
+      dialogue_id: String(dialogue_id), // Ensure string type
+      position_id: position_id ? String(position_id) : undefined,
+      package_id: package_id ? String(package_id) : undefined,
+      action_id: action_id ? String(action_id) : undefined,
     });
 
     const savedDialogue = await newDialogue.save();
@@ -54,7 +56,7 @@ export const createDialogue = async (req, res) => {
 export const updateDialogue = async (req, res) => {
   try {
     const { id } = req.params;
-    const { text, dialogue_id, subquest_id, order } = req.body;
+    const { text, dialogue_id, position_id, package_id, action_id } = req.body;
 
     // Find dialogue by ID
     const dialogue = await Dialogue.findById(id);
@@ -63,11 +65,15 @@ export const updateDialogue = async (req, res) => {
       return res.status(404).json({ message: "Dialogue not found" });
     }
 
-    // Update fields if provided
     if (text) dialogue.text = text;
-    if (dialogue_id) dialogue.dialogue_id = dialogue_id;
-    if (subquest_id !== undefined) dialogue.subquest_id = subquest_id;
-    if (order !== undefined) dialogue.order = order;
+    if (dialogue_id) dialogue.dialogue_id = String(dialogue_id);
+    d;
+    if (position_id !== undefined)
+      dialogue.position_id = position_id ? String(position_id) : undefined;
+    if (package_id !== undefined)
+      dialogue.package_id = package_id ? String(package_id) : undefined;
+    if (action_id !== undefined)
+      dialogue.action_id = action_id ? String(action_id) : undefined;
 
     const updatedDialogue = await dialogue.save();
     res.json(updatedDialogue);
@@ -82,7 +88,6 @@ export const deleteDialogue = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find and delete the dialogue
     const result = await Dialogue.findByIdAndDelete(id);
 
     if (!result) {

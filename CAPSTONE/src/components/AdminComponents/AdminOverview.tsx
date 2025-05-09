@@ -13,22 +13,16 @@ import axios from "axios";
 import { AppContent } from "../../context/AppContext";
 import { toast } from "react-toastify";
 
-// Sample data for the leaderboard
-const leaderboardData = [
-  { id: 1, rank: 1, name: "Alex Johnson", score: 9850, avatar: "AJ" },
-  { id: 2, rank: 2, name: "Sarah Williams", score: 8740, avatar: "SW" },
-  { id: 3, rank: 3, name: "Michael Brown", score: 7650, avatar: "MB" },
-  { id: 4, rank: 4, name: "Emily Davis", score: 7200, avatar: "ED" },
-  { id: 5, rank: 5, name: "Daniel Wilson", score: 6980, avatar: "DW" },
-  { id: 6, rank: 6, name: "Olivia Martinez", score: 6540, avatar: "OM" },
-  { id: 7, rank: 7, name: "James Taylor", score: 6120, avatar: "JT" },
-  { id: 8, rank: 8, name: "Sophia Anderson", score: 5890, avatar: "SA" },
-  { id: 9, rank: 9, name: "Benjamin Thomas", score: 5670, avatar: "BT" },
-  { id: 10, rank: 10, name: "Isabella White", score: 5340, avatar: "IW" },
-];
+// User type for leaderboard
+interface LeaderboardUser {
+  _id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  rank: number;
+}
 
 const AdminOverview: React.FC = () => {
-  // Rename userData to monthlyUserData to fix variable conflict
   const [monthlyUserData, setMonthlyUserData] = useState<
     Array<{ name: string; users: number }>
   >([]);
@@ -40,10 +34,15 @@ const AdminOverview: React.FC = () => {
   const [totalAchievements, setTotalAchievements] = useState(0);
   const badgeContainerRef = useRef<HTMLDivElement>(null);
 
-  // Add new state variables for realms and subquests
-  const [activeRealms, setActiveRealms] = useState(0);
+  // Add new state for leaderboard users
+  const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>(
+    []
+  );
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+
+  // Set active realms to constant 6 (matching quest.json)
+  const activeRealms = 6;
   const [totalSubquests, setTotalSubquests] = useState(0);
-  const [realmsLoading, setRealmsLoading] = useState(true);
   const [subquestsLoading, setSubquestsLoading] = useState(true);
 
   // Remove admin credential state and forms
@@ -70,6 +69,7 @@ const AdminOverview: React.FC = () => {
   // Fetch user data - simplified to use already logged in state
   useEffect(() => {
     fetchUserData();
+    fetchLeaderboardData();
   }, [backendUrl, isLoggedin]);
 
   const fetchUserData = async () => {
@@ -125,41 +125,104 @@ const AdminOverview: React.FC = () => {
     }
   };
 
-  // Fetch realm and subquest data
+  // New function to fetch leaderboard data
+  const fetchLeaderboardData = async () => {
+    setLeaderboardLoading(true);
+    try {
+      // Use the regular users API
+      const response = await axios.get(`${backendUrl}/api/admin/users`, {
+        withCredentials: true,
+        headers: {
+          "admin-email": contextUserData?.email,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.data.success && Array.isArray(response.data.users)) {
+        const users = response.data.users || [];
+
+        // Sort users by createdAt date (newest first)
+        const sortedUsers = users
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.createdAt || 0).getTime();
+            const dateB = new Date(b.createdAt || 0).getTime();
+            return dateB - dateA; // Newest first
+          })
+          .map((user: any, index: number) => ({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt || new Date().toISOString(),
+            rank: index + 1,
+          }));
+
+        setLeaderboardUsers(sortedUsers);
+      } else {
+        // If API call fails, use demo data
+        throw new Error("Failed to fetch user data");
+      }
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      // Create demo leaderboard data with user-like names
+      const demoLeaderboard: LeaderboardUser[] = [];
+      const names = [
+        "Alex Johnson",
+        "Sarah Williams",
+        "Michael Brown",
+        "Emily Davis",
+        "Daniel Wilson",
+        "Olivia Martinez",
+        "James Taylor",
+        "Sophia Anderson",
+        "Benjamin Thomas",
+        "Isabella White",
+        "Noah Garcia",
+        "Emma Rodriguez",
+      ];
+
+      // Create users with dates counting back from today
+      const today = new Date();
+
+      for (let i = 0; i < names.length; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i); // Each user joined a day before
+
+        demoLeaderboard.push({
+          _id: `demo-${i + 1}`,
+          name: names[i],
+          email: `${names[i].toLowerCase().replace(" ", ".")}@example.com`,
+          createdAt: date.toISOString(),
+          rank: i + 1,
+        });
+      }
+
+      setLeaderboardUsers(demoLeaderboard);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  };
+
+  // Fetch subquest data but skip realm count (use static 6)
   useEffect(() => {
-    const fetchGameData = async () => {
+    const fetchSubquestData = async () => {
       try {
-        setRealmsLoading(true);
         setSubquestsLoading(true);
 
-        // Fetch quests and subquests in parallel
-        const [questsResponse, subquestsResponse] = await Promise.all([
-          axios.get(`${backendUrl}/quest`),
-          axios.get(`${backendUrl}/subquest`),
-        ]);
+        // Fetch just subquests
+        const subquestsResponse = await axios.get(`${backendUrl}/subquest`);
 
-        // Process realm (quest) data
-        if (questsResponse.data) {
-          const realms = questsResponse.data;
-          // Count active realms (those that have at least one subquest)
-          setActiveRealms(realms.length);
-        }
-
-        // Process subquest data
         if (subquestsResponse.data) {
-          const subquests = subquestsResponse.data;
-          setTotalSubquests(subquests.length);
+          setTotalSubquests(subquestsResponse.data.length);
         }
       } catch (error) {
-        console.error("Error fetching game data:", error);
+        console.error("Error fetching subquest data:", error);
         toast.error("Error loading game statistics");
       } finally {
-        setRealmsLoading(false);
         setSubquestsLoading(false);
       }
     };
 
-    fetchGameData();
+    fetchSubquestData();
   }, [backendUrl]);
 
   // Fetch achievements - simplified
@@ -188,32 +251,32 @@ const AdminOverview: React.FC = () => {
         return;
       }
 
-      // Get auth token and set up headers
-      const token = localStorage.getItem("token");
-      const headers: any = {
-        "admin-email": contextUserData.email,
-      };
+      // Use the regular item endpoint with type=badge filter instead of the achievement endpoint
+      const response = await axios.get(`${backendUrl}/item?type=badge`);
 
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      // Make GET request with admin headers
-      const { data } = await axios.get(`${backendUrl}/api/admin/achievements`, {
-        withCredentials: true,
-        headers: headers,
-      });
-
-      if (data.success) {
-        setAchievements(data.achievements);
-        setTotalAchievements(data.achievements.length);
+      if (response.data && Array.isArray(response.data)) {
+        setAchievements(response.data);
+        setTotalAchievements(response.data.length);
       } else {
-        toast.error(data.message || "Failed to fetch achievements");
-        setUseDefaultData(true);
+        console.error("Invalid achievement data format:", response.data);
+        throw new Error("Invalid achievement data format");
       }
     } catch (error: any) {
-      toast.error("Using demo achievement data");
-      setUseDefaultData(true);
+      console.error("Error fetching achievements:", error);
+      // Create demo achievement data as fallback
+      const demoAchievements = [];
+      for (let i = 1; i <= 6; i++) {
+        demoAchievements.push({
+          _id: `demo-${i}`,
+          name: `Achievement ${i}`,
+          description: `This is a demo achievement ${i}`,
+          rarity: "common",
+          points: 100 * i,
+        });
+      }
+      setAchievements(demoAchievements);
+      setTotalAchievements(demoAchievements.length);
+      toast.info("Using demo achievement data");
     } finally {
       setAchievementsLoading(false);
     }
@@ -278,6 +341,25 @@ const AdminOverview: React.FC = () => {
     ];
   };
 
+  // Get user initials for avatar
+  const getUserInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join("");
+  };
+
+  // Format date function for showing joined date nicely
+  const formatJoinedDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -289,7 +371,7 @@ const AdminOverview: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards - Updated with real data */}
+      {/* Stats Cards - Updated with static realm count */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-lg shadow-lg">
           <h3 className="text-lg font-semibold text-white">Total Users</h3>
@@ -306,11 +388,9 @@ const AdminOverview: React.FC = () => {
 
         <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-6 rounded-lg shadow-lg">
           <h3 className="text-lg font-semibold text-white">Active Realms</h3>
-          <p className="text-3xl font-bold text-white mt-2">
-            {realmsLoading ? "Loading..." : activeRealms}
-          </p>
+          <p className="text-3xl font-bold text-white mt-2">{activeRealms}</p>
           <p className="text-sm text-white/80 mt-1">
-            {realmsLoading ? "Loading..." : `${activeRealms} realms available`}
+            {`${activeRealms} realms available`}
           </p>
         </div>
 
@@ -322,9 +402,7 @@ const AdminOverview: React.FC = () => {
           <p className="text-sm text-white/80 mt-1">
             {subquestsLoading
               ? "Loading..."
-              : `${Math.round(
-                  totalSubquests / (activeRealms || 1)
-                )} per realm avg`}
+              : `${Math.round(totalSubquests / activeRealms)} per realm avg`}
           </p>
         </div>
 
@@ -442,10 +520,9 @@ const AdminOverview: React.FC = () => {
           </div>
         </div>
 
-        {/* Leaderboard - Extended Height */}
         <div className="bg-slate-800 p-6 rounded-lg shadow-lg flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Leaderboard</h2>
+            <h2 className="text-xl font-semibold">Latest Users</h2>
           </div>
 
           <div className="overflow-hidden flex-grow relative">
@@ -460,51 +537,76 @@ const AdminOverview: React.FC = () => {
                       Player
                     </th>
                     <th className="py-2 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Score
+                      Joined
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {leaderboardData.map((player) => (
-                    <tr
-                      key={player.id}
-                      className={`border-b border-slate-700 hover:bg-slate-700 ${
-                        player.rank <= 3 ? "bg-slate-700/30" : ""
-                      }`}
-                    >
-                      <td className="py-3 whitespace-nowrap">
-                        <div
-                          className={`
-                          w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
-                          ${
-                            player.rank === 1
-                              ? "bg-yellow-500 text-yellow-900"
-                              : player.rank === 2
-                              ? "bg-gray-300 text-gray-800"
-                              : player.rank === 3
-                              ? "bg-amber-700 text-amber-100"
-                              : "bg-slate-600 text-slate-200"
-                          }
-                        `}
-                        >
-                          {player.rank}
-                        </div>
-                      </td>
-                      <td className="py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white mr-2 text-xs">
-                            {player.avatar}
-                          </div>
-                          <span className="font-medium text-white text-sm">
-                            {player.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3 whitespace-nowrap text-right font-semibold text-white text-sm">
-                        {player.score.toLocaleString()}
+                <tbody className="divide-y divide-slate-700">
+                  {leaderboardLoading ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-4 text-center text-gray-400"
+                      >
+                        Loading leaderboard...
                       </td>
                     </tr>
-                  ))}
+                  ) : leaderboardUsers.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-4 text-center text-gray-400"
+                      >
+                        No users found
+                      </td>
+                    </tr>
+                  ) : (
+                    leaderboardUsers.map((user) => {
+                      const initials = getUserInitials(user.name);
+                      const isTopThree = user.rank <= 3;
+
+                      return (
+                        <tr
+                          key={user._id}
+                          className={`border-b border-slate-700 hover:bg-slate-700 ${
+                            isTopThree ? "bg-slate-700/30" : ""
+                          }`}
+                        >
+                          <td className="py-3 whitespace-nowrap">
+                            <div
+                              className={`
+                                w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
+                                ${
+                                  user.rank === 1
+                                    ? "bg-yellow-500 text-yellow-900"
+                                    : user.rank === 2
+                                    ? "bg-gray-300 text-gray-800"
+                                    : user.rank === 3
+                                    ? "bg-amber-700 text-amber-100"
+                                    : "bg-slate-600 text-slate-200"
+                                }
+                              `}
+                            >
+                              {user.rank}
+                            </div>
+                          </td>
+                          <td className="py-3 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white mr-2 text-xs">
+                                {initials}
+                              </div>
+                              <span className="font-medium text-white text-sm">
+                                {user.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 whitespace-nowrap text-right font-semibold text-white text-sm">
+                            {formatJoinedDate(user.createdAt)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
