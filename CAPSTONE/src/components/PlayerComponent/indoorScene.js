@@ -119,36 +119,45 @@ export class IndoorScene extends Phaser.Scene {
         this.gameHeight / 2 - 50,
         "Talk to someone",
         {
-          fontSize: "24px",
+          fontSize: "20px",
           fill: "#ffffff",
-          backgroundColor: "#000000",
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          font: `${this.gameWidth * 0.02}px 'Jersey 10'`,
+          padding: {
+            left: 20, // Set left padding
+            right: 20, // Set right padding
+            top: 10, // Set top padding to 0
+            bottom: 10, // Set bottom padding to 0
+          },
         }
       )
-      .setPadding(10)
       .setInteractive() // Make the text clickable
+      .setLetterSpacing(2)
       .on("pointerdown", () => {
         this.talk();
       });
-    this.talkButton.setVisible(false);
+      this.talkButton.setVisible(false);
 
     //Enter house button
-    this.enterButton = this.add
-      .text(
-        this.gameWidth / 2 + 50,
-        this.gameHeight / 2 - 50,
-        `Exit ${indoorDetail.label}`,
-        {
-          fontSize: "24px",
-          fill: "#ffffff",
-          backgroundColor: "#000000",
-        }
-      )
-      .setPadding(10)
-      .setInteractive() // Make the text clickable
-      .on("pointerdown", () => {
-        this.enterDoor();
-      });
-    this.enterButton.setVisible(false);
+
+    this.enterButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, `Exit ${indoorDetail.label}`, {
+      // fontSize: '20px',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      font: `${this.gameWidth*0.02}px 'Jersey 10'`,
+      padding: {
+          left: 20,  // Set left padding
+          right: 20, // Set right padding
+          top: 10,    // Set top padding to 0
+          bottom: 10   // Set bottom padding to 0
+      },
+  })
+  .setInteractive() // Make the text clickable
+  .setLetterSpacing(2)
+  .on('pointerdown', () => {
+      this.enterDoor();
+  });
+  this.enterButton.setVisible(false);
 
     // Create a guide button
     this.guideButton = this.add

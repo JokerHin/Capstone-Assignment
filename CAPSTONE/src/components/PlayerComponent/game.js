@@ -22,6 +22,9 @@ class MainScene extends Phaser.Scene {
         this.player_id="1"; //need change to cookie player
         this.uistatus=0;
         this.inScene=true;
+        this.gameWidth = window.innerWidth;
+        this.gameHeight = window.innerHeight;
+        // this.gane.scale.resize(this.gameWidth, this.gameHeight);
         this.createLoadingScreen();
     }
 
@@ -52,40 +55,40 @@ class MainScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("Dungeon_Tileset", "../assets/map_asset/Dungeon_Tileset.png");
-        this.load.image("Big_Set", "../assets/map_asset/Big_Set.png");
-        this.load.image("Rustic_Indoor", "../assets/map_asset/Rustic_Indoor.png");
-        this.load.tilemapTiledJSON("map1", "../assets/map_asset/map1.tmj"); //Mbat, Dungeon_Tileset
-        this.load.tilemapTiledJSON("map2", "../assets/map_asset/map2.tmj"); //House1, Big_Set
-        this.load.tilemapTiledJSON("map3", "../assets/map_asset/map3.tmj"); //House2, Big_Set
-        this.load.tilemapTiledJSON("map4", "../assets/map_asset/map4.tmj"); //House3, Big_Set
-        this.load.tilemapTiledJSON("map5", "../assets/map_asset/map5.tmj"); //Diner, Rustic_Indoor
-        this.load.tilemapTiledJSON("map6", "../assets/map_asset/map6.tmj"); //Purple, Rustic_Indoor
+        this.load.image("Dungeon_Tileset", "src/assets/map_asset/Dungeon_Tileset.png");
+        this.load.image("Big_Set", "src/assets/map_asset/Big_Set.png");
+        this.load.image("Rustic_Indoor", "src/assets/map_asset/Rustic_Indoor.png");
+        this.load.tilemapTiledJSON("map1", "src/assets/map_asset/map1.tmj"); //Mbat, Dungeon_Tileset
+        this.load.tilemapTiledJSON("map2", "src/assets/map_asset/map2.tmj"); //House1, Big_Set
+        this.load.tilemapTiledJSON("map3", "src/assets/map_asset/map3.tmj"); //House2, Big_Set
+        this.load.tilemapTiledJSON("map4", "src/assets/map_asset/map4.tmj"); //House3, Big_Set
+        this.load.tilemapTiledJSON("map5", "src/assets/map_asset/map5.tmj"); //Diner, Rustic_Indoor
+        this.load.tilemapTiledJSON("map6", "src/assets/map_asset/map6.tmj"); //Purple, Rustic_Indoor
 
-        this.load.image('town_bg', '../assets/town_map.jpg');
-        this.load.image('town_obstacle', '../assets/town_map_obstacle.png');
-        this.load.spritesheet('fighter', '../assets/mc_spritesheet.png', {
+        this.load.image('town_bg', 'src/assets/town_map.jpg');
+        this.load.image('town_obstacle', 'src/assets/town_map_obstacle.png');
+        this.load.spritesheet('fighter', 'src/assets/mc_spritesheet.png', {
             frameWidth: 641,  // Adjust based on your sprite sheet
             frameHeight: 640.8
         });
-        this.load.image("house1_interior", "../assets/house1_interior.png");
-        this.load.image("ownhouse_interior", "../assets/ownhouse_interior.jpg");
+        this.load.image("house1_interior", "src/assets/house1_interior.png");
+        this.load.image("ownhouse_interior", "src/assets/ownhouse_interior.jpg");
 
-        this.load.image('inventory_icon', '../assets/inventory_icon.png'); // Replace with the actual path to your image
-        this.load.image('close_icon', '../assets/close_icon.png');
-        this.load.image('menu_icon', '../assets/menu_icon.png');
-        this.load.image('guide_icon', '../assets/guide_icon.png');
-        this.load.image('resume_icon', '../assets/resume_icon.png');
-        this.load.image('exit_icon', '../assets/exit_icon.png');
-        this.load.image('scroll_background', '../assets/scroll_background2.png');
-        this.load.image('inventory_cat1', '../assets/inventory_cat1.png');
-        this.load.image('inventory_cat2', '../assets/inventory_cat2.png');
+        this.load.image('inventory_icon', 'src/assets/inventory_icon.png'); // Replace with the actual path to your image
+        this.load.image('close_icon', 'src/assets/close_icon.png');
+        this.load.image('menu_icon', 'src/assets/menu_icon.png');
+        this.load.image('guide_icon', 'src/assets/guide_icon.png');
+        this.load.image('resume_icon', 'src/assets/resume_icon.png');
+        this.load.image('exit_icon', 'src/assets/exit_icon.png');
+        this.load.image('scroll_background', 'src/assets/scroll_background2.png');
+        this.load.image('inventory_cat1', 'src/assets/inventory_cat1.png');
+        this.load.image('inventory_cat2', 'src/assets/inventory_cat2.png');
 
         for (let [tag,npc] of Object.entries(this.npcDetail)){
             if (npc.type === "image") {
-                this.load.image(tag, `../assets/${npc.img}`);
+                this.load.image(tag, `src/assets/${npc.img}`);
             }else if (npc.type === "spritesheet"){
-                this.load.spritesheet(tag, `../assets/${npc.img}`, {
+                this.load.spritesheet(tag, `src/assets/${npc.img}`, {
                     frameWidth: npc.frameSize.width,
                     frameHeight: npc.frameSize.height
                 });
@@ -93,7 +96,7 @@ class MainScene extends Phaser.Scene {
         }
 
         for (let item of Object.values(this.itemDetail)){
-            this.load.image(item.tag, `../assets/${item.img}`);
+            this.load.image(item.tag, `src/assets/${item.img}`);
         }
     }
 
@@ -115,7 +118,7 @@ class MainScene extends Phaser.Scene {
 
         // Add the logo
         const logo = document.createElement('img');
-        logo.src = '../assets/logo.png'; // Path to the logo image
+        logo.src = 'src/assets/logo.png'; // Path to the logo image
         logo.alt = 'Game Logo';
         logo.className = 'logo'; // Add the 'logo' class for animation
         // logo.style.width = '150px'; // Adjust the size of the logo
@@ -259,10 +262,15 @@ class MainScene extends Phaser.Scene {
         this.talkButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Talk to someone', {
             fontSize: '20px',
             fill: '#ffffff',
-            backgroundColor: '#000000',
-            font: `${this.gameWidth*0.02}px 'Jersey 10'`
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            font: `${this.gameWidth*0.02}px 'Jersey 10'`,
+            padding: {
+                left: 20,  // Set left padding
+                right: 20, // Set right padding
+                top: 10,    // Set top padding to 0
+                bottom: 10   // Set bottom padding to 0
+            },
         })
-        .setPadding(10)
         .setInteractive() // Make the text clickable
         .setLetterSpacing(2)
         .on('pointerdown', () => {
@@ -274,10 +282,15 @@ class MainScene extends Phaser.Scene {
         this.enterButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Enter house', {
             // fontSize: '20px',
             fill: '#ffffff',
-            backgroundColor: '#000000',
-            font: `${this.gameWidth*0.02}px 'Jersey 10'`
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            font: `${this.gameWidth*0.02}px 'Jersey 10'`,
+            padding: {
+                left: 20,  // Set left padding
+                right: 20, // Set right padding
+                top: 10,    // Set top padding to 0
+                bottom: 10   // Set bottom padding to 0
+            },
         })
-        .setPadding(10)
         .setInteractive() // Make the text clickable
         .setLetterSpacing(2)
         .on('pointerdown', () => {
@@ -976,6 +989,28 @@ class MainScene extends Phaser.Scene {
         this.scene.stop('IndoorScene');
         window.location.href = '/'; // Redirect to the main menu or home page
     }
+
+    resizeGame() {
+        this.gameWidth = window.innerWidth;
+        this.gameHeight = window.innerHeight;
+
+        //this.game.config.width = this.gameWidth;
+        //this.game.config.height = this.gameHeight;
+            this.game.scale.resize(this.gameWidth, this.gameHeight);
+
+        this.game.scene.getScenes().forEach(scene => {
+            if (scene.scene.key === 'MainScene' || scene.scene.key === 'IndoorScene') { //check if scene is MainScene or IndoorScene
+            scene.cameras.main.resize(this.gameWidth, this.gameHeight);
+            scene.scale.updateScale(this.gameWidth, this.gameHeight);
+            // Update the game config
+            this.game.config.width = this.gameWidth;
+            this.game.config.height = this.gameHeight;
+
+            // Manually resize the renderer
+            this.game.renderer.resize(this.gameWidth, this.gameHeight);
+            }
+        });
+    }
 }
 
 class Game {
@@ -1022,7 +1057,7 @@ class Game {
 
     // Add the logo
     const logo = document.createElement("img");
-    logo.src = "../assets/logo.png"; // Path to the logo image
+    logo.src = "src/assets/logo.png"; // Path to the logo image
     logo.alt = "Game Logo";
     logo.className = "logo"; // Add the 'logo' class for animation
     // logo.style.width = '150px'; // Adjust the size of the logo
@@ -1101,18 +1136,18 @@ class Game {
         "https://capstone-assignment-36lq.vercel.app/dialogue",
         "https://capstone-assignment-36lq.vercel.app/quest",
         "https://capstone-assignment-36lq.vercel.app/location",
-        "../components/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
-        "../components/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
-        "../components/PlayerComponent/game-data/action.json",
+        "src/components/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
+        "src/components/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
+        "src/components/PlayerComponent/game-data/action.json",
         "https://capstone-assignment-36lq.vercel.app/package_detail",
         "https://capstone-assignment-36lq.vercel.app/position",
         "https://capstone-assignment-36lq.vercel.app/subquest",
         "https://capstone-assignment-36lq.vercel.app/package",
         "https://capstone-assignment-36lq.vercel.app/choice",
         "https://capstone-assignment-36lq.vercel.app/player_progress",
-        "../components/PlayerComponent/game-data/npc_detail.json",
-        "../components/PlayerComponent/game-data/location_detail.json",
-        "../components/PlayerComponent/game-data/item_detail.json",
+        "src/components/PlayerComponent/game-data/npc_detail.json",
+        "src/components/PlayerComponent/game-data/location_detail.json",
+        "src/components/PlayerComponent/game-data/item_detail.json",
       ];
 
       const responses = await Promise.all(urls.map((url) => fetch(url)));
@@ -1246,7 +1281,6 @@ class Game {
     });
   }
 }
-
 
 // Create the game object with dynamic width & height
 const myGame = new Game(); //size wont be use
