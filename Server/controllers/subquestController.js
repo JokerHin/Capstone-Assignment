@@ -3,7 +3,7 @@ import Subquest from "../models/subquest.js";
 // Get all subquests
 export const getSubquests = async (req, res) => {
   try {
-    const subquests = await Subquest.find(); // Fetch all subquests
+    const subquests = await Subquest.find();
     res.json(subquests);
   } catch (error) {
     res.status(500).json({ message: error.message });
