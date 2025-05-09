@@ -10,16 +10,16 @@ import {
 const subquestRouter = express.Router();
 
 // GET routes
-subquestRouter.get("/", getSubquests); // Get all subquests
-subquestRouter.get("/:id", getSubquestById); // Get specific subquest
+subquestRouter.get("/", getSubquests);
+subquestRouter.get("/:id", getSubquestById);
 
 // POST route
-subquestRouter.post("/", createSubquest); // Create new subquest
+subquestRouter.post("/", createSubquest);
 
 // PUT route
-subquestRouter.put("/:id", updateSubquest); // Update existing subquest
+subquestRouter.put("/:id", updateSubquest);
 
 // DELETE route
-subquestRouter.delete("/:id", deleteSubquest); // Delete subquest
+subquestRouter.delete("/:id", deleteSubquest);
 
 export default subquestRouter;
