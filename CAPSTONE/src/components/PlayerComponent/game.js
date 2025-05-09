@@ -199,8 +199,7 @@ class MainScene extends Phaser.Scene {
         let activeSubQuest = this.playerProgress.find(progress => progress.player_id === this.player_id).subquest_id;
         console.log(activeSubQuest);
         let activeQuest = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).quest_id;
-
-        this.checkNarrator();
+        console.log(activeQuest);
 
         this.registry.set("activeQuest", activeQuest);
         this.registry.set("activeSubQuest", activeSubQuest);
@@ -424,6 +423,8 @@ class MainScene extends Phaser.Scene {
 
         this.removeLoadingScreen();
 
+        this.checkNarrator();
+
         setInterval(() => {this.saveLocation()}, 5000);
     }
 
@@ -487,12 +488,14 @@ class MainScene extends Phaser.Scene {
     }
 
     checkNarrator(){
-        let subquestPosition = this.position.find(position => position.subquest === this.registry.get("activeSubQuest") && position.npc==="narrator")
-        this.collisionHappened = true;
-        let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
-        console.log(chats);
-        let dialog = new Dialog(this,chats);
-        dialog.showDialogs();
+        let subquestPosition = this.position.find(position => position.subquest_id === this.registry.get("activeSubQuest") && position.npc==="narrator");
+        if (subquestPosition){
+            this.collisionHappened = true;
+            let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+            console.log(chats);
+            let dialog = new Dialog(this,chats);
+            dialog.showDialogs();
+        }
     }
 
     saveLocation() {
@@ -639,7 +642,7 @@ class MainScene extends Phaser.Scene {
         }
     }
 
-    moveNpcTo(npc_tag, targetX, targetY, speed) {
+    moveNpcTo(npc_tag, targetX, targetY, speed, destroy=false) {
         // Calculate the direction vector
         let npc = this.npc[npc_tag];
         const directionX = targetX - npc.x;
@@ -683,6 +686,10 @@ class MainScene extends Phaser.Scene {
             },
             loop: true
         });
+
+        if (destroy){
+            this.npc[npc_tag].destroy();
+        }
     }
 
     openGuide() {
@@ -714,9 +721,9 @@ class MainScene extends Phaser.Scene {
         this.guideTitle.setLetterSpacing(2);
 
         // Add guide content
-        this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05,
-            'Use W/A/S/D or Arrow keys to move.\n' +
-            'Click on NPCs to interact with them.\n',
+        let activeSubQuest = this.registry.get("activeSubQuest");
+        let guideText = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).description;
+        this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05, guideText,
             {
                 fill: '#000000',
                 align: 'center',
@@ -1146,7 +1153,7 @@ class Game {
     try {
       const urls = [
         "https://capstone-assignment-36lq.vercel.app/dialogue",
-        "https://capstone-assignment-36lq.vercel.app/quest",
+        "src/components/PlayerComponent/game-data/quest.json",
         "https://capstone-assignment-36lq.vercel.app/location",
         "src/components/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
         "src/components/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",

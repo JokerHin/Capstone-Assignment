@@ -303,6 +303,17 @@ export class IndoorScene extends Phaser.Scene {
     // );
   }
 
+  checkNarrator(){
+    let subquestPosition = this.position.find(position => position.subquest_id === this.registry.get("activeSubQuest") && position.npc==="narrator");
+    if (subquestPosition){
+        this.collisionHappened = true;
+        let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+        console.log(chats);
+        let dialog = new Dialog(this,chats);
+        dialog.showDialogs();
+    }
+  }
+
   saveLocation() {
     if (!this.inScene){
       return;
@@ -391,34 +402,31 @@ export class IndoorScene extends Phaser.Scene {
   showTalk(player, object) {
     //update on new npc
     if (!this.collisionHappened) {
-      this.touching = object;
-      let activeQuest = this.registry.get("activeQuest");
+      this.touching['npc']=object;
       let activeSubQuest = this.registry.get("activeSubQuest");
-      if (
-        this.dialogue[object.tag][activeSubQuest] &&
-        this.quest[activeQuest].subquest[activeSubQuest].location ==
-          this.sceneName
-      ) {
-        this.talkButton.setPosition(
-          object.x - this.talkButton.width / 2,
-          object.y - object.displayHeight / 2 - this.talkButton.height - 5
-        );
-        this.talkButton.setText(`Talk to ${object.name}`);
-        this.talkButton.setVisible(true);
-      } else {
-        this.talkButton.setVisible(false);
+      this.children.bringToTop(this.talkButton);
+      let positionDetail = this.position.find(position => position.npc === object.tag && position.location_id === this.locationId && (position.subquest_id === activeSubQuest || position.subquest_id === null));
+      if (positionDetail) {
+          object.position_id = positionDetail.position_id;
+          let current_chat = this.dialogue.filter(dialogue => dialogue.position_id === positionDetail.position_id);
+          if (current_chat.length>0){
+              this.talkButton.setPosition(object.x - this.talkButton.width / 2,object.y - object.displayHeight/2 - this.talkButton.height - 5)
+              this.talkButton.setText(`Talk to ${object.name}`);
+              this.talkButton.setVisible(true);
+          }else{
+              this.talkButton.setVisible(false);
+          }
       }
     }
   }
 
   showEnter(player, object) {
     if (!this.collisionHappened) {
-      this.touching["door"] = object;
+      this.touching['door']=object; //door.name (Your House etc)
+      let objectName = object.label;
       this.children.bringToTop(this.enterButton);
-      this.enterButton.setPosition(
-        object.x - this.enterButton.width / 2,
-        object.y + object.height / 2 + this.enterButton.height
-      );
+      this.enterButton.setPosition(object.x - this.enterButton.width / 2, object.y - object.height/2 - this.enterButton.height - 5);
+      this.enterButton.setText(`Enter ${objectName}`);
       this.enterButton.setVisible(true);
     }
   }
@@ -427,13 +435,12 @@ export class IndoorScene extends Phaser.Scene {
     //update on new npc
     this.talkButton.setVisible(false);
     this.collisionHappened = true;
-    let object = this.touching;
+    let object = this.touching['npc'];
     console.log(`Talking to the ${object.name}...`);
-    let activeSubQuest = this.registry.get("activeSubQuest");
-    let chats = this.dialogue[object.tag][activeSubQuest];
+    let chats = this.dialogue.filter(dialogue => dialogue.position_id === object.position_id);
     console.log(chats);
-    this.dialog1 = new Dialog(this, chats);
-    this.dialog1.showDialogs();
+    let dialog1 = new Dialog(this,chats);
+    dialog1.showDialogs();
   }
 
   enterDoor() {
@@ -442,16 +449,14 @@ export class IndoorScene extends Phaser.Scene {
     this.exitHouse();
   }
 
-  moveNpcTo(npc_tag, targetX, targetY, speed) {
+  moveNpcTo(npc_tag, targetX, targetY, speed, destroy=false) {
     // Calculate the direction vector
     let npc = this.npc[npc_tag];
     const directionX = targetX - npc.x;
     const directionY = targetY - npc.y;
 
     // Normalize the direction vector
-    const magnitude = Math.sqrt(
-      directionX * directionX + directionY * directionY
-    );
+    const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
     const normalizedX = directionX / magnitude;
     const normalizedY = directionY / magnitude;
 
@@ -477,23 +482,21 @@ export class IndoorScene extends Phaser.Scene {
 
     // Stop movement when the NPC reaches the target
     const checkArrival = this.time.addEvent({
-      delay: 50, // Check every 50ms
-      callback: () => {
-        const distance = Phaser.Math.Distance.Between(
-          npc.x,
-          npc.y,
-          targetX,
-          targetY
-        );
-        if (distance < 5) {
-          // Stop when close enough
-          npc.setVelocity(0, 0); // Stop movement
-          npc.anims.stop(); // Stop animation
-          checkArrival.remove(); // Remove the timer
-        }
-      },
-      loop: true,
+        delay: 50, // Check every 50ms
+        callback: () => {
+            const distance = Phaser.Math.Distance.Between(npc.x, npc.y, targetX, targetY);
+            if (distance < 5) { // Stop when close enough
+                npc.setVelocity(0, 0); // Stop movement
+                npc.anims.stop(); // Stop animation
+                checkArrival.remove(); // Remove the timer
+            }
+        },
+        loop: true
     });
+
+    if (destroy){
+        this.npc[npc_tag].destroy();
+    }
   }
 
   openGuide() {
@@ -525,9 +528,9 @@ export class IndoorScene extends Phaser.Scene {
     this.guideTitle.setLetterSpacing(2);
 
     // Add guide content
-    this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05,
-        'Use W/A/S/D or Arrow keys to move.\n' +
-        'Click on NPCs to interact with them.\n',
+    let activeSubQuest = this.registry.get("activeSubQuest");
+    let guideText = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).description;
+    this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05, guideText,
         {
             fill: '#000000',
             align: 'center',
