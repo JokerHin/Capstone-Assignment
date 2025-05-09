@@ -1,45 +1,14 @@
 import Item from "../models/item.js";
 
-// Get all items - Modified to work in both function call and express handler contexts
+// Get all items
 export const getItems = async (req, res) => {
   try {
-    // Can filter by type if requested
     const filter = req.query.type ? { type: req.query.type } : {};
     const items = await Item.find(filter).sort({ item_id: 1 });
 
-    // If being called directly rather than as middleware, return items
-    if (!res || res.headersSent) {
-      return items;
-    }
-
-    // Format the response for achievements when type=badge
-    if (req.query.type === "badge") {
-      const formattedItems = items.map((item) => ({
-        _id: item._id,
-        item_id: item.item_id,
-        name: item.name,
-        description: item.description || "",
-        rarity: item.rarity || "common",
-        game: item.game || "All Games",
-        points: item.points || 0,
-      }));
-
-      return res.json({
-        success: true,
-        achievements: formattedItems,
-      });
-    }
-
-    // Standard response for other item types
     return res.json(items);
   } catch (error) {
     console.error("Error fetching items:", error);
-
-    // If being called directly, throw the error
-    if (!res || res.headersSent) {
-      throw error;
-    }
-
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -52,12 +21,10 @@ export const getItemById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // First try to find by MongoDB _id
     let item = await Item.findById(id);
 
-    // If not found and id is a number, try to find by item_id
     if (!item && !isNaN(id)) {
-      item = await Item.findOne({ item_id: Number(id) });
+      item = await Item.findOne({ item_id: id });
     }
 
     if (!item) {
@@ -67,25 +34,52 @@ export const getItemById = async (req, res) => {
       });
     }
 
-    // Special response for achievement endpoints
-    if (req.originalUrl.includes("/achievements/")) {
-      return res.json({
-        success: true,
-        achievement: {
-          _id: item._id,
-          item_id: item.item_id,
-          name: item.name,
-          description: item.description || "",
-          rarity: item.rarity || "common",
-          game: item.game || "All Games",
-          points: item.points || 0,
-        },
+    return res.json(item);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Create new item
+export const createItem = async (req, res) => {
+  try {
+    const { item_id, name, type, description } = req.body;
+
+    if (!item_id || !name || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Item ID, name, and type are required",
       });
     }
 
-    // Standard response for other items
-    return res.json(item);
+    const existingItem = await Item.findOne({ item_id });
+    if (existingItem) {
+      return res.status(400).json({
+        success: false,
+        message: "An item with this ID already exists",
+      });
+    }
+
+    // Create new item
+    const newItem = new Item({
+      item_id,
+      name,
+      type,
+      description: description || "",
+    });
+
+    await newItem.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Item created successfully",
+      item: newItem,
+    });
   } catch (error) {
+    console.error("Error creating item:", error);
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -97,9 +91,8 @@ export const getItemById = async (req, res) => {
 export const updateItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, type, description } = req.body;
 
-    // Find the item
     let item = await Item.findById(id);
 
     if (!item) {
@@ -111,35 +104,44 @@ export const updateItem = async (req, res) => {
 
     // Update allowed fields
     if (name) item.name = name;
+    if (type) item.type = type;
     if (description !== undefined) item.description = description;
 
-    // Save the item
     await item.save();
 
-    // Special response for achievement endpoints
-    if (req.originalUrl.includes("/achievements/")) {
-      return res.json({
-        success: true,
-        message: "Achievement updated successfully",
-        achievement: {
-          _id: item._id,
-          item_id: item.item_id,
-          name: item.name,
-          description: item.description || "",
-          rarity: item.rarity || "common",
-          game: item.game || "All Games",
-          points: item.points || 0,
-        },
-      });
-    }
-
-    // Standard response for other items
     return res.json({
       success: true,
       message: "Item updated successfully",
       item,
     });
   } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Delete item
+export const deleteItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const item = await Item.findByIdAndDelete(id);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Item deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting item:", error);
     return res.status(500).json({
       success: false,
       message: error.message,

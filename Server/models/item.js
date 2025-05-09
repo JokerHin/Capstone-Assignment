@@ -11,31 +11,13 @@ const ItemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    description: {
-      type: String,
-      default: "",
-    },
     type: {
       type: String,
       required: true,
-      enum: ["quest", "milestone", "badge", "currency"],
     },
-    rarity: {
+    description: {
       type: String,
-      enum: ["common", "uncommon", "rare", "epic", "legendary"],
-      default: "common",
-    },
-    game: {
-      type: String,
-      default: "All Games",
-    },
-    points: {
-      type: Number,
-      default: 0,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+      default: "",
     },
   },
   {
@@ -43,12 +25,6 @@ const ItemSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Update the 'updatedAt' field on save
-ItemSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
 
 const Item = mongoose.model("Item", ItemSchema);
 

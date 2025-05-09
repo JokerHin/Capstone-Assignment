@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/logo.png";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AppContent } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -27,6 +27,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [userType] = useState("user");
   const [isAdminLogin, setIsAdminLogin] = useState(false);
+
+  useEffect(() => {
+    // If already logged in as admin, redirect to admin dashboard
+    if (appContext.isLoggedin && appContext.userData?.userType === "admin") {
+      navigate("/AdminHome");
+    }
+  }, [appContext.isLoggedin, appContext.userData, navigate]);
 
   const onSubmitHandler = async (e: any) => {
     try {

@@ -6,21 +6,23 @@ import { AppContent } from "../../context/AppContext";
 import { ArrowLeft, Plus, Pencil, Trash, Check, X } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 
+// Update the interface to match your database model
 interface Dialogue {
   _id: string;
-  dialogue_id: number;
+  dialogue_id: string;
   text: string;
-  subquest_id?: number;
-  order?: number;
+  position_id?: string;
+  package_id?: string;
+  action_id?: string;
 }
 
 interface Choice {
   _id: string;
-  choice_id: number;
-  dialogue_id: number;
+  choice_id: number | string;
+  dialogue_id: string;
   text: string;
-  package_id?: number;
-  alt_text?: number;
+  package_id?: string;
+  alt_text?: number | string;
 }
 
 interface Quest {
@@ -50,9 +52,12 @@ const AdminDialogue: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentDialogue, setCurrentDialogue] = useState<Dialogue | null>(null);
+  // Update formData to match the dialogue model
   const [formData, setFormData] = useState({
     text: "",
-    order: 0,
+    position_id: "",
+    package_id: "",
+    action_id: "",
   });
   const [editingDialogueId, setEditingDialogueId] = useState<string | null>(
     null
@@ -102,11 +107,8 @@ const AdminDialogue: React.FC = () => {
           setSubquest(subquestData);
         }
 
-        // Filter dialogues for this subquest
-        const filteredDialogues = dialoguesResponse.data.filter(
-          (d: any) => d.subquest_id === Number(subquestId)
-        );
-        setDialogues(filteredDialogues);
+        // Get all dialogues for now - we'll filter client-side since the model doesn't have subquest_id
+        setDialogues(dialoguesResponse.data);
 
         // Get all choices (will filter by dialogue_id when rendering)
         setChoices(choicesResponse.data);
@@ -128,7 +130,7 @@ const AdminDialogue: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "order" ? parseInt(value) || 0 : value,
+      [name]: value,
     }));
   };
 
@@ -137,7 +139,9 @@ const AdminDialogue: React.FC = () => {
     setCurrentDialogue(null);
     setFormData({
       text: "",
-      order: dialogues.length + 1,
+      position_id: "",
+      package_id: "",
+      action_id: "",
     });
     setShowAddModal(true);
   };
@@ -147,7 +151,9 @@ const AdminDialogue: React.FC = () => {
     setCurrentDialogue(dialogue);
     setFormData({
       text: dialogue.text,
-      order: dialogue.order || 0,
+      position_id: dialogue.position_id || "",
+      package_id: dialogue.package_id || "",
+      action_id: dialogue.action_id || "",
     });
     setShowEditModal(true);
   };
@@ -198,7 +204,7 @@ const AdminDialogue: React.FC = () => {
 
       // Also delete related choices
       const dialogueChoices = choices.filter(
-        (c) => c.dialogue_id.toString() === dialogueId
+        (c) => c.dialogue_id === dialogueId
       );
       for (const choice of dialogueChoices) {
         await axios.delete(`${backendUrl}/choice/${choice._id}`);
@@ -206,9 +212,7 @@ const AdminDialogue: React.FC = () => {
 
       // Update local state
       setDialogues(dialogues.filter((d) => d._id !== dialogueId));
-      setChoices(
-        choices.filter((c) => c.dialogue_id.toString() !== dialogueId)
-      );
+      setChoices(choices.filter((c) => c.dialogue_id !== dialogueId));
     } catch (error) {
       console.error("Error deleting dialogue:", error);
       toast.error("Failed to delete dialogue");
@@ -226,13 +230,19 @@ const AdminDialogue: React.FC = () => {
 
     try {
       if (showAddModal) {
+        // Get the next dialogue_id as a string
+        const maxDialogueId = Math.max(
+          ...dialogues.map((d) => parseInt(d.dialogue_id) || 0)
+        );
+        const nextDialogueId = String(maxDialogueId + 1);
+
         // Create new dialogue
         const newDialogue = {
           text: formData.text,
-          order: formData.order,
-          subquest_id: Number(subquestId),
-          dialogue_id:
-            Math.max(0, ...dialogues.map((d) => d.dialogue_id || 0)) + 1,
+          dialogue_id: nextDialogueId,
+          position_id: formData.position_id || null,
+          package_id: formData.package_id || null,
+          action_id: formData.action_id || null,
         };
 
         const response = await axios.post(
@@ -246,11 +256,12 @@ const AdminDialogue: React.FC = () => {
           setShowAddModal(false);
         }
       } else if (showEditModal && currentDialogue) {
-        // Update existing dialogue
         const updatedDialogue = {
-          ...currentDialogue,
           text: formData.text,
-          order: formData.order,
+          dialogue_id: currentDialogue.dialogue_id,
+          position_id: formData.position_id || undefined,
+          package_id: formData.package_id || undefined,
+          action_id: formData.action_id || undefined,
         };
 
         const response = await axios.put(
@@ -282,6 +293,7 @@ const AdminDialogue: React.FC = () => {
     navigate(`/admin/subquests/${questId}`);
   };
 
+  // Render section
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-b from-gray-900 to-black text-white relative">
       <AdminSidebar activeTab="content" />
@@ -352,109 +364,117 @@ const AdminDialogue: React.FC = () => {
                 </button>
               </div>
             ) : (
-              dialogues
-                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                .map((dialogue) => (
-                  <div
-                    key={dialogue._id}
-                    className="bg-slate-800 rounded-lg p-5 shadow-lg"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center">
-                        <span className="text-sm font-medium text-gray-400 mr-2">
-                          ID: {dialogue.dialogue_id}
+              dialogues.map((dialogue) => (
+                <div
+                  key={dialogue._id}
+                  className="bg-slate-800 rounded-lg p-5 shadow-lg"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center flex-wrap gap-2">
+                      <span className="text-sm font-medium text-gray-400 mr-2">
+                        ID: {dialogue.dialogue_id}
+                      </span>
+                      {dialogue.position_id && (
+                        <span className="text-xs bg-purple-900 px-2 py-1 rounded text-purple-300">
+                          Position: {dialogue.position_id}
                         </span>
-                        {dialogue.order && (
-                          <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">
-                            Order: {dialogue.order}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex space-x-2">
+                      )}
+                      {dialogue.package_id && (
+                        <span className="text-xs bg-green-900 px-2 py-1 rounded text-green-300">
+                          Package: {dialogue.package_id}
+                        </span>
+                      )}
+                      {dialogue.action_id && (
+                        <span className="text-xs bg-blue-900 px-2 py-1 rounded text-blue-300">
+                          Action: {dialogue.action_id}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditDialogue(dialogue)}
+                        className="text-blue-400 hover:text-blue-300"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDialogue(dialogue._id)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dialogue Text - Editable Inline */}
+                  {editingDialogueId === dialogue._id ? (
+                    <div className="flex items-start space-x-2">
+                      <textarea
+                        value={editedText}
+                        onChange={(e) => setEditedText(e.target.value)}
+                        className="bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 w-full"
+                        rows={3}
+                        autoFocus
+                      />
+                      <div className="flex flex-col space-y-2">
                         <button
-                          onClick={() => handleEditDialogue(dialogue)}
-                          className="text-blue-400 hover:text-blue-300"
+                          onClick={() => handleSaveDialogueText(dialogue._id)}
+                          className="text-green-400 hover:text-green-300 p-1"
+                          title="Save"
                         >
-                          <Pencil size={14} />
+                          <Check size={16} />
                         </button>
                         <button
-                          onClick={() => handleDeleteDialogue(dialogue._id)}
-                          className="text-red-400 hover:text-red-300"
+                          onClick={() => setEditingDialogueId(null)}
+                          className="text-red-400 hover:text-red-300 p-1"
+                          title="Cancel"
                         >
-                          <Trash size={14} />
+                          <X size={16} />
                         </button>
                       </div>
                     </div>
-
-                    {/* Dialogue Text - Editable Inline */}
-                    {editingDialogueId === dialogue._id ? (
-                      <div className="flex items-start space-x-2">
-                        <textarea
-                          value={editedText}
-                          onChange={(e) => setEditedText(e.target.value)}
-                          className="bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 w-full"
-                          rows={3}
-                          autoFocus
-                        />
-                        <div className="flex flex-col space-y-2">
-                          <button
-                            onClick={() => handleSaveDialogueText(dialogue._id)}
-                            className="text-green-400 hover:text-green-300 p-1"
-                            title="Save"
-                          >
-                            <Check size={16} />
-                          </button>
-                          <button
-                            onClick={() => setEditingDialogueId(null)}
-                            className="text-red-400 hover:text-red-300 p-1"
-                            title="Cancel"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
+                  ) : (
+                    <div
+                      className="group relative p-3 bg-slate-700 rounded-lg mb-3 cursor-pointer"
+                      onClick={() => handleEditDialogueText(dialogue)}
+                    >
+                      <p className="text-white">{dialogue.text}</p>
+                      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Pencil size={14} className="text-gray-400" />
                       </div>
-                    ) : (
+                    </div>
+                  )}
+
+                  {/* Choices (if any) */}
+                  {choices
+                    .filter((c) => c.dialogue_id === dialogue.dialogue_id)
+                    .map((choice) => (
                       <div
-                        className="group relative p-3 bg-slate-700 rounded-lg mb-3 cursor-pointer"
-                        onClick={() => handleEditDialogueText(dialogue)}
+                        key={choice._id}
+                        className="ml-6 p-3 bg-slate-700 bg-opacity-50 rounded-lg mt-2 border-l-2 border-blue-500"
                       >
-                        <p className="text-white">{dialogue.text}</p>
-                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Pencil size={14} className="text-gray-400" />
+                        <div className="flex justify-between">
+                          <p className="text-sm text-gray-300">
+                            Option: {choice.text}
+                          </p>
+                          <span className="text-xs text-gray-400">
+                            ID: {choice.choice_id}
+                          </span>
                         </div>
+                        {choice.package_id && (
+                          <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded mt-1 inline-block">
+                            Package ID: {choice.package_id}
+                          </span>
+                        )}
+                        {choice.alt_text && (
+                          <span className="text-xs bg-orange-900 text-orange-300 px-2 py-1 rounded mt-1 ml-1 inline-block">
+                            Alt Text ID: {choice.alt_text}
+                          </span>
+                        )}
                       </div>
-                    )}
-
-                    {/* Choices (if any) */}
-                    {choices
-                      .filter((c) => c.dialogue_id === dialogue.dialogue_id)
-                      .map((choice) => (
-                        <div
-                          key={choice._id}
-                          className="ml-6 p-3 bg-slate-700 bg-opacity-50 rounded-lg mt-2 border-l-2 border-blue-500"
-                        >
-                          <div className="flex justify-between">
-                            <p className="text-sm text-gray-300">
-                              Option: {choice.text}
-                            </p>
-                            <span className="text-xs text-gray-400">
-                              ID: {choice.choice_id}
-                            </span>
-                          </div>
-                          {choice.package_id && (
-                            <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded mt-1 inline-block">
-                              Package ID: {choice.package_id}
-                            </span>
-                          )}
-                          {choice.alt_text && (
-                            <span className="text-xs bg-orange-900 text-orange-300 px-2 py-1 rounded mt-1 ml-1 inline-block">
-                              Alt Text ID: {choice.alt_text}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                  </div>
-                ))
+                    ))}
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -480,18 +500,46 @@ const AdminDialogue: React.FC = () => {
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 text-sm font-bold mb-2">
-                  Order
-                </label>
-                <input
-                  type="number"
-                  name="order"
-                  value={formData.order}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  min={0}
-                />
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Position ID
+                  </label>
+                  <input
+                    type="text"
+                    name="position_id"
+                    value={formData.position_id}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Package ID
+                  </label>
+                  <input
+                    type="text"
+                    name="package_id"
+                    value={formData.package_id}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Action ID
+                  </label>
+                  <input
+                    type="text"
+                    name="action_id"
+                    value={formData.action_id}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
+                  />
+                </div>
               </div>
               <div className="flex justify-end space-x-3">
                 <button
@@ -533,18 +581,46 @@ const AdminDialogue: React.FC = () => {
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 text-sm font-bold mb-2">
-                  Order
-                </label>
-                <input
-                  type="number"
-                  name="order"
-                  value={formData.order}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  min={0}
-                />
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Position ID
+                  </label>
+                  <input
+                    type="text"
+                    name="position_id"
+                    value={formData.position_id}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Package ID
+                  </label>
+                  <input
+                    type="text"
+                    name="package_id"
+                    value={formData.package_id}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Action ID
+                  </label>
+                  <input
+                    type="text"
+                    name="action_id"
+                    value={formData.action_id}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
+                  />
+                </div>
               </div>
               <div className="flex justify-end space-x-3">
                 <button
