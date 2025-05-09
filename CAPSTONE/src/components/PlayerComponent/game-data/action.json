@@ -1,7 +1,7 @@
 {
     "karbot_jump":{
         "npc": ["karbot"],
-        "type": "movement",
+        "type": "move",
         "initialPosition": {
             "x": 100,
             "y": 100
@@ -24,5 +24,22 @@
             {"x":200,"y":0},
             {"x":250,"y":0}
         ]
+    },
+    "bot_disappear":{
+        "type":"remove",
+        "npc":["airbot","icebot","lightningbot", "firebot", "earthbot", "waterbot"]
+    },
+    "bot_walk_disappear":{
+        "type":"move_remove",
+        "npc":"airbot",
+        "initialPosition": {
+            "x": 100,
+            "y": 100
+        },
+        "endPosition": {
+            "x": 150,
+            "y": 100
+        },
+        "speed": 10
     }
 }

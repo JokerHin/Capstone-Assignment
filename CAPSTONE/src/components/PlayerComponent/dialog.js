@@ -63,7 +63,9 @@ export class Dialog{
                             return;
                         }
                     }else{
-                        this.updateDialog(value.respond,'');
+                        if (value.respond!=""){
+                            this.updateDialog(value.respond,'');
+                        }
                     }
                 });
 
@@ -99,14 +101,22 @@ export class Dialog{
 
     performAction(action){
         let actionDetail = this.game.action[action];
-        if (actionDetail.type === "movement"){
+        if (actionDetail.type === "move"){
             this.game.moveNpcTo(actionDetail.npc, actionDetail.endPosition.x, actionDetail.endPosition.y, actionDetail.speed);
         }else if (actionDetail.type === "spawn"){
             let npcs = actionDetail.npc
             let positions = actionDetail.position
             for (let i=0; i<npcs.length; i++){
-                // this.game.npc[tag] = new Npc(this, positions.x, positions.y, tag, npcData.name, npcData.scale);
+                this.game.npc[npcs[i]] = new Npc(this, positions.x, positions.y, npcs[i], "", "");
             }
+        }else if (actionDetail.type === "remove"){
+            let npcs = actionDetail.npc
+            for (let i=0; i<npcs.length; i++){
+                this.game.npc[npcs[i]].anims.stop();
+                this.game.npc[npcs[i]].destroy();
+            }
+        }else if (actionDetail.type === "move_remove"){
+            this.game.moveNpcTo(actionDetail.npc, actionDetail.endPosition.x, actionDetail.endPosition.y, actionDetail.speed, true);
         }
     }
 
