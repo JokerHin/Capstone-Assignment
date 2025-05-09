@@ -199,6 +199,9 @@ class MainScene extends Phaser.Scene {
         let activeSubQuest = this.playerProgress.find(progress => progress.player_id === this.player_id).subquest_id;
         console.log(activeSubQuest);
         let activeQuest = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).quest_id;
+
+        this.checkNarrator();
+
         this.registry.set("activeQuest", activeQuest);
         this.registry.set("activeSubQuest", activeSubQuest);
         this.registry.set("inventory", this.inventory);
@@ -483,6 +486,15 @@ class MainScene extends Phaser.Scene {
         }
     }
 
+    checkNarrator(){
+        let subquestPosition = this.position.find(position => position.subquest === this.registry.get("activeSubQuest") && position.npc==="narrator")
+        this.collisionHappened = true;
+        let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+        console.log(chats);
+        let dialog = new Dialog(this,chats);
+        dialog.showDialogs();
+    }
+
     saveLocation() {
         if (!this.inScene){
             return;
@@ -562,8 +574,8 @@ class MainScene extends Phaser.Scene {
         console.log(`Talking to the ${object.name}...`);
         let chats = this.dialogue.filter(dialogue => dialogue.position_id === object.position_id);
         console.log(chats);
-        this.dialog1 = new Dialog(this,chats);
-        this.dialog1.showDialogs();
+        let dialog1 = new Dialog(this,chats);
+        dialog1.showDialogs();
     }
 
     enterDoor() {

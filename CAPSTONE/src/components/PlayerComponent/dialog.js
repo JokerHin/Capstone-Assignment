@@ -33,7 +33,6 @@ export class Dialog{
         this.questionBox.setScrollFactor(0);
 
         let action = question.action;
-        let actionDetail = game.action[action];
 
         let choices = game.choice.filter(choice => choice.dialogue_id === dialogue_id);
         if (choices.length>0){
@@ -91,6 +90,7 @@ export class Dialog{
                     this.updateDialog(current_dialogue.dialogue_id);
                 }else{
                     game.collisionHappened=false;
+                    this.game.checkNarrator();
                     this.game.spawnNpc();
                 }
             });
