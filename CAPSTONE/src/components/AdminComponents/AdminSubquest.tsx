@@ -1,25 +1,17 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
 import { ArrowLeft, Plus, Check, X, Pencil, MessageSquare } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
-
-interface Quest {
-  _id: string;
-  quest_id: number;
-  title: string;
-  name?: string;
-  description?: string;
-}
+import questData from "../PlayerComponent/game-data/quest.json";
 
 interface Subquest {
   _id: string;
   subquest_id: number;
   quest_id: number;
   title: string;
-  name?: string;
   description?: string;
   admin_id?: number;
 }
@@ -27,17 +19,13 @@ interface Subquest {
 const AdminSubquest: React.FC = () => {
   const { questId } = useParams<{ questId: string }>();
   const navigate = useNavigate();
-  const [quest, setQuest] = useState<Quest | null>(null);
   const [subquests, setSubquests] = useState<Subquest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-
-  // Remove edit modal state and replace with inline editing state
   const [editingSubquestId, setEditingSubquestId] = useState<string | null>(
     null
   );
   const [editedSubquestTitle, setEditedSubquestTitle] = useState("");
-
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -47,57 +35,51 @@ const AdminSubquest: React.FC = () => {
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
-
   const { backendUrl } = appContext;
 
-  // Fetch quest and subquests data
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!questId) return;
+  // Find the quest from the imported JSON data
+  const quest = useMemo(() => {
+    if (!questId) return null;
+    const foundQuest = questData.find((q) => q.quest_id === Number(questId));
+    return foundQuest
+      ? {
+          _id: `quest_${foundQuest.quest_id}`,
+          quest_id: Number(foundQuest.quest_id),
+          title: foundQuest.title || `Quest ${foundQuest.quest_id}`,
+        }
+      : null;
+  }, [questId]);
 
+  // Fetch subquests data
+  useEffect(() => {
+    if (!questId) return;
+
+    const fetchSubquests = async () => {
       setLoading(true);
       try {
-        // Fetch quests and subquests in parallel
-        const [questsResponse, subquestsResponse] = await Promise.all([
-          axios.get(`${backendUrl}/quest`),
-          axios.get(`${backendUrl}/subquest`),
-        ]);
-
-        // Find the specific quest
-        const questData = questsResponse.data.find(
-          (q: any) => q.quest_id === Number(questId)
-        );
-
-        if (questData) {
-          setQuest({
-            ...questData,
-            title:
-              questData.title ||
-              questData.name ||
-              `Quest ${questData.quest_id}`,
-          });
-        }
+        const response = await axios.get(`${backendUrl}/subquest`);
 
         // Filter subquests for this quest
-        const filteredSubquests = subquestsResponse.data.filter(
+        const filteredSubquests = response.data.filter(
           (sq: any) => sq.quest_id === Number(questId)
         );
 
-        setSubquests(
-          filteredSubquests.map((sq: any) => ({
-            ...sq,
-            title: sq.title || sq.name || `Subquest ${sq.subquest_id}`,
-          }))
-        );
+        // Format subquests with default titles if needed
+        const formattedSubquests = filteredSubquests.map((sq: any) => ({
+          ...sq,
+          title: sq.title || sq.name || `Subquest ${sq.subquest_id}`,
+        }));
+
+        setSubquests(formattedSubquests);
       } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Failed to load quest data. Please try again later.");
+        console.error("Error fetching subquests:", error);
+        toast.error("Failed to load subquest data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchSubquests();
   }, [questId, backendUrl]);
 
   // Handle form input changes
@@ -105,10 +87,7 @@ const AdminSubquest: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Open add modal
@@ -134,19 +113,12 @@ const AdminSubquest: React.FC = () => {
       const subquest = subquests.find((sq) => sq._id === subquestId);
       if (!subquest) return;
 
-      const updatedSubquest = {
-        ...subquest,
+      const response = await axios.put(`${backendUrl}/subquest/${subquestId}`, {
         title: editedSubquestTitle,
-      };
-
-      const response = await axios.put(
-        `${backendUrl}/subquest/${subquestId}`,
-        updatedSubquest
-      );
+      });
 
       if (response.data) {
         toast.success("Subquest title updated successfully");
-
         // Update local state
         setSubquests(
           subquests.map((sq) =>
@@ -176,7 +148,6 @@ const AdminSubquest: React.FC = () => {
     try {
       await axios.delete(`${backendUrl}/subquest/${subquestId}`);
       toast.success("Subquest deleted successfully");
-
       // Update local state
       setSubquests(subquests.filter((sq) => sq._id !== subquestId));
     } catch (error) {
@@ -185,7 +156,7 @@ const AdminSubquest: React.FC = () => {
     }
   };
 
-  // Submit form (create or update)
+  // Submit form (create new subquest)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -195,27 +166,24 @@ const AdminSubquest: React.FC = () => {
     }
 
     try {
-      if (showAddModal) {
-        // Create new subquest
-        const newSubquest = {
-          title: formData.title,
-          description: formData.description,
-          quest_id: Number(questId),
-          subquest_id:
-            Math.max(0, ...subquests.map((sq) => sq.subquest_id || 0)) + 1,
-          admin_id: 1, // Default admin ID
-        };
+      // Create new subquest
+      const nextSubquestId =
+        Math.max(0, ...subquests.map((sq) => sq.subquest_id || 0)) + 1;
 
-        const response = await axios.post(
-          `${backendUrl}/subquest`,
-          newSubquest
-        );
+      const newSubquest = {
+        title: formData.title,
+        description: formData.description,
+        quest_id: Number(questId),
+        subquest_id: nextSubquestId,
+        admin_id: 1, // Default admin ID
+      };
 
-        if (response.data) {
-          toast.success("Subquest added successfully");
-          setSubquests([...subquests, response.data]);
-          setShowAddModal(false);
-        }
+      const response = await axios.post(`${backendUrl}/subquest`, newSubquest);
+
+      if (response.data) {
+        toast.success("Subquest added successfully");
+        setSubquests([...subquests, response.data]);
+        setShowAddModal(false);
       }
     } catch (error) {
       console.error("Error saving subquest:", error);
@@ -223,7 +191,7 @@ const AdminSubquest: React.FC = () => {
     }
   };
 
-  // Navigate directly back to Admin Content page
+  // Navigate back to Admin Content page
   const handleBack = () => {
     navigate("/AdminHome?tab=content");
   };
@@ -235,13 +203,13 @@ const AdminSubquest: React.FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-b from-gray-900 to-black text-white relative">
-      {/* Include the shared sidebar component */}
+      {/* Sidebar */}
       <AdminSidebar activeTab="content" />
 
       {/* Main Content */}
       <div className="flex-1 p-4 lg:p-8 overflow-x-hidden">
-        {/* Existing Quest Management Content */}
         <div className="space-y-6">
+          {/* Header with back button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <button
@@ -269,7 +237,7 @@ const AdminSubquest: React.FC = () => {
             </button>
           </div>
 
-          {/* Quest Overview Card - Non-editable */}
+          {/* Quest Overview Card */}
           {!loading && quest && (
             <div className="bg-slate-800 rounded-lg p-5 shadow-lg">
               <div className="flex justify-between">
@@ -277,23 +245,17 @@ const AdminSubquest: React.FC = () => {
                   <span className="text-xs font-medium text-gray-400">
                     Quest ID: {quest.quest_id}
                   </span>
-
-                  {/* Make quest title non-editable */}
                   <div className="mt-1">
                     <h2 className="text-lg font-semibold text-white">
                       {quest.title}
                     </h2>
                   </div>
-
-                  {quest.description && (
-                    <p className="text-gray-300 mt-2">{quest.description}</p>
-                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Subquests Table - Remove description column */}
+          {/* Subquests Table */}
           <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
             {loading ? (
               <div className="p-6 text-center text-gray-400">
@@ -328,7 +290,6 @@ const AdminSubquest: React.FC = () => {
                     >
                       Title
                     </th>
-                    {/* Remove description column header */}
                     <th
                       scope="col"
                       className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider"
@@ -387,7 +348,6 @@ const AdminSubquest: React.FC = () => {
                           </div>
                         )}
                       </td>
-                      {/* Remove description column data */}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() =>
@@ -415,7 +375,7 @@ const AdminSubquest: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Modal - Simplified, no description field */}
+      {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-lg">
