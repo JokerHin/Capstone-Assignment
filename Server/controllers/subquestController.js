@@ -1,5 +1,4 @@
 import Subquest from "../models/subquest.js";
-import mongoose from "mongoose";
 
 // Get all subquests
 export const getSubquests = async (req, res) => {

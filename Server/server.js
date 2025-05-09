@@ -17,7 +17,6 @@ import positionRouter from "./routes/positionRoutes.js";
 import subquestRouter from "./routes/subquestRoutes.js";
 import packageRouter from "./routes/packageRoutes.js";
 import choiceRouter from "./routes/choiceRoutes.js";
-import questRouter from "./routes/questRoutes.js";
 import playerProgressRouter from "./routes/playerProgressRoutes.js";
 
 const app = express();
@@ -56,7 +55,6 @@ app.use("/position", positionRouter);
 app.use("/subquest", subquestRouter);
 app.use("/package", packageRouter);
 app.use("/choice", choiceRouter);
-app.use("/quest", questRouter);
 app.use("/player_progress", playerProgressRouter);
 
 app.listen(port, () => console.log(`Server is running on port ${port}`));
