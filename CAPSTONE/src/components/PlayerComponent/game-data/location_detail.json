@@ -7,10 +7,10 @@
     },
     "1":{
         "label": "MEAT",
-        "bgcolor": "#25131A",
-        "map": "map1",
-        "name": "Mbat",
-        "tileset": "Dungeon_Tileset"
+        "bgcolor": "#0B0B0B",
+        "map": "map6",
+        "name": "Purple",
+        "tileset": "Rustic_Indoor"
     },
     "2":{
         "label": "Realm 1",
@@ -42,9 +42,9 @@
     },
     "6":{
         "label": "Mysterious House",
-        "bgcolor": "#0B0B0B",
-        "map": "map6",
-        "name": "Purple",
-        "tileset": "Rustic_Indoor"
+        "bgcolor": "#25131A",
+        "map": "map1",
+        "name": "Mbat",
+        "tileset": "Dungeon_Tileset"
     }
 }
