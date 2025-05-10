@@ -306,8 +306,11 @@ export class IndoorScene extends Phaser.Scene {
   checkNarrator(){
     let subquestPosition = this.position.find(position => position.subquest_id === this.registry.get("activeSubQuest") && position.npc==="narrator");
     if (subquestPosition){
-        this.collisionHappened = true;
         let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+        if (chats.length==0){
+            return;
+        }
+        this.collisionHappened = true;
         console.log(chats);
         let dialog = new Dialog(this,chats);
         dialog.showDialogs();
@@ -425,7 +428,7 @@ export class IndoorScene extends Phaser.Scene {
       this.touching['door']=object; //door.name (Your House etc)
       let objectName = object.label;
       this.children.bringToTop(this.enterButton);
-      this.enterButton.setPosition(object.x - this.enterButton.width / 2, object.y - object.height/2 - this.enterButton.height - 5);
+      this.enterButton.setPosition(object.x - this.enterButton.width / 2, (object.y + this.enterButton.height+20));
       this.enterButton.setText(`Enter ${objectName}`);
       this.enterButton.setVisible(true);
     }
