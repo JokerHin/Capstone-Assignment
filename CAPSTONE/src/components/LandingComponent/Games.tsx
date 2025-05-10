@@ -166,7 +166,8 @@ export default function Games() {
 
   const handlePlayNow = () => {
     if (isLoggedin) {
-      window.location.href = "game.html";
+      // window.location.href = "game.html";
+      navigate("/game");
     } else {
       toast.warn("Please log in to play this game", {
         position: "top-center",

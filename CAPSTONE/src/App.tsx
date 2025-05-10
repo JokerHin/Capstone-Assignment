@@ -8,6 +8,7 @@ import { AppContextNavigationProvider } from "./context/AppContext";
 import Home from "./Pages/Home";
 import Login from "./Pages/Login";
 import ResetPassword from "./Pages/ResetPassword";
+import Game from "./Pages/Game";
 import AdminHome from "./Pages/AdminHome";
 import ProfilePage from "./Pages/ProfilePage";
 import AdminSubquest from "./components/AdminComponents/AdminSubquest";
@@ -52,6 +53,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />}></Route>
             <Route path="/AdminHome" element={<AdminHome />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/game" element={<Game />} />
             <Route
               path="/admin/subquests/:questId"
               element={<AdminSubquest />}

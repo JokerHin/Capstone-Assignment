@@ -12,7 +12,7 @@
         },
         "speed": 10
     },
-    "bot_appear":{
+    "allbot_appear":{
         "type":"spawn",
         "npc":["airbot","icebot","lightningbot", "firebot", "earthbot", "waterbot"],
         "location_id":"1",
