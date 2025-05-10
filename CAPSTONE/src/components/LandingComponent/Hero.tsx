@@ -35,7 +35,7 @@ const Hero = () => {
               scrollToSection("games-section");
             }}
           >
-            Get Start
+            Get Started
           </button>
           <button
             className="text-[#ff8800] border border-white p-4 bg-white rounded-2xl w-full md:w-[30%] hover:bg-[#ff8800] hover:text-white font-bold cursor-pointer transition active:scale-80 duration-500 animate-slide-in-left"

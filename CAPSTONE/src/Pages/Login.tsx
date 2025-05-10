@@ -29,7 +29,6 @@ export default function Login() {
   const [isAdminLogin, setIsAdminLogin] = useState(false);
 
   useEffect(() => {
-    // If already logged in as admin, redirect to admin dashboard
     if (appContext.isLoggedin && appContext.userData?.userType === "admin") {
       navigate("/AdminHome");
     }
@@ -40,7 +39,6 @@ export default function Login() {
       e.preventDefault();
 
       if (state === "Sign Up") {
-        // Handle registration
         const { data } = await axios.post(backendUrl + "/api/auth/register", {
           name,
           email,
@@ -117,7 +115,7 @@ export default function Login() {
                 value={name}
                 className=" bg-transparent outline-none ml-5 text-white"
                 type="text"
-                placeholder="Full Name"
+                placeholder="Name"
                 required
               />
             </div>
@@ -130,7 +128,7 @@ export default function Login() {
               value={email}
               className=" bg-transparent outline-none ml-5 text-white"
               type="email"
-              placeholder="Email id"
+              placeholder="Email"
               required
             />
           </div>
@@ -146,7 +144,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Admin Login Checkbox - Only show for login state */}
           {state === "Login" && (
             <div className="mb-4 flex items-center">
               <input
@@ -165,12 +162,14 @@ export default function Login() {
             </div>
           )}
 
-          <p
-            onClick={() => navigate("/Reset-password")}
-            className="mb-4 text-[#ff8800] cursor-pointer hover:text-orange-400"
-          >
-            Forgot password
-          </p>
+          {state === "Login" && (
+            <p
+              onClick={() => navigate("/Reset-password")}
+              className="mb-4 text-[#ff8800] cursor-pointer hover:text-orange-400"
+            >
+              Forgot password
+            </p>
+          )}
 
           <button className="w-full py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-900 text-white front-medium cursor-pointer">
             {state}

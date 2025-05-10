@@ -34,7 +34,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const appContext = useContext(AppContent);
 
-  // Show login form and return a promise that resolves when form is submitted or dismissed
   const showLoginForm = (): Promise<AdminCredentials | null> => {
     setIsLoginFormVisible(true);
 
@@ -60,7 +59,6 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Handler for dismissing the login form
   const handleDismiss = () => {
     setIsLoginFormVisible(false);
 
@@ -70,11 +68,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Get current credentials or show login form if not available
   const getCredentials = (): AdminCredentials | null => {
     if (adminCredentials) return adminCredentials;
 
-    // If we have userData (context) but no password, we need to show login form
     if (appContext?.userData?.email) {
       showLoginForm();
       return null;
