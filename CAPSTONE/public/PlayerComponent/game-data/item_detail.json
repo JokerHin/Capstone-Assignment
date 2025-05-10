@@ -1,0 +1,38 @@
+{
+  "1": {
+    "tag": "green_gem",
+    "img": "green_gem.png"
+  },
+  "2": {
+    "tag": "potion",
+    "img": "potion.png"
+  },
+  "3": {
+    "tag": "coin",
+    "img": "coin.png"
+  },
+  "4": {
+    "tag": "King of Class",
+    "img": "badges/badge1.png"
+  },
+  "5": {
+    "tag": "King of Objects",
+    "img": "badges/badge2.png"
+  },
+  "6": {
+    "tag": "King of Encapsulation",
+    "img": "badges/badge3.png"
+  },
+  "7": {
+    "tag": "King of Polymorphism",
+    "img": "badges/badge4.png"
+  },
+  "8": {
+    "tag": "King of Abstraction",
+    "img": "badges/badge5.png"
+  },
+  "9": {
+    "tag": "King of OOP",
+    "img": "badges/badge6.png"
+  }
+}
