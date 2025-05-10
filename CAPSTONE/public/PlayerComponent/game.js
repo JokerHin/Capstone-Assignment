@@ -423,7 +423,7 @@ class MainScene extends Phaser.Scene {
 
         this.removeLoadingScreen();
 
-        // this.checkNarrator();
+        this.checkNarrator();
 
         setInterval(() => {this.saveLocation()}, 5000);
     }
@@ -490,8 +490,11 @@ class MainScene extends Phaser.Scene {
     checkNarrator(){
         let subquestPosition = this.position.find(position => position.subquest_id === this.registry.get("activeSubQuest") && position.npc==="narrator");
         if (subquestPosition){
-            this.collisionHappened = true;
             let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+            if (chats.length==0){
+                return;
+            }
+            this.collisionHappened = true;
             console.log(chats);
             let dialog = new Dialog(this,chats);
             dialog.showDialogs();
