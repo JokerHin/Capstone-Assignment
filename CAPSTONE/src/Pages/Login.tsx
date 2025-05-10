@@ -61,11 +61,13 @@ export default function Login() {
         if (loginSuccess) {
           localStorage.setItem("userEmail", email);
           toast.success("Successfully logged in");
-          if (isAdminLogin) {
-            navigate("/AdminHome");
-          } else {
+
+          // Admin redirect is now handled by the context navigation provider
+          // so we only need to navigate to home for regular users
+          if (!isAdminLogin) {
             navigate("/");
           }
+          // No navigate for admin since it's handled by the context
         } else {
           toast.error("Login failed. Please check your credentials.");
         }

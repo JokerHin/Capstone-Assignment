@@ -2,15 +2,22 @@ import mongoose from "mongoose";
 
 const PackageDetailSchema = new mongoose.Schema(
   {
-    packageId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Package",
+    package_id: {
+      type: String,
       required: true,
     },
-    detail: { type: String, required: true },
+    item_id: {
+      type: String,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
   },
   {
     collection: "package_detail",
+    timestamps: true,
   }
 );
 
