@@ -29,7 +29,6 @@ export default function Login() {
   const [isAdminLogin, setIsAdminLogin] = useState(false);
 
   useEffect(() => {
-    // If already logged in as admin, redirect to admin dashboard
     if (appContext.isLoggedin && appContext.userData?.userType === "admin") {
       navigate("/AdminHome");
     }

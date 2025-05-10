@@ -43,7 +43,7 @@ export const AppContextNavigationProvider = ({
       const path = window.location.pathname;
       // Check if we're on the root/landing page
       if (path === "/" || path === "") {
-        navigate("./AdminHome");
+        navigate("/AdminHome");
       }
     }
   }, [appContext?.isLoggedin, appContext?.userData?.userType, navigate]);
@@ -73,7 +73,6 @@ export const AppContextProvider = ({
             setUserData(parsedUserData);
             setIsLoggedin(true);
 
-            // Check if admin and redirect if needed - using relative path to avoid 404s when hosting
             if (
               parsedUserData.userType === "admin" &&
               (window.location.pathname === "/" ||
@@ -87,7 +86,6 @@ export const AppContextProvider = ({
           }
         } catch (error) {
           console.error("Error restoring session:", error);
-          // Clear potentially corrupted data
           localStorage.removeItem("userData");
         }
       }
@@ -96,7 +94,6 @@ export const AppContextProvider = ({
     checkExistingSession();
   }, []);
 
-  // Update localStorage whenever userData or login state changes
   useEffect(() => {
     if (isLoggedin && userData) {
       localStorage.setItem("userData", JSON.stringify(userData));
@@ -105,7 +102,6 @@ export const AppContextProvider = ({
         userData.userType === "admin" ? "true" : "false"
       );
     } else if (!isLoggedin) {
-      // If logged out, clean up localStorage (except userEmail which is handled in logout function)
       localStorage.removeItem("userData");
       localStorage.removeItem("isAdmin");
     }
@@ -131,7 +127,6 @@ export const AppContextProvider = ({
         setUserData(response.data.userData);
         setIsLoggedin(true);
 
-        // Save to localStorage for persistence
         localStorage.setItem(
           "userData",
           JSON.stringify(response.data.userData)
@@ -142,14 +137,12 @@ export const AppContextProvider = ({
     }
   };
 
-  // Login function with better logging for getUserData
   const login = async (
     email: string,
     password: string,
     isAdminLogin?: boolean
   ): Promise<boolean> => {
     try {
-      // Axios call with correct data format and error handling
       const { data } = await axios.post(
         `${backendUrl}/api/auth/login`,
         {
@@ -158,26 +151,23 @@ export const AppContextProvider = ({
           isAdminLogin: isAdminLogin || false,
         },
         {
-          withCredentials: true, // Ensure cookies are properly set
+          withCredentials: true,
         }
       );
 
       if (data.success) {
         setIsLoggedin(true);
 
-        // Set a simplified userData object to avoid issues with undefined properties
         const userDataObj: UserData = {
           id: data.userData?.id,
           name: data.userData?.name || "",
           email: data.userData?.email || email,
         };
 
-        // For admin users, include the userType
         if (isAdminLogin && data.userData) {
           userDataObj.userType = "admin";
           localStorage.setItem("isAdmin", "true");
 
-          // Set user data before redirecting
           setUserData(userDataObj);
           localStorage.setItem("userData", JSON.stringify(userDataObj));
           localStorage.setItem("userEmail", email);
@@ -186,7 +176,6 @@ export const AppContextProvider = ({
             localStorage.setItem("token", data.token);
           }
 
-          // Use relative path for admin redirection to avoid 404s when hosted
           setTimeout(() => {
             window.location.href = "./AdminHome";
           }, 100);
@@ -209,7 +198,6 @@ export const AppContextProvider = ({
     } catch (error: any) {
       console.error("Login error:", error);
 
-      // Better error message handling
       const errorMessage =
         error.response?.data?.message ||
         "Login failed. Server may be unavailable.";
@@ -222,14 +210,12 @@ export const AppContextProvider = ({
     setIsLoggedin(false);
     setUserData(null);
 
-    // Clear ALL user and admin related data from localStorage
     localStorage.removeItem("adminEmail");
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userData");
     localStorage.removeItem("isAdmin");
 
-    // Clear any other authentication-related items that might be stored
     localStorage.removeItem("user");
     localStorage.removeItem("admin");
     localStorage.removeItem("auth");
