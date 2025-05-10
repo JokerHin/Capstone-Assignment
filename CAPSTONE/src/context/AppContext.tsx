@@ -24,6 +24,8 @@ interface AppContextProps {
     isAdmin?: boolean
   ) => Promise<boolean>;
   logout: () => void;
+  shouldRedirectAdmin: boolean;
+  setShouldRedirectAdmin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const AppContent = createContext<AppContextProps | undefined>(undefined);
@@ -38,10 +40,18 @@ export const AppContextNavigationProvider = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If user is logged in as admin and we're on the landing page, redirect to admin dashboard
+    // If user is logged in as admin and we should redirect to admin dashboard
+    if (appContext?.shouldRedirectAdmin) {
+      navigate("/AdminHome");
+      // Reset the redirect flag after navigation
+      appContext.setShouldRedirectAdmin(false);
+    }
+  }, [appContext?.shouldRedirectAdmin, navigate, appContext]);
+
+  // Original redirect logic for when we're already on the home page
+  useEffect(() => {
     if (appContext?.isLoggedin && appContext?.userData?.userType === "admin") {
       const path = window.location.pathname;
-      // Check if we're on the root/landing page
       if (path === "/" || path === "") {
         navigate("/AdminHome");
       }
@@ -59,6 +69,7 @@ export const AppContextProvider = ({
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [isLoggedin, setIsLoggedin] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [shouldRedirectAdmin, setShouldRedirectAdmin] = useState(false);
 
   useEffect(() => {
     const checkExistingSession = async () => {
@@ -176,9 +187,8 @@ export const AppContextProvider = ({
             localStorage.setItem("token", data.token);
           }
 
-          setTimeout(() => {
-            window.location.href = "./AdminHome";
-          }, 100);
+          // Instead of using window.location.href, set a state to trigger navigation in the navigation provider
+          setShouldRedirectAdmin(true);
         } else {
           localStorage.setItem("isAdmin", "false");
           setUserData(userDataObj);
@@ -237,6 +247,8 @@ export const AppContextProvider = ({
         getUserData,
         login,
         logout,
+        shouldRedirectAdmin,
+        setShouldRedirectAdmin,
       }}
     >
       {children}
