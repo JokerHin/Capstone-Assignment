@@ -118,7 +118,7 @@ class MainScene extends Phaser.Scene {
 
         // Add the logo
         const logo = document.createElement('img');
-        logo.src = 'src/assets/logo.png'; // Path to the logo image
+        logo.src = '/assets/logo.png'; // Path to the logo image
         logo.alt = 'Game Logo';
         logo.className = 'logo'; // Add the 'logo' class for animation
         // logo.style.width = '150px'; // Adjust the size of the logo
@@ -902,26 +902,29 @@ class MainScene extends Phaser.Scene {
             // If there's an item for this slot, display it
             if (i < filteredInventory.length) {
                 let item = filteredInventory[i];
-                let itemId = item.item_id;
-                let itemDetails = this.itemDetail[itemId];
+                if (item.amount>0){
+                    let itemId = item.item_id;
+                    let itemDetails = this.itemDetail[itemId];
 
-                // Add the item image
-                let itemImage = this.add.image(x + itemLength / 2, y + itemLength / 2, itemDetails.tag)
-                    .setDisplaySize(itemLength * 0.8, itemLength * 0.8); // Scale the image to fit the slot
-                itemImage.setScrollFactor(0);
-                this.inventoryItems.push(itemImage);
-    
-                if (item.amount>1){
-                    // item amount display on top right of each item
-                    let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
-                        fontSize: `${itemLength*0.3}px`,
-                        fontStyle: 'bold',
-                        fill: '#000000'
-                    });
-                    itemText.setOrigin(1, 0);
-                    itemText.setScrollFactor(0);
-                    this.inventoryItems.push(itemText);
+                    // Add the item image
+                    let itemImage = this.add.image(x + itemLength / 2, y + itemLength / 2, itemDetails.tag)
+                        .setDisplaySize(itemLength * 0.8, itemLength * 0.8); // Scale the image to fit the slot
+                    itemImage.setScrollFactor(0);
+                    this.inventoryItems.push(itemImage);
+        
+                    if (item.amount>1){
+                        // item amount display on top right of each item
+                        let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
+                            fontSize: `${itemLength*0.3}px`,
+                            fontStyle: 'bold',
+                            fill: '#000000'
+                        });
+                        itemText.setOrigin(1, 0);
+                        itemText.setScrollFactor(0);
+                        this.inventoryItems.push(itemText);
+                    }
                 }
+                
                 
             }
         }
@@ -1076,7 +1079,7 @@ class Game {
 
     // Add the logo
     const logo = document.createElement("img");
-    logo.src = "src/assets/logo.png"; // Path to the logo image
+    logo.src = "/assets/logo.png"; // Path to the logo image
     logo.alt = "Game Logo";
     logo.className = "logo"; // Add the 'logo' class for animation
     // logo.style.width = '150px'; // Adjust the size of the logo
@@ -1153,20 +1156,20 @@ class Game {
     try {
       const urls = [
         "https://capstone-assignment-36lq.vercel.app/dialogue",
-        "src/components/PlayerComponent/game-data/quest.json",
+        "/PlayerComponent/game-data/quest.json",
         "https://capstone-assignment-36lq.vercel.app/location",
-        "src/components/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
-        "src/components/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
-        "src/components/PlayerComponent/game-data/action.json",
+        "/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
+        "/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
+        "/PlayerComponent/game-data/action.json",
         "https://capstone-assignment-36lq.vercel.app/package_detail",
         "https://capstone-assignment-36lq.vercel.app/position",
         "https://capstone-assignment-36lq.vercel.app/subquest",
         "https://capstone-assignment-36lq.vercel.app/package",
         "https://capstone-assignment-36lq.vercel.app/choice",
         "https://capstone-assignment-36lq.vercel.app/player_progress",
-        "src/components/PlayerComponent/game-data/npc_detail.json",
-        "src/components/PlayerComponent/game-data/location_detail.json",
-        "src/components/PlayerComponent/game-data/item_detail.json",
+        "/PlayerComponent/game-data/npc_detail.json",
+        "/PlayerComponent/game-data/location_detail.json",
+        "/PlayerComponent/game-data/item_detail.json",
       ];
 
       const responses = await Promise.all(urls.map((url) => fetch(url)));
