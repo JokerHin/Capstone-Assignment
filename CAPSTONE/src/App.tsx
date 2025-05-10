@@ -1,9 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import "./App.css";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { AdminProvider } from "./context/AdminContext";
-import { AppContextNavigationProvider } from "./context/AppContext";
+import {
+  AppContextNavigationProvider,
+  AppContent as AppContentContext,
+} from "./context/AppContext";
 
 import Home from "./Pages/Home";
 import Login from "./Pages/Login";
@@ -14,8 +17,10 @@ import ProfilePage from "./Pages/ProfilePage";
 import AdminSubquest from "./components/AdminComponents/AdminSubquest";
 import AdminDialogue from "./components/AdminComponents/AdminDialogue";
 
-function App() {
+function AppContent() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const appContext = useContext(AppContentContext);
 
   useEffect(() => {
     const checkAdminRoutes = () => {
@@ -37,32 +42,53 @@ function App() {
           navigate("/login");
         }
       }
+
+      // When admin navigates to home page, log them out automatically
+      if (pathname === "/" && localStorage.getItem("isAdmin") === "true") {
+        // Use the logout function from context if available
+        if (appContext?.logout) {
+          appContext.logout();
+          console.log("Admin logged out automatically when visiting home page");
+        } else {
+          // Manual logout if context not available
+          localStorage.removeItem("adminEmail");
+          localStorage.removeItem("adminPassword");
+          localStorage.removeItem("token");
+          localStorage.removeItem("userEmail");
+          localStorage.removeItem("userData");
+          localStorage.removeItem("isAdmin");
+        }
+      }
     };
 
     checkAdminRoutes();
-  }, [navigate]);
+  }, [navigate, location.pathname, appContext]);
 
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />}></Route>
+      <Route path="/reset-password" element={<ResetPassword />}></Route>
+      <Route path="/AdminHome" element={<AdminHome />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/game" element={<Game />} />
+      <Route path="/admin/subquests/:questId" element={<AdminSubquest />} />
+      <Route
+        path="/admin/dialogues/:questId/:subquestId"
+        element={<AdminDialogue />}
+      />
+    </Routes>
+  );
+}
+
+function App() {
   return (
     <div>
       <ToastContainer />
       <AdminProvider>
         <AppContextNavigationProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />}></Route>
-            <Route path="/reset-password" element={<ResetPassword />}></Route>
-            <Route path="/AdminHome" element={<AdminHome />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/game" element={<Game />} />
-            <Route
-              path="/admin/subquests/:questId"
-              element={<AdminSubquest />}
-            />
-            <Route
-              path="/admin/dialogues/:questId/:subquestId"
-              element={<AdminDialogue />}
-            />
-          </Routes>
+          <AppContent />
+
         </AppContextNavigationProvider>
       </AdminProvider>
     </div>

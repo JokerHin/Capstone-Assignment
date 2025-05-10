@@ -132,7 +132,7 @@ const realmsData = [
 // Create simplified version for the cards display
 const chaptersData = realmsData.map((realm) => ({
   id: realm.id,
-  title: `Chapter ${realm.id}`,
+  title: `Realm ${realm.id}`,
   image: realm.image,
 }));
 
@@ -285,17 +285,17 @@ export default function Games() {
                   </div>
 
                   {/* Badge with tooltip */}
-                  <div className="bg-[#262b47] w-[80px] p-3 rounded-lg flex-col justify-center items-center relative group">
+                  <div className="bg-[#262b47] w-[100px] p-3 rounded-lg flex flex-col justify-center items-center relative group">
                     <div>
                       <h4 className="text-sm text-gray-400 text-center">
                         Badge
                       </h4>
                     </div>
-                    <div className="relative">
+                    <div className="flex justify-center items-center w-full relative">
                       <img
                         src={realmsData[selectedChapter - 1].badge}
                         alt="Badge"
-                        className="w-12 h-12 ml-1 object-contain transition-transform duration-300 group-hover:scale-110"
+                        className="w-12 h-12 object-contain transition-transform duration-300 group-hover:scale-110"
                       />
 
                       {/* Badge tooltip */}
@@ -308,28 +308,6 @@ export default function Games() {
                         </div>
                         <div className="absolute left-1/2 transform -translate-x-1/2 top-full border-4 border-transparent border-t-black/80"></div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Progress */}
-                  <div className="bg-[#262b47] p-3 rounded-lg flex-grow">
-                    <h4 className="text-sm text-gray-400 text-center">
-                      Progress
-                    </h4>
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-700 rounded-full h-2.5">
-                        <div
-                          className="bg-amber-500 h-2.5 rounded-full"
-                          style={{
-                            width: `${
-                              realmsData[selectedChapter - 1].progress
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                      <p className="text-right text-sm text-gray-400 mt-1">
-                        {realmsData[selectedChapter - 1].progress}%
-                      </p>
                     </div>
                   </div>
                 </div>
