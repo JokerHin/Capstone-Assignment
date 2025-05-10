@@ -43,7 +43,7 @@ export const AppContextNavigationProvider = ({
       const path = window.location.pathname;
       // Check if we're on the root/landing page
       if (path === "/" || path === "") {
-        navigate("/AdminHome");
+        navigate("./AdminHome");
       }
     }
   }, [appContext?.isLoggedin, appContext?.userData?.userType, navigate]);
@@ -73,12 +73,13 @@ export const AppContextProvider = ({
             setUserData(parsedUserData);
             setIsLoggedin(true);
 
-            // Check if admin and redirect if needed
+            // Check if admin and redirect if needed - using relative path to avoid 404s when hosting
             if (
               parsedUserData.userType === "admin" &&
-              window.location.pathname === "/"
+              (window.location.pathname === "/" ||
+                window.location.pathname === "")
             ) {
-              window.location.href = "/AdminHome";
+              window.location.href = "./AdminHome";
             }
           } else {
             // If we have email but no userData, try to fetch it
@@ -175,23 +176,30 @@ export const AppContextProvider = ({
         if (isAdminLogin && data.userData) {
           userDataObj.userType = "admin";
           localStorage.setItem("isAdmin", "true");
+
+          // Set user data before redirecting
+          setUserData(userDataObj);
+          localStorage.setItem("userData", JSON.stringify(userDataObj));
+          localStorage.setItem("userEmail", email);
+
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
+
+          // Use relative path for admin redirection to avoid 404s when hosted
+          setTimeout(() => {
+            window.location.href = "./AdminHome";
+          }, 100);
         } else {
           localStorage.setItem("isAdmin", "false");
+          setUserData(userDataObj);
+          localStorage.setItem("userData", JSON.stringify(userDataObj));
+          localStorage.setItem("userEmail", email);
+
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
         }
-
-        setUserData(userDataObj);
-
-        localStorage.setItem("userData", JSON.stringify(userDataObj));
-
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
-
-        if (isAdminLogin) {
-          localStorage.setItem("adminEmail", email);
-        }
-
-        localStorage.setItem("userEmail", email);
 
         return true;
       } else {
