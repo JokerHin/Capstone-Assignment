@@ -10,6 +10,7 @@ const PositionSchema = new mongoose.Schema(
   },
   {
     collection: "position",
+    timestamps: true,
   }
 );
 
