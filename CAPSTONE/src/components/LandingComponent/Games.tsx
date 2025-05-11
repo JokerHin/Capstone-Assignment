@@ -22,7 +22,7 @@ const realmsData = [
     points: 1200,
     totalPoints: 2000,
     progress: 60,
-    badge: "/src/assets/badges/badge1.png",
+    badge: "/assets/badges/badge1.png",
     badgeTitle: "Blueprint Master",
     badgeDescription:
       "Mastered the art of creating and using class blueprints.",
@@ -42,7 +42,7 @@ const realmsData = [
     points: 800,
     totalPoints: 2000,
     progress: 40,
-    badge: "/src/assets/badges/badge2.png",
+    badge: "/assets/badges/badge2.png",
     badgeTitle: "Object Architect",
     badgeDescription:
       "Created and manipulated objects with precision and skill.",
@@ -62,7 +62,7 @@ const realmsData = [
     points: 400,
     totalPoints: 2000,
     progress: 20,
-    badge: "/src/assets/badges/badge3.png",
+    badge: "/assets/badges/badge3.png",
     badgeTitle: "Guardian of Secrets",
     badgeDescription: "Protected data through proper encapsulation techniques.",
   },
@@ -81,7 +81,7 @@ const realmsData = [
     points: 0,
     totalPoints: 2000,
     progress: 0,
-    badge: "/src/assets/badges/badge4.png",
+    badge: "/assets/badges/badge4.png",
     badgeTitle: "Abstraction Adept",
     badgeDescription:
       "Simplified complex systems through powerful abstractions.",
@@ -102,7 +102,7 @@ const realmsData = [
     points: 0,
     totalPoints: 2000,
     progress: 0,
-    badge: "/src/assets/badges/badge5.png",
+    badge: "/assets/badges/badge5.png",
     badgeTitle: "Shape Shifter",
     badgeDescription: "Mastered the art of many forms through polymorphism.",
   },
@@ -122,7 +122,7 @@ const realmsData = [
     points: 0,
     totalPoints: 2000,
     progress: 0,
-    badge: "/src/assets/badges/badge6.png",
+    badge: "/assets/badges/badge6.png",
     badgeTitle: "Legacy Bearer",
     badgeDescription:
       "Carried forward the traits of ancestors through inheritance.",

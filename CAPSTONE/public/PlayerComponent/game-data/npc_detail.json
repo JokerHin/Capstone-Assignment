@@ -1,6 +1,6 @@
 {
-    "grand_compiler":{
-        "name": "Grand Compiler",
+    "merchant_david":{
+        "name": "Merchant David",
         "type": "spritesheet",
         "img": "grandCompiler_spritesheet.png",
         "scale": 0.05,
@@ -18,8 +18,8 @@
         },
         "initialFrame": 0
     },
-    "auntie_ang":{
-        "name": "Auntie Ang",
+    "kai":{
+        "name": "Kai",
         "type": "spritesheet",
         "img": "ang_spritesheet.png",
         "scale": 0.05,
@@ -37,8 +37,8 @@
         },
         "initialFrame": 0
     },
-    "uncle_chong":{
-        "name": "Uncle Chong",
+    "chong":{
+        "name": "Chong",
         "type": "spritesheet",
         "img": "chong_spritesheet.png",
         "scale": 0.05,
@@ -56,8 +56,8 @@
         },
         "initialFrame": 0
     },
-    "ava":{
-        "name": "Ava",
+    "vera":{
+        "name": "Vera",
         "type": "spritesheet",
         "img": "ava_spritesheet.png",
         "scale": 0.05,
@@ -75,8 +75,8 @@
         },
         "initialFrame": 0
     },
-    "gatekeeper_axion":{
-        "name": "Gatekeeper Axion",
+    "luma":{
+        "name": "Luma",
         "type": "spritesheet",
         "img": "axion_spritesheet.png",
         "scale": 0.05,
@@ -94,8 +94,8 @@
         },
         "initialFrame": 0
     },
-    "grandpa":{
-        "name": "Grandpa",
+    "kora":{
+        "name": "Kora",
         "type": "spritesheet",
         "img": "grandpa_spritesheet.png",
         "scale": 0.05,
@@ -132,8 +132,8 @@
         },
         "initialFrame": 0
     },
-    "sir_ben":{
-        "name": "Sir Ben",
+    "ben":{
+        "name": "Ben",
         "type": "spritesheet",
         "img": "ben_spritesheet.png",
         "scale": 0.05,
@@ -151,65 +151,8 @@
         },
         "initialFrame": 0
     },
-    "karbot_A":{
-        "name": "Karbot",
-        "type": "spritesheet",
-        "img": "karbotAng1_spritesheet.png",
-        "scale": 0.05,
-        "frameSize": {
-            "width": 640,
-            "height": 640
-        },
-        "animation": {
-            "idle":{
-                "startFrame":0,
-                "endFrame": 4,
-                "frameRate": 10,
-                "repeat": -1
-            }
-        },
-        "initialFrame": 0
-    },
-    "karbot_B":{
-        "name": "Karbot",
-        "type": "spritesheet",
-        "img": "karbotAng2_spritesheet.png",
-        "scale": 0.05,
-        "frameSize": {
-            "width": 640,
-            "height": 640
-        },
-        "animation": {
-            "idle":{
-                "startFrame":0,
-                "endFrame": 4,
-                "frameRate": 10,
-                "repeat": -1
-            }
-        },
-        "initialFrame": 0
-    },
-    "karbot":{
-        "name": "Karbot",
-        "type": "spritesheet",
-        "img": "karbot_spritesheet.png",
-        "scale": 0.05,
-        "frameSize": {
-            "width": 640,
-            "height": 640
-        },
-        "animation": {
-            "idle":{
-                "startFrame":0,
-                "endFrame": 4,
-                "frameRate": 10,
-                "repeat": -1
-            }
-        },
-        "initialFrame": 0
-    },
-    "cipher":{
-        "name": "Cipher",
+    "axel":{
+        "name": "Axel",
         "type": "spritesheet",
         "img": "cipher_spritesheet.png",
         "scale": 0.05,
@@ -227,8 +170,8 @@
         },
         "initialFrame": 0
     },
-    "lina":{
-        "name": "Lina",
+    "mira":{
+        "name": "Mira",
         "type": "spritesheet",
         "img": "lina_spritesheet.png",
         "scale": 0.05,
@@ -246,10 +189,10 @@
         },
         "initialFrame": 0
     },
-    "airbot":{
-        "name": "Air Bot",
+    "windbot":{
+        "name": "Wind Bot",
         "type": "spritesheet",
-        "img": "airbot_spritesheet.png",
+        "img": "windbot_spritesheet.png",
         "scale": 0.05,
         "frameSize": {
             "width": 640,
@@ -322,10 +265,10 @@
         },
         "initialFrame": 0
     },
-    "earthbot":{
-        "name": "Earth Bot",
+    "naturebot":{
+        "name": "Nature Bot",
         "type": "spritesheet",
-        "img": "earthbot_spritesheet.png",
+        "img": "naturebot_spritesheet.png",
         "scale": 0.05,
         "frameSize": {
             "width": 640,
@@ -345,6 +288,63 @@
         "name": "Water Bot",
         "type": "spritesheet",
         "img": "waterbot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "generalbot":{
+        "name": "Bot",
+        "type": "spritesheet",
+        "img": "generalbot_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "kargie":{
+        "name": "Kargie",
+        "type": "spritesheet",
+        "img": "kargie_spritesheet.png",
+        "scale": 0.05,
+        "frameSize": {
+            "width": 640,
+            "height": 640
+        },
+        "animation": {
+            "idle":{
+                "startFrame":0,
+                "endFrame": 4,
+                "frameRate": 10,
+                "repeat": -1
+            }
+        },
+        "initialFrame": 0
+    },
+    "selene":{
+        "name": "Selene",
+        "type": "spritesheet",
+        "img": "selene_spritesheet.png",
         "scale": 0.05,
         "frameSize": {
             "width": 640,
