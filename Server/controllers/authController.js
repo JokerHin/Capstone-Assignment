@@ -6,6 +6,7 @@ import {
   EMAIL_VERIFY_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplates.js";
+import PlayerProgress from "../models/player_progress.js";
 
 export const register = async (req, res) => {
   const { name, email, password, userType = "user" } = req.body;
@@ -30,6 +31,15 @@ export const register = async (req, res) => {
       userType,
     });
     await user.save();
+
+    // Create initial player progress for new user
+    if (user && userType === "user") {
+      await PlayerProgress.create({
+        player_id: user._id.toString(),
+        subquest_id: "1",
+        status: "In Progress",
+      });
+    }
 
     // Sending welcome email
     const mailOptions = {

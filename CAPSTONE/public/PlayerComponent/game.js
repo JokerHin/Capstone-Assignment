@@ -491,6 +491,13 @@ class MainScene extends Phaser.Scene {
         let subquestPosition = this.position.find(position => position.subquest_id === this.registry.get("activeSubQuest") && position.npc==="narrator");
         if (subquestPosition){
             let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+            chats.sort((a, b) => Number(a.dialogue_id) - Number(b.dialogue_id));
+            // Sort chats by numeric part of dialogue_id (e.g., D01, D02, ..., D11)
+            // chats.sort((a, b) => {
+            // const numA = Number(a.dialogue_id.replace(/\D/g, ""));
+            // const numB = Number(b.dialogue_id.replace(/\D/g, ""));
+            // return numA - numB;
+            // });
             if (chats.length==0){
                 return;
             }
@@ -1162,7 +1169,7 @@ class Game {
         "/PlayerComponent/game-data/quest.json",
         "https://capstone-assignment-36lq.vercel.app/location",
         "/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
-        "/PlayerComponent/game-data/item_sample.json", //"https://capstone-assignment-36lq.vercel.app/item",
+        "https://capstone-assignment-36lq.vercel.app/item", // "/PlayerComponent/game-data/item_sample.json", 
         "/PlayerComponent/game-data/action.json",
         "https://capstone-assignment-36lq.vercel.app/package_detail",
         "https://capstone-assignment-36lq.vercel.app/position",
