@@ -14,8 +14,8 @@ export const updateOrAddInventory = async (req, res) => {
     const { player_id, item_id, amount } = req.body;
 
     // Convert inputs to numbers to avoid CastError
-    const playerId = Number(player_id);
-    const itemId = Number(item_id);
+    const playerId = player_id;
+    const itemId = item_id;
     const incrementValue = Number(amount);
 
     // Perform the update or add operation

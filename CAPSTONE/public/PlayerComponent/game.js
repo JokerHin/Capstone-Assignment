@@ -24,6 +24,7 @@ class MainScene extends Phaser.Scene {
         this.inScene=true;
         this.gameWidth = window.innerWidth;
         this.gameHeight = window.innerHeight;
+        this.overlapCollider = null;
         // this.gane.scale.resize(this.gameWidth, this.gameHeight);
         this.createLoadingScreen();
     }
@@ -340,7 +341,7 @@ class MainScene extends Phaser.Scene {
 
         //Collision listener
         this.npcList = Object.values(this.npc);
-        this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
+        this.overlapCollider = this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
         this.doorList = Object.values(this.doors);
         this.physics.add.overlap(this.player, this.doorList, this.showEnter, null, this);
 
@@ -387,9 +388,8 @@ class MainScene extends Phaser.Scene {
             console.log("MainScene Resumed");
             console.log(this.registry.get("activeQuest"));
             console.log(this.registry.get("activeSubQuest"));
-            if (this.npcList.length==0 ){
-                this.spawnNpc();
-            }
+            this.spawnNpc();
+            this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
         });
 
         // this.cameras.main.setZoom(zoomFactor);
@@ -532,7 +532,7 @@ class MainScene extends Phaser.Scene {
         })
         .then(res => res.json())
         .then(data => {
-          console.log('Location updated:', data);
+        //   console.log('Location updated:', data);
         })
         .catch(err => {
           console.error('Error updating location:', err);
@@ -562,9 +562,9 @@ class MainScene extends Phaser.Scene {
             this.npc[tag] = new Npc(this, coordinate.x, coordinate.y, tag, npcData.name, npcData.scale);
             if (npcData.animation){
                 for (let [key,anim] of Object.entries(npcData.animation)){
-                    if (!this.anims.exists(key)){
+                    if (!this.anims.exists(tag+key)){
                         this.anims.create({
-                            key: key,
+                            key: tag+key,
                             frames: this.anims.generateFrameNumbers(tag, { start: anim.startFrame, end: anim.endFrame }),
                             frameRate: anim.frameRate, // Adjust speed (frames per second)
                             repeat: anim.repeat // -1 = Loop infinitely
@@ -572,7 +572,7 @@ class MainScene extends Phaser.Scene {
                     }
                 }
                 this.npc[tag].setFrame(npcData.initialFrame);
-                this.npc[tag].play("idle");
+                this.npc[tag].play(tag+"idle");
             }
         }
         this.children.bringToTop(this.player);
@@ -580,6 +580,12 @@ class MainScene extends Phaser.Scene {
         this.children.bringToTop(this.guideButton);
         this.children.bringToTop(this.inventoryButton);
         this.children.bringToTop(this.menuButton);
+        this.npcList = Object.values(this.npc);
+        // if (this.overlapCollider) {
+        //     this.overlapCollider.destroy();
+        //     this.overlapCollider = null; // Clear the reference
+        // }
+        // this.overlapCollider = this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
     }
 
     talk() {
