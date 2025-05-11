@@ -381,20 +381,17 @@ export class IndoorScene extends Phaser.Scene {
       );
       if (npcData.animation) {
         for (let [key, anim] of Object.entries(npcData.animation)) {
-          if (!this.anims.exists(key)) {
-            this.anims.create({
-              key: key,
-              frames: this.anims.generateFrameNumbers(tag, {
-                start: anim.startFrame,
-                end: anim.endFrame,
-              }),
-              frameRate: anim.frameRate, // Adjust speed (frames per second)
-              repeat: anim.repeat, // -1 = Loop infinitely
-            });
+          if (!this.anims.exists(tag+key)){
+              this.anims.create({
+                  key: tag+key,
+                  frames: this.anims.generateFrameNumbers(tag, { start: anim.startFrame, end: anim.endFrame }),
+                  frameRate: anim.frameRate, // Adjust speed (frames per second)
+                  repeat: anim.repeat // -1 = Loop infinitely
+              });
           }
         }
         this.npc[tag].setFrame(npcData.initialFrame);
-        this.npc[tag].play("idle");
+        this.npc[tag].play(tag+"idle");
       }
     }
     this.children.bringToTop(this.player);
@@ -402,6 +399,8 @@ export class IndoorScene extends Phaser.Scene {
     this.children.bringToTop(this.guideButton);
     this.children.bringToTop(this.inventoryButton);
     this.children.bringToTop(this.menuButton);
+    this.npcList = Object.values(this.npc);
+    this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
   }
 
   showTalk(player, object) {
@@ -431,7 +430,7 @@ export class IndoorScene extends Phaser.Scene {
       let objectName = object.label;
       this.children.bringToTop(this.enterButton);
       this.enterButton.setPosition(object.x - this.enterButton.width / 2, (object.y + this.enterButton.height+20));
-      this.enterButton.setText(`Enter ${objectName}`);
+      // this.enterButton.setText(`Enter ${objectName}`);
       this.enterButton.setVisible(true);
     }
   }
@@ -442,6 +441,7 @@ export class IndoorScene extends Phaser.Scene {
     this.collisionHappened = true;
     let object = this.touching['npc'];
     console.log(`Talking to the ${object.name}...`);
+    console.log(object.position_id);
     let chats = this.dialogue.filter(dialogue => dialogue.position_id === object.position_id);
     chats.sort((a, b) => Number(a.dialogue_id) - Number(b.dialogue_id));
     console.log(chats);

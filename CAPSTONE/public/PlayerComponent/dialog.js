@@ -65,11 +65,12 @@ export class Dialog{
                             return;
                         }
                     }
-                    if (option.respond!=""){
+                    if (option.respond!="" && option.respond!=null){
                         this.showResponse(option.respond);
                         console.log(option.respond);
+                        return;
                     }
-                    
+
                     this.count++;
                     if (this.count<this.content.length){
                         let current_dialogue = this.content[this.count];
@@ -216,6 +217,7 @@ export class Dialog{
                 let nextSubQuest = this.game.package.find(packages => packages.package_id === package_id).subquest_id;
                 console.log(nextSubQuest);
                 this.game.registry.set("activeSubQuest", nextSubQuest);
+                this.game.npcList = Object.values(this.game.npc);
                 console.log(this.game.registry.get("activeSubQuest"));
                 let nextActiveSubquest = this.game.subquest.find(subquest => subquest.subquest_id === nextSubQuest);
                 console.log(nextActiveSubquest);
@@ -233,6 +235,7 @@ export class Dialog{
                         status: "In Progress",
                         }),
                     });
+                    console.log("update player progress");
                 }
                 return true;
             }
