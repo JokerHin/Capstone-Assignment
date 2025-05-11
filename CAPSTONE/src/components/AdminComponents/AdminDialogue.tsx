@@ -73,6 +73,12 @@ const AdminDialogue: React.FC = () => {
   );
   const [editedText, setEditedText] = useState("");
 
+  // Add states for choice editing
+  const [editingChoiceId, setEditingChoiceId] = useState<string | null>(null);
+  const [editedChoiceText, setEditedChoiceText] = useState("");
+  const [editedChoicePackageId, setEditedChoicePackageId] = useState("");
+  const [editedChoiceAltText, setEditedChoiceAltText] = useState("");
+
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
@@ -243,6 +249,62 @@ const AdminDialogue: React.FC = () => {
     }
   };
 
+  // Add function to handle editing choices
+  const handleEditChoice = (choice: Choice) => {
+    setEditingChoiceId(choice._id);
+    setEditedChoiceText(choice.text);
+    setEditedChoicePackageId(choice.package_id || "");
+    setEditedChoiceAltText(choice.alt_text ? String(choice.alt_text) : "");
+  };
+
+  // Add function to save edited choice
+  const handleSaveChoice = async (choiceId: string) => {
+    if (!editedChoiceText.trim()) {
+      toast.error("Choice text cannot be empty");
+      return;
+    }
+
+    try {
+      const updatedChoice = {
+        text: editedChoiceText,
+        package_id: editedChoicePackageId || undefined,
+        alt_text: editedChoiceAltText || undefined,
+      };
+
+      const response = await axios.put(
+        `${backendUrl}/choice/${choiceId}`,
+        updatedChoice
+      );
+
+      if (response.data) {
+        // Update local state with the edited choice
+        const updatedChoices = choices.map((c) =>
+          c._id === choiceId
+            ? {
+                ...c,
+                text: editedChoiceText,
+                package_id: editedChoicePackageId || c.package_id,
+                alt_text: editedChoiceAltText || c.alt_text,
+              }
+            : c
+        );
+        setChoices(updatedChoices);
+
+        toast.success("Choice updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating choice:", error);
+      toast.error("Failed to update choice");
+    } finally {
+      setEditingChoiceId(null);
+    }
+  };
+
+  // Add function to cancel choice editing
+  const handleCancelChoiceEdit = () => {
+    setEditingChoiceId(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -395,6 +457,11 @@ const AdminDialogue: React.FC = () => {
                   ? getNpcColor(npcName)
                   : { bg: "bg-gray-700", text: "text-gray-300" };
 
+                // Get choices for this dialogue
+                const dialogueChoices = choices.filter(
+                  (c) => c.dialogue_id === dialogue.dialogue_id
+                );
+
                 return (
                   <div
                     key={dialogue._id}
@@ -475,33 +542,120 @@ const AdminDialogue: React.FC = () => {
                     )}
 
                     {/* Choices (if any) */}
-                    {choices
-                      .filter((c) => c.dialogue_id === dialogue.dialogue_id)
-                      .map((choice) => (
-                        <div
-                          key={choice._id}
-                          className="ml-6 p-3 bg-slate-700 bg-opacity-50 rounded-lg mt-2 border-l-2 border-blue-500"
-                        >
-                          <div className="flex justify-between">
-                            <p className="text-sm text-gray-300">
-                              Option: {choice.text}
-                            </p>
-                            <span className="text-xs text-gray-400">
-                              ID: {choice.choice_id}
-                            </span>
-                          </div>
-                          {choice.package_id && (
-                            <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded mt-1 inline-block">
-                              Package ID: {choice.package_id}
-                            </span>
-                          )}
-                          {choice.alt_text && (
-                            <span className="text-xs bg-orange-900 text-orange-300 px-2 py-1 rounded mt-1 ml-1 inline-block">
-                              Alt Text ID: {choice.alt_text}
-                            </span>
-                          )}
+                    {dialogueChoices.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-md font-medium text-gray-300 mb-2">
+                          Player Choices:
+                        </h4>
+                        <div className="space-y-3">
+                          {dialogueChoices.map((choice) => (
+                            <div
+                              key={choice._id}
+                              className="ml-6 p-3 bg-slate-700 bg-opacity-50 rounded-lg border-l-2 border-blue-500"
+                            >
+                              {editingChoiceId === choice._id ? (
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                                      Choice Text
+                                    </label>
+                                    <textarea
+                                      value={editedChoiceText}
+                                      onChange={(e) =>
+                                        setEditedChoiceText(e.target.value)
+                                      }
+                                      className="w-full bg-slate-600 text-white px-3 py-2 rounded border border-slate-500 text-sm"
+                                      rows={2}
+                                      placeholder="Enter choice text"
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                                        Package ID (Optional)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={editedChoicePackageId}
+                                        onChange={(e) =>
+                                          setEditedChoicePackageId(
+                                            e.target.value
+                                          )
+                                        }
+                                        className="w-full bg-slate-600 text-white px-3 py-2 rounded border border-slate-500 text-sm"
+                                        placeholder="Package ID"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                                        Alt Text ID (Optional)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={editedChoiceAltText}
+                                        onChange={(e) =>
+                                          setEditedChoiceAltText(e.target.value)
+                                        }
+                                        className="w-full bg-slate-600 text-white px-3 py-2 rounded border border-slate-500 text-sm"
+                                        placeholder="Alt Text ID"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end space-x-2 mt-2">
+                                    <button
+                                      onClick={() => handleCancelChoiceEdit()}
+                                      className="px-3 py-1 bg-gray-600 text-gray-200 text-xs rounded hover:bg-gray-500"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleSaveChoice(choice._id)
+                                      }
+                                      className="px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-500"
+                                    >
+                                      Save
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="group">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <p className="text-sm text-gray-300 break-words">
+                                        {choice.text}
+                                      </p>
+                                      <div className="flex flex-wrap gap-2 mt-2">
+                                        <span className="text-xs text-gray-400">
+                                          ID: {choice.choice_id}
+                                        </span>
+                                        {choice.package_id && (
+                                          <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded">
+                                            Package: {choice.package_id}
+                                          </span>
+                                        )}
+                                        {choice.alt_text && (
+                                          <span className="text-xs bg-orange-900 text-orange-300 px-2 py-1 rounded">
+                                            Alt Text: {choice.alt_text}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => handleEditChoice(choice)}
+                                      className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-300"
+                                      title="Edit choice"
+                                    >
+                                      <Pencil size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+                    )}
                   </div>
                 );
               })
