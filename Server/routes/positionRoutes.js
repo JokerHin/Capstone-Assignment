@@ -3,6 +3,7 @@ import {
   getPositions,
   getPositionById,
   getPositionsBySubquest,
+  updatePosition,
 } from "../controllers/positionController.js";
 
 const positionRouter = express.Router();
@@ -11,5 +12,6 @@ const positionRouter = express.Router();
 positionRouter.get("/", getPositions);
 positionRouter.get("/:id", getPositionById);
 positionRouter.get("/subquest/:subquestId", getPositionsBySubquest);
+positionRouter.put("/:id", updatePosition);
 
 export default positionRouter;

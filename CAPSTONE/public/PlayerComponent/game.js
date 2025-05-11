@@ -216,12 +216,12 @@ class MainScene extends Phaser.Scene {
         this.backdrop['map'] = new Backdrop(this, 0, 0, locationDetail.img, this.zoomFactor);
         this.current_bg=this.backdrop['map'];
 
-        //import npc
-        this.spawnNpc();
-
         //player (fighter)
         this.player = this.physics.add.sprite(this.gameWidth / 2, this.gameHeight / 2, 'fighter');
         this.player.setScale(0.1);
+
+        //import npc
+        this.spawnNpc();
 
         //background obstacle
         this.backdrop['obstacle'] = new Backdrop(this, 0, 0, 'town_obstacle', this.zoomFactor);
@@ -341,7 +341,7 @@ class MainScene extends Phaser.Scene {
 
         //Collision listener
         this.npcList = Object.values(this.npc);
-        this.overlapCollider = this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
+        // this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
         this.doorList = Object.values(this.doors);
         this.physics.add.overlap(this.player, this.doorList, this.showEnter, null, this);
 
@@ -389,7 +389,7 @@ class MainScene extends Phaser.Scene {
             console.log(this.registry.get("activeQuest"));
             console.log(this.registry.get("activeSubQuest"));
             this.spawnNpc();
-            this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
+            // this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
         });
 
         // this.cameras.main.setZoom(zoomFactor);
@@ -581,11 +581,7 @@ class MainScene extends Phaser.Scene {
         this.children.bringToTop(this.inventoryButton);
         this.children.bringToTop(this.menuButton);
         this.npcList = Object.values(this.npc);
-        // if (this.overlapCollider) {
-        //     this.overlapCollider.destroy();
-        //     this.overlapCollider = null; // Clear the reference
-        // }
-        // this.overlapCollider = this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
+        this.npcOverlap = this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
     }
 
     talk() {

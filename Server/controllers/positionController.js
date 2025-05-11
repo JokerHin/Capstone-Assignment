@@ -33,3 +33,31 @@ export const getPositionsBySubquest = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Update a position
+export const updatePosition = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const updatedPosition = await Position.findOneAndUpdate(
+      { position_id: id },
+      updates,
+      { new: true }
+    );
+
+    if (!updatedPosition) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Position not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Position updated successfully",
+      position: updatedPosition,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
