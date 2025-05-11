@@ -153,6 +153,7 @@ export class Dialog{
                 game.collisionHappened=false;
                 this.game.checkNarrator();
                 this.game.spawnNpc();
+                this.game.physics.add.overlap(this.game.player, this.game.npcList, this.game.showTalk, null, this);
             }
         });
     }
