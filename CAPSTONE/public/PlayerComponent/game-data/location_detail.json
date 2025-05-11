@@ -6,42 +6,42 @@
         "scale":1.8
     },
     "1":{
-        "label": "MEAT",
+        "label": "Realm of Polymorphism",
         "bgcolor": "#0B0B0B",
         "map": "map6",
         "name": "Purple",
         "tileset": "Rustic_Indoor"
     },
     "2":{
-        "label": "Realm 1",
+        "label": "Realm of Encapsulatio",
         "bgcolor": "#3B2821",
         "map": "map2",
         "name": "House1",
         "tileset": "Big_Set"
     },
     "3":{
-        "label": "Realm 2",
+        "label": "Realm of Objects",
         "bgcolor": "#3B2821",
         "map": "map3",
         "name": "House2",
         "tileset": "Big_Set"
     },
     "4":{
-        "label": "Realm 3",
+        "label": "Realm of Inheritance",
         "bgcolor": "#3B2821",
         "map": "map4",
         "name": "House3",
         "tileset": "Big_Set"
     },
     "5":{
-        "label": "Diner",
+        "label": "Realm of Abstraction",
         "bgcolor": "#0B0B0B",
         "map": "map5",
         "name": "Diner",
         "tileset": "Rustic_Indoor"
     },
     "6":{
-        "label": "Mysterious House",
+        "label": "Realm of Classes",
         "bgcolor": "#25131A",
         "map": "map1",
         "name": "Mbat",
