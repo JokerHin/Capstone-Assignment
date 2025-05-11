@@ -67,7 +67,6 @@ export const updateDialogue = async (req, res) => {
 
     if (text) dialogue.text = text;
     if (dialogue_id) dialogue.dialogue_id = String(dialogue_id);
-    d;
     if (position_id !== undefined)
       dialogue.position_id = position_id ? String(position_id) : undefined;
     if (package_id !== undefined)

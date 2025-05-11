@@ -96,7 +96,9 @@ const AdminContent: React.FC = () => {
   const questsWithCounts = useMemo(() => {
     return quests.map((quest) => {
       const relatedSubquests = subquests.filter(
-        (sq) => sq.quest_id === quest.quest_id
+        (sq) =>
+          String(sq.quest_id) === String(quest.quest_id) ||
+          Number(sq.quest_id) === Number(quest.quest_id)
       );
       return {
         ...quest,
