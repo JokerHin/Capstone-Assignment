@@ -69,7 +69,14 @@ const AdminSubquest: React.FC = () => {
           title: sq.title || sq.name || `Subquest ${sq.subquest_id}`,
         }));
 
-        setSubquests(formattedSubquests);
+        // Sort subquests by subquest_id in ascending order
+        const sortedSubquests = formattedSubquests.sort(
+          (a: Subquest, b: Subquest) => {
+            return Number(a.subquest_id) - Number(b.subquest_id);
+          }
+        );
+
+        setSubquests(sortedSubquests);
       } catch (error) {
         console.error("Error fetching subquests:", error);
         toast.error("Failed to load subquest data. Please try again later.");
@@ -81,11 +88,6 @@ const AdminSubquest: React.FC = () => {
     fetchSubquests();
   }, [questId, backendUrl]);
 
-  // Remove handleInputChange function
-
-  // Remove handleAddSubquest function
-
-  // Start inline editing for a subquest
   const handleEditSubquest = (subquest: Subquest) => {
     setEditingSubquestId(subquest._id);
     setEditedSubquestTitle(subquest.title);
