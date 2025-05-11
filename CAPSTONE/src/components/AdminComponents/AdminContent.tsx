@@ -34,6 +34,7 @@ const AdminContent: React.FC = () => {
   const [editForm, setEditForm] = useState({
     name: "",
     description: "",
+    type: "", // Add type to the form state
   });
 
   // Get backend URL from context
@@ -132,13 +133,16 @@ const AdminContent: React.FC = () => {
     setEditForm({
       name: item.name || "",
       description: item.description || "",
+      type: item.type || "", // Include type in the form
     });
     setEditModalOpen(true);
   };
 
   // Handle form input changes
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({
@@ -171,6 +175,7 @@ const AdminContent: React.FC = () => {
                   ...item,
                   name: editForm.name,
                   description: editForm.description,
+                  type: editForm.type,
                 }
               : item
           )
@@ -188,7 +193,7 @@ const AdminContent: React.FC = () => {
   const closeEditModal = () => {
     setEditModalOpen(false);
     setCurrentItem(null);
-    setEditForm({ name: "", description: "" });
+    setEditForm({ name: "", description: "", type: "" });
   };
 
   const getItemImage = (type: string, index: number) => {
@@ -199,6 +204,9 @@ const AdminContent: React.FC = () => {
     const itemNumber = (index % 3) + 1;
     return `/src/assets/items/item${itemNumber}.png`;
   };
+
+  // Define item type options - updated with only the allowed types
+  const itemTypes = ["quest", "badge", "milestone", "point"];
 
   return (
     <div className="space-y-6">
@@ -325,6 +333,10 @@ const AdminContent: React.FC = () => {
                         <h3 className="text-xl font-bold text-white">
                           {item.name || `Item #${item.item_id}`}
                         </h3>
+                        {/* Add type display */}
+                        <span className="inline-block px-2 py-1 rounded bg-orange-900 text-orange-200 text-xs mt-2">
+                          {item.type}
+                        </span>
                         <p className="text-sm text-gray-400 mt-2">
                           {item.description || `No description`}
                         </p>
@@ -367,6 +379,28 @@ const AdminContent: React.FC = () => {
                   placeholder="Item name"
                   required
                 />
+              </div>
+              {/* Add type selection dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Type
+                </label>
+                <select
+                  name="type"
+                  value={editForm.type}
+                  onChange={handleInputChange}
+                  className="w-full bg-slate-700 rounded border border-gray-600 text-white px-3 py-2"
+                  required
+                >
+                  <option value="" disabled>
+                    Select a type
+                  </option>
+                  {itemTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">

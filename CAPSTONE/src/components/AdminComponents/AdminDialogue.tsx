@@ -92,8 +92,8 @@ const AdminDialogue: React.FC = () => {
       { bg: "bg-blue-600", text: "text-blue-100" },
       { bg: "bg-emerald-600", text: "text-emerald-100" },
       { bg: "bg-purple-600", text: "text-purple-100" },
-      { bg: "bg-orange-600", text: "text-orange-100" }, // Vibrant orange
-      { bg: "bg-amber-600", text: "text-amber-100" }, // Another orange tone
+      { bg: "bg-orange-600", text: "text-orange-100" },
+      { bg: "bg-amber-600", text: "text-amber-100" },
       { bg: "bg-pink-600", text: "text-pink-100" },
       { bg: "bg-indigo-600", text: "text-indigo-100" },
       { bg: "bg-cyan-600", text: "text-cyan-100" },
@@ -255,6 +255,8 @@ const AdminDialogue: React.FC = () => {
       if (showEditModal && currentDialogue) {
         const updatedDialogue = {
           text: formData.text,
+          package_id: formData.package_id || undefined,
+          action_id: formData.action_id || undefined,
         };
 
         const response = await axios.put(
@@ -265,13 +267,28 @@ const AdminDialogue: React.FC = () => {
         if (response.data) {
           toast.success("Dialogue updated successfully");
 
+          // Update both arrays of dialogues with all edited fields
           const updatedDialogues = dialogues.map((d) =>
-            d._id === currentDialogue._id ? { ...d, text: formData.text } : d
+            d._id === currentDialogue._id
+              ? {
+                  ...d,
+                  text: formData.text,
+                  package_id: formData.package_id || d.package_id,
+                  action_id: formData.action_id || d.action_id,
+                }
+              : d
           );
           setDialogues(updatedDialogues);
 
           const updatedFilteredDialogues = filteredDialogues.map((d) =>
-            d._id === currentDialogue._id ? { ...d, text: formData.text } : d
+            d._id === currentDialogue._id
+              ? {
+                  ...d,
+                  text: formData.text,
+                  package_id: formData.package_id || d.package_id,
+                  action_id: formData.action_id || d.action_id,
+                }
+              : d
           );
           setFilteredDialogues(updatedFilteredDialogues);
 
@@ -523,7 +540,7 @@ const AdminDialogue: React.FC = () => {
                     name="position_id"
                     value={formData.position_id}
                     className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
-                    disabled
+                    disabled // Keep position_id disabled as it connects to the subquest
                   />
                 </div>
                 <div>
@@ -534,8 +551,9 @@ const AdminDialogue: React.FC = () => {
                     type="text"
                     name="package_id"
                     value={formData.package_id}
-                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
-                    disabled
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
                   />
                 </div>
                 <div>
@@ -546,8 +564,9 @@ const AdminDialogue: React.FC = () => {
                     type="text"
                     name="action_id"
                     value={formData.action_id}
-                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
-                    disabled
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Optional"
                   />
                 </div>
               </div>
