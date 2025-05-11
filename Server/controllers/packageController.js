@@ -4,9 +4,9 @@ import Package from "../models/package.js";
 export const getPackages = async (req, res) => {
   try {
     const packages = await Package.find();
-    res.status(200).json({ success: true, packages });
+    res.status(200).json(packages);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -22,9 +22,9 @@ export const getPackageById = async (req, res) => {
         .json({ success: false, message: "Package not found" });
     }
 
-    res.status(200).json({ success: true, package: packageData });
+    res.status(200).json(packageData);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -34,9 +34,9 @@ export const getPackagesBySubquest = async (req, res) => {
     const { subquestId } = req.params;
     const packages = await Package.find({ subquest_id: subquestId });
 
-    res.status(200).json({ success: true, packages });
+    res.status(200).json(packages);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 

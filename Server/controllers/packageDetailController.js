@@ -4,9 +4,9 @@ import PackageDetail from "../models/package_detail.js";
 export const getPackageDetails = async (req, res) => {
   try {
     const packageDetails = await PackageDetail.find();
-    res.status(200).json({ success: true, packageDetails });
+    res.status(200).json(packageDetails);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -16,9 +16,9 @@ export const getPackageDetailsByPackageId = async (req, res) => {
     const { packageId } = req.params;
     const packageDetails = await PackageDetail.find({ package_id: packageId });
 
-    res.status(200).json({ success: true, packageDetails });
+    res.status(200).json(packageDetails);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 

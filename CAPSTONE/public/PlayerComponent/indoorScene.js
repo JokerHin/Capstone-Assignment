@@ -307,6 +307,7 @@ export class IndoorScene extends Phaser.Scene {
     let subquestPosition = this.position.find(position => position.subquest_id === this.registry.get("activeSubQuest") && position.npc==="narrator");
     if (subquestPosition){
         let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
+        chats.sort((a, b) => Number(a.dialogue_id) - Number(b.dialogue_id));
         if (chats.length==0){
             return;
         }
@@ -441,6 +442,7 @@ export class IndoorScene extends Phaser.Scene {
     let object = this.touching['npc'];
     console.log(`Talking to the ${object.name}...`);
     let chats = this.dialogue.filter(dialogue => dialogue.position_id === object.position_id);
+    chats.sort((a, b) => Number(a.dialogue_id) - Number(b.dialogue_id));
     console.log(chats);
     let dialog1 = new Dialog(this,chats);
     dialog1.showDialogs();

@@ -68,8 +68,8 @@ class MainScene extends Phaser.Scene {
         this.load.image('town_bg', '/assets/town_map.jpg');
         this.load.image('town_obstacle', '/assets/town_map_obstacle.png');
         this.load.spritesheet('fighter', '/assets/mc_spritesheet.png', {
-            frameWidth: 641,
-            frameHeight: 640.8
+            frameWidth: 640,
+            frameHeight: 640
         });
         this.load.image("house1_interior", "/assets/house1_interior.png");
         this.load.image("ownhouse_interior", "/assets/ownhouse_interior.jpg");
@@ -96,7 +96,9 @@ class MainScene extends Phaser.Scene {
         }
 
         for (let item of Object.values(this.itemDetail)) {
-            this.load.image(item.tag, `/assets/${item.img}`);
+            if (item.tag !== "milestone") {
+                this.load.image(item.tag, `/assets/${item.img}`);
+            }
         }
     }
 
@@ -586,6 +588,7 @@ class MainScene extends Phaser.Scene {
         let object = this.touching['npc'];
         console.log(`Talking to the ${object.name}...`);
         let chats = this.dialogue.filter(dialogue => dialogue.position_id === object.position_id);
+        chats.sort((a, b) => Number(a.dialogue_id) - Number(b.dialogue_id));
         console.log(chats);
         let dialog1 = new Dialog(this,chats);
         dialog1.showDialogs();
@@ -703,7 +706,7 @@ class MainScene extends Phaser.Scene {
     }
 
     openGuide() {
-        if (this.uistatus != 0) {
+        if (this.uistatus != 0 || this.collisionHappened) {
             return;
         }
         this.uistatus = 1;
@@ -732,7 +735,7 @@ class MainScene extends Phaser.Scene {
 
         // Add guide content
         let activeSubQuest = this.registry.get("activeSubQuest");
-        let guideText = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).description;
+        let guideText = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).title;
         this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05, guideText,
             {
                 fill: '#000000',
@@ -766,7 +769,7 @@ class MainScene extends Phaser.Scene {
     }
 
     openInventory(){
-        if (this.uistatus!=0){
+        if (this.uistatus!=0 || this.collisionHappened){
             return;
         }
         this.uistatus=1;
@@ -954,7 +957,7 @@ class MainScene extends Phaser.Scene {
     }
 
     openMenu() {
-        if (this.uistatus!=0){
+        if (this.uistatus!=0 || this.collisionHappened){
             return;
         }
         this.uistatus=1;
@@ -1168,8 +1171,8 @@ class Game {
         "https://capstone-assignment-36lq.vercel.app/dialogue",
         "/PlayerComponent/game-data/quest.json",
         "https://capstone-assignment-36lq.vercel.app/location",
-        "/PlayerComponent/game-data/inventory_sample.json", // "https://capstone-assignment-36lq.vercel.app/inventory",
-        "https://capstone-assignment-36lq.vercel.app/item", // "/PlayerComponent/game-data/item_sample.json", 
+        "https://capstone-assignment-36lq.vercel.app/inventory", //"/PlayerComponent/game-data/inventory_sample.json",
+        "https://capstone-assignment-36lq.vercel.app/item", // "/PlayerComponent/game-data/item_sample.json",
         "/PlayerComponent/game-data/action.json",
         "https://capstone-assignment-36lq.vercel.app/package_detail",
         "https://capstone-assignment-36lq.vercel.app/position",
