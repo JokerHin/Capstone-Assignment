@@ -5,11 +5,14 @@ export class Dialog{
     }
 
     updateDialog(dialogue_id){
+        if (this.graphics) {
+            this.graphics.destroy();
+            this.graphics = null;
+        }
         this.optionBoxes=[]
 
         let game=this.game;
         let cam = game.cameras.main;
-        console.log(cam.scrollX, cam.scrollY);
 
         let dialogX = cam.scrollX+(30);
         let dialogY = cam.scrollY+(game.gameHeight - 150);
@@ -32,8 +35,6 @@ export class Dialog{
         });
         this.questionBox.setScrollFactor(0);
 
-        let action = question.action;
-
         let choices = game.choice.filter(choice => choice.dialogue_id === dialogue_id);
         if (choices.length>0){
             console.log(choices);
@@ -42,7 +43,7 @@ export class Dialog{
             for (let option of choices){
                 let choice = option.text;
                 let optionX = 60 + cam.scrollX;
-                let optionY = game.gameHeight - (90-35*i) + cam.scrollY;
+                let optionY = game.gameHeight - (110-35*i) + cam.scrollY + this.questionBox.height;
                 this.option = game.add.text(optionX, optionY, `Option ${i+1}: ${choice}`, {
                     font: '20px Arial',
                     fill: '#ffffff'
@@ -59,13 +60,25 @@ export class Dialog{
                     if (option.package_id){
                         let available = this.updateInventory(option.package_id);
                         if (!available){
-                            this.updateDialog(option.alt_text);
+                            this.showResponse(option.alt_text);
+                            console.log(option.alt_text);
                             return;
                         }
+                    }
+                    if (option.respond!=""){
+                        this.showResponse(option.respond);
+                        console.log(option.respond);
+                    }
+                    
+                    this.count++;
+                    if (this.count<this.content.length){
+                        let current_dialogue = this.content[this.count];
+                        this.updateDialog(current_dialogue.dialogue_id);
+                        console.log(current_dialogue.dialogue_id);
                     }else{
-                        if (value.respond!=""){
-                            this.updateDialog(value.respond,'');
-                        }
+                        game.collisionHappened=false;
+                        this.game.checkNarrator();
+                        this.game.spawnNpc();
                     }
                 });
 
@@ -99,6 +112,50 @@ export class Dialog{
         }
     }
 
+    showResponse(text) {
+        if (this.graphics) {
+            this.graphics.destroy();
+            this.graphics = null;
+        }
+        // Show the response text in a dialog box
+        let game = this.game;
+        let cam = game.cameras.main;
+        let dialogX = cam.scrollX + 30;
+        let dialogY = cam.scrollY + (game.gameHeight - 150);
+        let dialogWidth = (game.gameWidth - 100);
+        let dialogHeight = 140;
+
+        this.graphics = game.add.graphics();
+        this.graphics.fillStyle(0x000000, 0.7);
+        this.graphics.fillRoundedRect(dialogX, dialogY, dialogWidth, dialogHeight, 20);
+        this.graphics.setInteractive(
+            new Phaser.Geom.Rectangle(dialogX, dialogY, dialogWidth, dialogHeight),
+            Phaser.Geom.Rectangle.Contains
+        );
+
+        this.questionBox = game.add.text(60, game.gameHeight - 130, text, {
+            font: '24px Arial',
+            fill: '#ffffff',
+            wordWrap: { width: game.gameWidth - 120 }
+        });
+        this.questionBox.setScrollFactor(0);
+
+        this.graphics.once('pointerdown', () => {
+            this.destroyDialog();
+            this.count++;
+            console.log(this.count, this.content.length);
+            if (this.count<this.content.length){
+                let current_dialogue = this.content[this.count];
+                this.updateDialog(current_dialogue.dialogue_id);
+                console.log(current_dialogue.dialogue_id);
+            }else{
+                game.collisionHappened=false;
+                this.game.checkNarrator();
+                this.game.spawnNpc();
+            }
+        });
+    }
+
     performAction(action){
         let actionDetail = this.game.action[action];
         if (actionDetail.type === "move"){
@@ -123,10 +180,11 @@ export class Dialog{
 
     async updateInventory(package_id){
         let package_detail = this.game.packageDetail.filter(packageDetail => packageDetail.package_id === package_id);
+        console.log(package_detail);
 
         for (let item of package_detail) { //check if item enough for negative amount (giving item)
             if (item.amount<0){
-                let response = await fetch(`https://codyssey-mongodb.vercel.app/inventory/amount?player_id=${this.game.player_id}&item_id=${item.item_id}`, {
+                let response = await fetch(`https://capstone-assignment-36lq.vercel.app/inventory/amount?player_id=${this.game.player_id}&item_id=${item.item_id}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -144,7 +202,7 @@ export class Dialog{
             let itemDetail = this.game.item.find(itemDetail => itemDetail.item_id === item.item_id);
             console.log(itemDetail);
             if (itemDetail.type === "milestone"){
-                fetch("https://codyssey-mongodb.vercel.app/player_progress/update", {
+                fetch("https://capstone-assignment-36lq.vercel.app/player_progress/update", {
                     method: "POST",
                     headers: {
                     "Content-Type": "application/json",
@@ -164,7 +222,7 @@ export class Dialog{
                 if (nextActiveSubquest){
                     let nextQuest = nextActiveSubquest.quest_id;
                     this.game.registry.set("activeQuest", nextQuest);
-                    fetch("https://codyssey-mongodb.vercel.app/player_progress/update", {
+                    fetch("https://capstone-assignment-36lq.vercel.app/player_progress/update", {
                         method: "POST",
                         headers: {
                         "Content-Type": "application/json",
@@ -178,7 +236,7 @@ export class Dialog{
                 }
                 return true;
             }
-            fetch("https://codyssey-mongodb.vercel.app/inventory", {
+            fetch("https://capstone-assignment-36lq.vercel.app/inventory", {
                 method: "POST",
                 headers: {
                 "Content-Type": "application/json",
@@ -203,6 +261,7 @@ export class Dialog{
         if (this.graphics) {
             this.graphics.destroy();
             this.graphics = null;
+            console.log("destroy graphics");
         }
         if (this.questionBox) {
             this.questionBox.destroy();

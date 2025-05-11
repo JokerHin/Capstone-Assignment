@@ -340,7 +340,7 @@ export class IndoorScene extends Phaser.Scene {
     })
     .then(res => res.json())
     .then(data => {
-      console.log('Location updated:', data);
+      // console.log('Location updated:', data);
     })
     .catch(err => {
       console.error('Error updating location:', err);
@@ -393,7 +393,8 @@ export class IndoorScene extends Phaser.Scene {
             });
           }
         }
-        this.npc[tag].setFrame(npc.initialFrame);
+        this.npc[tag].setFrame(npcData.initialFrame);
+        this.npc[tag].play("idle");
       }
     }
     this.children.bringToTop(this.player);
@@ -505,7 +506,7 @@ export class IndoorScene extends Phaser.Scene {
   }
 
   openGuide() {
-    if (this.uistatus != 0) {
+    if (this.uistatus != 0 || this.collisionHappened) {
         return;
     }
     this.uistatus = 1;
@@ -534,7 +535,8 @@ export class IndoorScene extends Phaser.Scene {
 
     // Add guide content
     let activeSubQuest = this.registry.get("activeSubQuest");
-    let guideText = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).description;
+    console.log(this.subquest);
+    let guideText = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).title;
     this.guideContent = this.add.text(this.gameWidth / 2, this.guideBg.y*1.05, guideText,
         {
             fill: '#000000',
@@ -568,7 +570,7 @@ closeGuide() {
 }
 
 openInventory(){
-    if (this.uistatus!=0){
+    if (this.uistatus!=0 || this.collisionHappened){
         return;
     }
     this.uistatus=1;
@@ -753,7 +755,7 @@ closeInventory() {
 }
 
 openMenu() {
-    if (this.uistatus!=0){
+    if (this.uistatus!=0 || this.collisionHappened){
         return;
     }
     this.uistatus=1;
