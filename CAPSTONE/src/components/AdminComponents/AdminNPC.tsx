@@ -7,11 +7,17 @@ import Gatekeeper from "../../assets/npc/GatekeeperAxion.png";
 import Grandpa from "../../assets/npc/Grandpa.png";
 import Wai from "../../assets/npc/Wai.png";
 import SirBen from "../../assets/npc/BenSir.png";
-import KarbotA from "../../assets/npc/Karbot3.png";
-import KarbotB from "../../assets/npc/Karbot2.png";
-import Karbot from "../../assets/npc/Karbot.png";
 import Cipher from "../../assets/npc/Cipher.png";
 import Lina from "../../assets/npc/Lina.png";
+import EarthBot from "../../assets/npc/EarthBot.png";
+import AirBot from "../../assets/npc/AirBot.png";
+import FireBot from "../../assets/npc/FireBot.png";
+import WaterBot from "../../assets/npc/WaterBot.png";
+import LightningBot from "../../assets/npc/LightningBot.png";
+import NaturalBot from "../../assets/npc/NaturalBot.png";
+import IceBot from "../../assets/npc/IceBot.png";
+import Kargie from "../../assets/npc/Kargie.png";
+import Selena from "../../assets/npc/Selena.png";
 
 interface NPC {
   name: string;
@@ -19,19 +25,25 @@ interface NPC {
 }
 
 const npcs: NPC[] = [
-  { name: "Grand Compiler", image: Grand },
-  { name: "Auntie Ang", image: Auntie },
-  { name: "Uncle Chong", image: Uncle },
-  { name: "Ava", image: Ava },
-  { name: "Gatekeeper Axion", image: Gatekeeper },
-  { name: "Grandpa", image: Grandpa },
+  { name: "Merchant David", image: Grand },
+  { name: "Kai", image: Auntie },
+  { name: "Chong", image: Uncle },
+  { name: "Vera", image: Ava },
+  { name: "Luma", image: Gatekeeper },
+  { name: "Kora", image: Grandpa },
   { name: "Wai", image: Wai },
-  { name: "Sir Ben", image: SirBen },
-  { name: "Karbot A", image: KarbotA },
-  { name: "Karbot B", image: KarbotB },
-  { name: "Karbot", image: Karbot },
-  { name: "Cipher", image: Cipher },
-  { name: "Lina", image: Lina },
+  { name: "Ben", image: SirBen },
+  { name: "Axel", image: Cipher },
+  { name: "Mira", image: Lina },
+  { name: "EarthBot", image: EarthBot },
+  { name: "AirBot", image: AirBot },
+  { name: "FireBot", image: FireBot },
+  { name: "WaterBot", image: WaterBot },
+  { name: "LightningBot", image: LightningBot },
+  { name: "NaturalBot", image: NaturalBot },
+  { name: "IceBot", image: IceBot },
+  { name: "Kargie", image: Kargie },
+  { name: "Selena", image: Selena },
 ];
 
 const AdminNPC: React.FC = () => {
