@@ -3,14 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
-import { ArrowLeft, Plus, Check, X, Pencil, MessageSquare } from "lucide-react";
+import { ArrowLeft, Check, X, Pencil, MessageSquare } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 import questData from "../PlayerComponent/game-data/quest.json";
 
 interface Subquest {
   _id: string;
   subquest_id: number;
-  quest_id: number;
+  quest_id: number | string;
   title: string;
   description?: string;
   admin_id?: number;
@@ -21,15 +21,12 @@ const AdminSubquest: React.FC = () => {
   const navigate = useNavigate();
   const [subquests, setSubquests] = useState<Subquest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  // Remove showAddModal state
   const [editingSubquestId, setEditingSubquestId] = useState<string | null>(
     null
   );
   const [editedSubquestTitle, setEditedSubquestTitle] = useState("");
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-  });
+  // Remove formData state
 
   const appContext = useContext(AppContent);
   if (!appContext) {
@@ -59,9 +56,11 @@ const AdminSubquest: React.FC = () => {
       try {
         const response = await axios.get(`${backendUrl}/subquest`);
 
-        // Filter subquests for this quest
+        // Filter subquests for this quest - match against both string and number types
         const filteredSubquests = response.data.filter(
-          (sq: any) => sq.quest_id === Number(questId)
+          (sq: any) =>
+            String(sq.quest_id) === String(questId) ||
+            Number(sq.quest_id) === Number(questId)
         );
 
         // Format subquests with default titles if needed
@@ -82,19 +81,9 @@ const AdminSubquest: React.FC = () => {
     fetchSubquests();
   }, [questId, backendUrl]);
 
-  // Handle form input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // Remove handleInputChange function
 
-  // Open add modal
-  const handleAddSubquest = () => {
-    setFormData({ title: "", description: "" });
-    setShowAddModal(true);
-  };
+  // Remove handleAddSubquest function
 
   // Start inline editing for a subquest
   const handleEditSubquest = (subquest: Subquest) => {
@@ -139,77 +128,22 @@ const AdminSubquest: React.FC = () => {
     setEditingSubquestId(null);
   };
 
-  // Delete subquest
-  const handleDeleteSubquest = async (subquestId: string) => {
-    if (!window.confirm("Are you sure you want to delete this subquest?")) {
-      return;
-    }
-
-    try {
-      await axios.delete(`${backendUrl}/subquest/${subquestId}`);
-      toast.success("Subquest deleted successfully");
-      // Update local state
-      setSubquests(subquests.filter((sq) => sq._id !== subquestId));
-    } catch (error) {
-      console.error("Error deleting subquest:", error);
-      toast.error("Failed to delete subquest");
-    }
-  };
-
-  // Submit form (create new subquest)
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.title.trim()) {
-      toast.error("Title is required");
-      return;
-    }
-
-    try {
-      // Create new subquest
-      const nextSubquestId =
-        Math.max(0, ...subquests.map((sq) => sq.subquest_id || 0)) + 1;
-
-      const newSubquest = {
-        title: formData.title,
-        description: formData.description,
-        quest_id: Number(questId),
-        subquest_id: nextSubquestId,
-        admin_id: 1, // Default admin ID
-      };
-
-      const response = await axios.post(`${backendUrl}/subquest`, newSubquest);
-
-      if (response.data) {
-        toast.success("Subquest added successfully");
-        setSubquests([...subquests, response.data]);
-        setShowAddModal(false);
-      }
-    } catch (error) {
-      console.error("Error saving subquest:", error);
-      toast.error("Failed to save subquest");
-    }
-  };
-
-  // Navigate back to Admin Content page
-  const handleBack = () => {
-    navigate("/AdminHome?tab=content");
-  };
-
   // Navigate to dialogue management for a specific subquest
   const navigateToDialogues = (subquestId: number) => {
     navigate(`/admin/dialogues/${questId}/${subquestId}`);
   };
 
+  // Go back to AdminContent page
+  const handleBack = () => {
+    navigate("/AdminHome?tab=content");
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-b from-gray-900 to-black text-white relative">
-      {/* Sidebar */}
       <AdminSidebar activeTab="content" />
 
-      {/* Main Content */}
       <div className="flex-1 p-4 lg:p-8 overflow-x-hidden">
         <div className="space-y-6">
-          {/* Header with back button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <button
@@ -226,15 +160,6 @@ const AdminSubquest: React.FC = () => {
                   : "Quest Not Found"}
               </h1>
             </div>
-            <button
-              className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded"
-              onClick={handleAddSubquest}
-            >
-              <div className="flex items-center">
-                <Plus size={16} className="mr-2" />
-                Add Subquest
-              </div>
-            </button>
           </div>
 
           {/* Quest Overview Card */}
@@ -266,13 +191,7 @@ const AdminSubquest: React.FC = () => {
                 <p className="text-gray-400 mb-5">
                   No subquests found for this quest.
                 </p>
-                <button
-                  onClick={handleAddSubquest}
-                  className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded inline-flex items-center"
-                >
-                  <Plus size={16} className="mr-2" />
-                  Add First Subquest
-                </button>
+                {/* Remove Add First Subquest button */}
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-700">
@@ -353,17 +272,11 @@ const AdminSubquest: React.FC = () => {
                           onClick={() =>
                             navigateToDialogues(subquest.subquest_id)
                           }
-                          className="text-blue-400 hover:text-blue-300 mr-3"
+                          className="text-blue-400 hover:text-blue-300"
                           title="Manage dialogues"
                         >
                           <MessageSquare size={16} className="inline mr-1" />
                           Dialogues
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSubquest(subquest._id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Delete
                         </button>
                       </td>
                     </tr>
@@ -375,44 +288,7 @@ const AdminSubquest: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 rounded-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">Add New Subquest</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-300 text-sm font-bold mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700 text-white px-3 py-2 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Enter subquest title"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded"
-                >
-                  Add Subquest
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Remove Add Modal */}
     </div>
   );
 };

@@ -1,54 +1,36 @@
 [
   {
-    "item_id": 1,
-    "name": "Green Gem",
-    "type": "quest",
-    "description": null
-  },
-  {
-    "item_id": 2,
-    "name": null,
-    "type": "milestone",
-    "description": null
-  },
-  {
-    "item_id": 3,
-    "name": "Potion",
-    "type": "quest",
-    "description": null
-  },
-  {
-    "item_id": 4,
+    "item_id": "1",
     "name": "King of Class",
     "type": "badge",
     "description": null
   },
   {
-    "item_id": 5,
+    "item_id": "2",
     "name": "King of Objects",
     "type": "badge",
     "description": null
   },
   {
-    "item_id": 6,
+    "item_id": "3",
     "name": "King of Encapsulation",
     "type": "badge",
     "description": null
   },
   {
-    "item_id": 6,
+    "item_id": "4",
     "name": "King of Polymorphism",
     "type": "badge",
     "description": null
   },
   {
-    "item_id": 7,
+    "item_id": "5",
     "name": "King of Abstraction",
     "type": "badge",
     "description": null
   },
   {
-    "item_id": 5,
+    "item_id": "6",
     "name": "King of OOP",
     "type": "badge",
     "description": null

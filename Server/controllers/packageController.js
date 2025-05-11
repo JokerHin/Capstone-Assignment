@@ -43,7 +43,7 @@ export const getPackagesBySubquest = async (req, res) => {
 // Create a new package
 export const createPackage = async (req, res) => {
   try {
-    const { package_id, subquest_id, name, description } = req.body;
+    const { package_id, subquest_id, name } = req.body;
 
     // Check if package already exists
     const existingPackage = await Package.findOne({ package_id });
@@ -58,7 +58,6 @@ export const createPackage = async (req, res) => {
       package_id,
       subquest_id,
       name,
-      description,
     });
 
     await newPackage.save();
