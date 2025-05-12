@@ -71,10 +71,6 @@ export const removeInventoryItem = async (req, res) => {
     const playerId = player_id;
     const itemId = item_id;
 
-    if (isNaN(playerId) || isNaN(itemId)) {
-      return res.status(400).json({ message: "Invalid player_id or item_id" });
-    }
-
     const result = await Inventory.deleteOne({
       player_id: playerId,
       item_id: itemId,

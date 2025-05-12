@@ -256,7 +256,7 @@ export class Dialog{
                     }),
                 });
             }else if (item.amount<0){
-                fetch("https://capstone-assignment-36lq.vercel.app/inventory", {
+                fetch("https://capstone-assignment-36lq.vercel.app/inventory/remove", {
                     method: "DELETE",
                     headers: {
                     "Content-Type": "application/json",
