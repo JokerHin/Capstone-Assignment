@@ -61,3 +61,19 @@ export const updatePosition = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Delete a position
+export const deletePosition = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await Position.deleteOne({ position_id: id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Position not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Position deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

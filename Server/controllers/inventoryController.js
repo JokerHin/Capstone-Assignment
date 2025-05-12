@@ -62,3 +62,31 @@ export const getAmount = async (req, res) => {
       .json({ message: "Error fetching amount", error: error.message });
   }
 };
+
+export const removeInventoryItem = async (req, res) => {
+  try {
+    const { player_id, item_id } = req.body;
+
+    // Convert inputs to numbers to avoid CastError
+    const playerId = player_id;
+    const itemId = item_id;
+
+    if (isNaN(playerId) || isNaN(itemId)) {
+      return res.status(400).json({ message: "Invalid player_id or item_id" });
+    }
+
+    const result = await Inventory.deleteOne({
+      player_id: playerId,
+      item_id: itemId,
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Item not found in inventory" });
+    }
+
+    res.status(200).json({ message: "Item removed from inventory" });
+  } catch (error) {
+    console.error("Error removing inventory item:", error);
+    res.status(500).json({ message: "Error removing inventory item", error: error.message });
+  }
+};
