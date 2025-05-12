@@ -19,13 +19,12 @@ class MainScene extends Phaser.Scene {
         this.player_direction=-1;
         this.zoomFactor=1.8; //1.8
         this.locationId="0";
-        this.player_id="1"; //need change to cookie player
+        this.player_id="1";
         this.uistatus=0;
         this.inScene=true;
         this.gameWidth = window.innerWidth;
         this.gameHeight = window.innerHeight;
         this.overlapCollider = null;
-        // this.gane.scale.resize(this.gameWidth, this.gameHeight);
         this.createLoadingScreen();
     }
 
@@ -50,9 +49,7 @@ class MainScene extends Phaser.Scene {
         this.locationDetail = data.locationDetail || {};
         this.itemDetail = data.itemDetail || {};
         this.userData = data.userData || {};
-        console.log("User Data in MainScene:", this.userData);
         this.player_id = this.userData.id || 1;
-        console.log(this.player_id)
     }
 
     preload() {
@@ -124,8 +121,6 @@ class MainScene extends Phaser.Scene {
         logo.src = '/assets/logo.png'; // Path to the logo image
         logo.alt = 'Game Logo';
         logo.className = 'logo'; // Add the 'logo' class for animation
-        // logo.style.width = '150px'; // Adjust the size of the logo
-        // logo.style.marginBottom = '20px'; // Add spacing below the logo
         this.loadingScreen.appendChild(logo);
 
         // Add a spinner
@@ -143,8 +138,6 @@ class MainScene extends Phaser.Scene {
         this.loadingText = document.createElement('p');
         this.loadingText.textContent = 'Loading your adventure...';
         this.loadingText.style.color = '#fff';
-        // this.loadingText.style.fontSize = '20px';
-        // this.loadingText.style.marginTop = '20px';
         this.loadingScreen.appendChild(this.loadingText);
 
         // Append the loading screen to the body
@@ -195,10 +188,6 @@ class MainScene extends Phaser.Scene {
     }
 
     create() {
-        //set initial quest and subquest in the beginning
-        //use registry to store data across all scenes
-        // let activeQuest = 1;
-        // let activeSubQuest = this.quest[activeQuest].startquest;
         let activeSubQuest = this.playerProgress.find(progress => progress.player_id === this.player_id).subquest_id;
         console.log(activeSubQuest);
         let activeQuest = this.subquest.find(subquest => subquest.subquest_id === activeSubQuest).quest_id;
@@ -229,8 +218,6 @@ class MainScene extends Phaser.Scene {
         // Create a static group for barriers
         this.barrierGroup = this.physics.add.staticGroup();
 
-        // Manual rectangle obstacles (replace collision mask logic)
-        // Format: [x, y, width, height]
         const manualObstacles = [
             [0, 0, 1280, 4],
             [948, 36, 25, 5],
@@ -267,7 +254,6 @@ class MainScene extends Phaser.Scene {
             [544, 772, 24, 5],
             [952, 774, 24, 5],
             [0, 784, 1280, 4],
-            // Additional rectangles (x, y, w, h)
             [0, 0, 591, 96],
             [747, 0, 146, 96],
             [1220, 0, 193, 616],
@@ -361,7 +347,6 @@ class MainScene extends Phaser.Scene {
 
         //Enter house button
         this.enterButton = this.add.text(this.gameWidth/2+50, this.gameHeight/2-50, 'Enter house', {
-            // fontSize: '20px',
             fill: '#ffffff',
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             font: `${this.gameWidth*0.02}px 'Jersey 10'`,
@@ -417,7 +402,6 @@ class MainScene extends Phaser.Scene {
 
         //Collision listener
         this.npcList = Object.values(this.npc);
-        // this.physics.add.overlap(this.player, this.npcList, this.showTalk, null, this);
         this.doorList = Object.values(this.doors);
         this.physics.add.overlap(this.player, this.doorList, this.showEnter, null, this);
 
@@ -473,9 +457,7 @@ class MainScene extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
         this.physics.world.setBounds(0, 0, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
 
-        // this.physics.world.setBounds(this.current_bg.width*this.zoomFactor*-1, this.current_bg.height*this.zoomFactor*-1, this.current_bg.width*this.zoomFactor, this.current_bg.height*this.zoomFactor);
         this.player.setCollideWorldBounds(true); // Prevent the player from moving outside the bounds
-        // this.movementSpeed = this.movementSpeed/zoomFactor;
 
         this.removeLoadingScreen();
 
@@ -485,7 +467,6 @@ class MainScene extends Phaser.Scene {
     }
 
     update() {
-        console.log("Player Position:", this.player.x/this.zoomFactor, this.player.y/this.zoomFactor);
         let cursors = this.input.keyboard.createCursorKeys();
         let keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
@@ -549,12 +530,6 @@ class MainScene extends Phaser.Scene {
         if (subquestPosition){
             let chats = this.dialogue.filter(dialogue => dialogue.position_id === subquestPosition.position_id);
             chats.sort((a, b) => Number(a.dialogue_id) - Number(b.dialogue_id));
-            // Sort chats by numeric part of dialogue_id (e.g., D01, D02, ..., D11)
-            // chats.sort((a, b) => {
-            // const numA = Number(a.dialogue_id.replace(/\D/g, ""));
-            // const numB = Number(b.dialogue_id.replace(/\D/g, ""));
-            // return numA - numB;
-            // });
             if (chats.length==0){
                 return;
             }
@@ -712,75 +687,25 @@ class MainScene extends Phaser.Scene {
         }
     }
 
-    moveNpcTo(npc_tag, targetX, targetY, speed, destroy=false) {
-        // Calculate the direction vector
-        let npc = this.npc[npc_tag];
-        const directionX = targetX - npc.x;
-        const directionY = targetY - npc.y;
-
-        // Normalize the direction vector
-        const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
-        const normalizedX = directionX / magnitude;
-        const normalizedY = directionY / magnitude;
-
-        // Set velocity based on the direction and speed
-        npc.setVelocity(normalizedX * speed, normalizedY * speed);
-
-        // Play walking animation based on direction
-        // if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
-        //     // Horizontal movement
-        //     if (normalizedX > 0) {
-        //         npc.anims.play('npc_walk_right', true); // Replace with your right-walking animation key
-        //     } else {
-        //         npc.anims.play('npc_walk_left', true); // Replace with your left-walking animation key
-        //     }
-        // } else {
-        //     // Vertical movement
-        //     if (normalizedY > 0) {
-        //         npc.anims.play('npc_walk_down', true); // Replace with your down-walking animation key
-        //     } else {
-        //         npc.anims.play('npc_walk_up', true); // Replace with your up-walking animation key
-        //     }
-        // }
-
-        // Stop movement when the NPC reaches the target
-        const checkArrival = this.time.addEvent({
-            delay: 50, // Check every 50ms
-            callback: () => {
-                const distance = Phaser.Math.Distance.Between(npc.x, npc.y, targetX, targetY);
-                if (distance < 5) { // Stop when close enough
-                    npc.setVelocity(0, 0); // Stop movement
-                    npc.anims.stop(); // Stop animation
-                    checkArrival.remove(); // Remove the timer
-                }
-            },
-            loop: true
-        });
-
-        if (destroy){
-            this.npc[npc_tag].destroy();
-        }
-    }
-
     openGuide() {
         if (this.uistatus != 0 || this.collisionHappened) {
             return;
         }
         this.uistatus = 1;
         this.collisionHappened = true;
-    
+
         // Create a semi-transparent dark overlay
         this.darkOverlayGuide = this.add.graphics();
         this.darkOverlayGuide.fillStyle(0x000000, 0.5); // Black with 50% opacity
         this.darkOverlayGuide.fillRect(0, 0, this.gameWidth, this.gameHeight);
         this.darkOverlayGuide.setScrollFactor(0);
-    
+
         // Add the scroll background as the guide background
         this.guideBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-30) / 2), 'scroll_background');
         this.guideBg.setScrollFactor(0);
         let scrollScale = (this.gameWidth - 50) / this.guideBg.width;
         this.guideBg.setScale(scrollScale);
-    
+
         // Guide title
         this.guideTitle = this.add.text(this.gameWidth / 2, (this.guideBg.y - this.guideBg.displayHeight * 0.0875), 'GUIDE', {
             fill: '#000000',
@@ -820,7 +745,6 @@ class MainScene extends Phaser.Scene {
         this.guideTitle.destroy();
         this.guideContent.destroy();
         this.closeGuideButton.destroy();
-    
         this.collisionHappened = false;
         this.uistatus = 0;
     }
@@ -848,7 +772,6 @@ class MainScene extends Phaser.Scene {
 
         // Add a title
         this.inventoryTitle = this.add.text(this.gameWidth / 2, (this.inventoryBg.y - this.inventoryBg.displayHeight * 0.1), 'INVENTORY', {
-            // fontSize: `${this.inventoryBg.displayWidth*0.03}px`,
             fontStyle: 'bold',
             fill: '#000000',
             font: `${this.inventoryBg.displayWidth*0.06}px 'Jersey 10'`
@@ -923,6 +846,8 @@ class MainScene extends Phaser.Scene {
         category2Image.setScrollFactor(0);
         this.inventoryItems.push(category2Image);
 
+        await this.refreshInventory();
+
         this.showCatItem(displayCat);
 
         // Add a close button
@@ -933,8 +858,6 @@ class MainScene extends Phaser.Scene {
             this.closeInventory(); // Close the inventory UI
         });
         this.closeButton.setScrollFactor(0);
-
-        await this.refreshInventory();
     }
 
     showCatItem(catType=0){
@@ -957,7 +880,6 @@ class MainScene extends Phaser.Scene {
         let itemGapY = this.inventoryBg.displayHeight*0.008;
         let startX = this.gameWidth*0.4;
         let startY = this.inventoryBg.y*1.1 - itemLength*1.5 - itemGapY;
-        // let itemsPerRow = Math.floor((this.gameWidth - 200) / itemWidth);
         let itemsPerRow = 5;
         let totalSlots = 15; // Fixed number of slots
 
@@ -985,7 +907,7 @@ class MainScene extends Phaser.Scene {
                     itemImage.setScrollFactor(0);
                     this.inventoryItems.push(itemImage);
         
-                    if (item.amount>1){
+                    if (item.amount>1 && itemDetails.tag == 'points'){
                         // item amount display on top right of each item
                         let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
                             fontSize: `${itemLength*0.3}px`,
@@ -997,8 +919,6 @@ class MainScene extends Phaser.Scene {
                         this.inventoryItems.push(itemText);
                     }
                 }
-                
-                
             }
         }
     }
@@ -1044,8 +964,6 @@ class MainScene extends Phaser.Scene {
 
         // Add the scroll background as the menu background
         this.menuBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-30) / 2), 'scroll_background')
-            // .setOrigin(0.5)
-            // .setDisplaySize(this.gameWidth - 100, this.gameHeight - 100); // Adjust size to fit the menu
         this.menuBg.setScrollFactor(0);
         let scrollScale = (this.gameWidth-50)/this.menuBg.width;
         this.menuBg.setScale(scrollScale);
@@ -1097,28 +1015,6 @@ class MainScene extends Phaser.Scene {
         this.scene.stop('IndoorScene');
         window.location.href = '/'; // Redirect to the main menu or home page
     }
-
-    resizeGame() {
-        this.gameWidth = window.innerWidth;
-        this.gameHeight = window.innerHeight;
-
-        //this.game.config.width = this.gameWidth;
-        //this.game.config.height = this.gameHeight;
-            this.game.scale.resize(this.gameWidth, this.gameHeight);
-
-        this.game.scene.getScenes().forEach(scene => {
-            if (scene.scene.key === 'MainScene' || scene.scene.key === 'IndoorScene') { //check if scene is MainScene or IndoorScene
-            scene.cameras.main.resize(this.gameWidth, this.gameHeight);
-            scene.scale.updateScale(this.gameWidth, this.gameHeight);
-            // Update the game config
-            this.game.config.width = this.gameWidth;
-            this.game.config.height = this.gameHeight;
-
-            // Manually resize the renderer
-            this.game.renderer.resize(this.gameWidth, this.gameHeight);
-            }
-        });
-    }
 }
 
 class Game {
@@ -1168,8 +1064,6 @@ class Game {
     logo.src = "/assets/logo.png"; // Path to the logo image
     logo.alt = "Game Logo";
     logo.className = "logo"; // Add the 'logo' class for animation
-    // logo.style.width = '150px'; // Adjust the size of the logo
-    // logo.style.marginBottom = '20px'; // Add spacing below the logo
     this.loadingScreen.appendChild(logo);
 
     // Add a spinner
@@ -1187,8 +1081,6 @@ class Game {
     this.loadingText = document.createElement("p");
     this.loadingText.textContent = "Loading your adventure...";
     this.loadingText.style.color = "#fff";
-    // this.loadingText.style.fontSize = '20px';
-    // this.loadingText.style.marginTop = '20px';
     this.loadingScreen.appendChild(this.loadingText);
 
     // Append the loading screen to the body
@@ -1244,8 +1136,8 @@ class Game {
         "https://capstone-assignment-36lq.vercel.app/dialogue",
         "/PlayerComponent/game-data/quest.json",
         "https://capstone-assignment-36lq.vercel.app/location",
-        "https://capstone-assignment-36lq.vercel.app/inventory", //"/PlayerComponent/game-data/inventory_sample.json",
-        "https://capstone-assignment-36lq.vercel.app/item", // "/PlayerComponent/game-data/item_sample.json",
+        "https://capstone-assignment-36lq.vercel.app/inventory",
+        "https://capstone-assignment-36lq.vercel.app/item",
         "/PlayerComponent/game-data/action.json",
         "https://capstone-assignment-36lq.vercel.app/package_detail",
         "https://capstone-assignment-36lq.vercel.app/position",
@@ -1390,6 +1282,6 @@ class Game {
   }
 }
 
-// Create the game object with dynamic width & height
-const myGame = new Game(); //size wont be use
+// Create the game object
+const myGame = new Game();
 

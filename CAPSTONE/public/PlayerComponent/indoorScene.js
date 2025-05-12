@@ -78,7 +78,7 @@ export class IndoorScene extends Phaser.Scene {
     const tileset = map.addTilesetImage(
       indoorDetail.name,
       indoorDetail.tileset
-    ); //Change in tmj file Line 259
+    );
     let mapLayers = map.layers;
     for (let i = 0; i < mapLayers.length; i++) {
       let eachLayer = mapLayers[i];
@@ -292,15 +292,6 @@ export class IndoorScene extends Phaser.Scene {
     if (!this.physics.overlap(this.player, this.door)) {
       this.enterButton.setVisible(false);
     }
-
-    // this.playerBounds.clear();
-    // this.playerBounds.lineStyle(2, 0xff0000, 1); // Red outline for the bounding box
-    // this.playerBounds.strokeRect(
-    //     this.player.getBounds().x,
-    //     this.player.getBounds().y,
-    //     this.player.getBounds().width,
-    //     this.player.getBounds().height
-    // );
   }
 
   checkNarrator(){
@@ -453,56 +444,6 @@ export class IndoorScene extends Phaser.Scene {
     this.enterButton.setVisible(false);
     console.log("Exiting");
     this.exitHouse();
-  }
-
-  moveNpcTo(npc_tag, targetX, targetY, speed, destroy=false) {
-    // Calculate the direction vector
-    let npc = this.npc[npc_tag];
-    const directionX = targetX - npc.x;
-    const directionY = targetY - npc.y;
-
-    // Normalize the direction vector
-    const magnitude = Math.sqrt(directionX * directionX + directionY * directionY);
-    const normalizedX = directionX / magnitude;
-    const normalizedY = directionY / magnitude;
-
-    // Set velocity based on the direction and speed
-    npc.setVelocity(normalizedX * speed, normalizedY * speed);
-
-    // Play walking animation based on direction
-    // if (Math.abs(normalizedX) > Math.abs(normalizedY)) {
-    //     // Horizontal movement
-    //     if (normalizedX > 0) {
-    //         npc.anims.play('npc_walk_right', true); // Replace with your right-walking animation key
-    //     } else {
-    //         npc.anims.play('npc_walk_left', true); // Replace with your left-walking animation key
-    //     }
-    // } else {
-    //     // Vertical movement
-    //     if (normalizedY > 0) {
-    //         npc.anims.play('npc_walk_down', true); // Replace with your down-walking animation key
-    //     } else {
-    //         npc.anims.play('npc_walk_up', true); // Replace with your up-walking animation key
-    //     }
-    // }
-
-    // Stop movement when the NPC reaches the target
-    const checkArrival = this.time.addEvent({
-        delay: 50, // Check every 50ms
-        callback: () => {
-            const distance = Phaser.Math.Distance.Between(npc.x, npc.y, targetX, targetY);
-            if (distance < 5) { // Stop when close enough
-                npc.setVelocity(0, 0); // Stop movement
-                npc.anims.stop(); // Stop animation
-                checkArrival.remove(); // Remove the timer
-            }
-        },
-        loop: true
-    });
-
-    if (destroy){
-        this.npc[npc_tag].destroy();
-    }
   }
 
   openGuide() {
@@ -667,6 +608,8 @@ async openInventory(){
     category2Image.setScrollFactor(0);
     this.inventoryItems.push(category2Image);
 
+    await this.refreshInventory();
+
     this.showCatItem(displayCat);
 
     // Add a close button
@@ -677,9 +620,6 @@ async openInventory(){
         this.closeInventory(); // Close the inventory UI
     });
     this.closeButton.setScrollFactor(0);
-
-    await this.refreshInventory();
-
 }
 
 showCatItem(catType=0){
@@ -729,7 +669,7 @@ showCatItem(catType=0){
             itemImage.setScrollFactor(0);
             this.inventoryItems.push(itemImage);
 
-            if (item.amount>1){
+            if (item.amount>1 && itemDetails.tag == 'points'){
                 // item amount display on top right of each item
                 let itemText = this.add.text(x + itemLength - 2, y + 2, item.amount, {
                     fontSize: `${itemLength*0.3}px`,
@@ -740,7 +680,6 @@ showCatItem(catType=0){
                 itemText.setScrollFactor(0);
                 this.inventoryItems.push(itemText);
             }
-            
         }
     }
 }
@@ -786,8 +725,6 @@ openMenu() {
 
     // Add the scroll background as the menu background
     this.menuBg = this.add.image(this.gameWidth / 2, ((this.gameHeight-30) / 2), 'scroll_background')
-        // .setOrigin(0.5)
-        // .setDisplaySize(this.gameWidth - 100, this.gameHeight - 100); // Adjust size to fit the menu
     this.menuBg.setScrollFactor(0);
     let scrollScale = (this.gameWidth-50)/this.menuBg.width;
     this.menuBg.setScale(scrollScale);
@@ -833,7 +770,7 @@ closeMenu() {
 }
 
 saveAndExit() {
-    console.log('Game saved! Exiting...');    
+    console.log('Game saved! Exiting...');
     this.scene.stop('MainScene');
     this.scene.stop('IndoorScene');
     window.location.href = '/'; // Redirect to the main menu or home page
