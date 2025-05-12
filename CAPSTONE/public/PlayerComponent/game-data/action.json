@@ -12,17 +12,17 @@
         },
         "speed": 10
     },
-    "allbot_appear":{
+    "element_bot_appear":{
         "type":"spawn",
-        "npc":["airbot","icebot","lightningbot", "firebot", "earthbot", "waterbot"],
-        "location_id":"1",
+        "npc":["firebot","waterbot","windbot", "lightningbot", "naturebot", "icebot"],
+        "location_id":"3",
         "position":[
-            {"x":0,"y":0},
-            {"x":50,"y":0},
-            {"x":100,"y":0},
-            {"x":150,"y":0},
-            {"x":200,"y":0},
-            {"x":250,"y":0}
+            {"x":360,"y":80},
+            {"x":375,"y":80},
+            {"x":390,"y":80},
+            {"x":360,"y":95},
+            {"x":375,"y":95},
+            {"x":390,"y":95}
         ]
     },
     "bot_disappear":{
@@ -44,7 +44,7 @@
     },
     "spawn_general_robot":{
         "type":"spawn",
-        "npc":["GENERAL ROBOT"],
+        "npc":["generalbot"],
         "location_id":"3",
         "position":[
             {"x":395,"y":110}
