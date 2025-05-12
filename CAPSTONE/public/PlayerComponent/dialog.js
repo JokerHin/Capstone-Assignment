@@ -1,3 +1,5 @@
+import { Npc } from './npc.js';
+
 export class Dialog{
     constructor(game,content){
         this.game=game;
@@ -17,7 +19,7 @@ export class Dialog{
         let dialogX = cam.scrollX+(30);
         let dialogY = cam.scrollY+(game.gameHeight - 150);
         let dialogWidth = (game.gameWidth - 100);
-        let dialogHeight = 140;
+        let dialogHeight = 145;
         this.graphics = game.add.graphics();
         this.graphics.fillStyle(0x000000, 0.7);
         this.graphics.fillRoundedRect(dialogX, dialogY, dialogWidth, dialogHeight, 20);
@@ -28,10 +30,10 @@ export class Dialog{
 
         let question = game.dialogue.find(dialogue => dialogue.dialogue_id === dialogue_id);
         console.log(question);
-        this.questionBox = game.add.text(60, game.gameHeight - 130, question.text, {
+        this.questionBox = game.add.text(60, game.gameHeight - 135, question.text, {
             font: '24px Arial',
             fill: '#ffffff',
-            wordWrap: { width: game.gameWidth - 120 }
+            wordWrap: { width: game.gameWidth - 130 }
         });
         this.questionBox.setScrollFactor(0);
 
@@ -43,18 +45,19 @@ export class Dialog{
             for (let option of choices){
                 let choice = option.text;
                 let optionX = 60 + cam.scrollX;
-                let optionY = game.gameHeight - (110-35*i) + cam.scrollY + this.questionBox.height;
+                let optionY = game.gameHeight - (125-35*i) + cam.scrollY + this.questionBox.height;
                 this.option = game.add.text(optionX, optionY, `Option ${i+1}: ${choice}`, {
                     font: '20px Arial',
-                    fill: '#ffffff'
+                    fill: '#ffffff',
+                    wordWrap: { width: game.gameWidth - 130 }
                 }).setInteractive();
 
                 this.optionBoxes.push(this.option);
 
                 this.option.on('pointerdown', () => {
                     this.destroyDialog();
-                    if (question.action){
-                        this.performAction(question.action);
+                    if (question.action_id){
+                        this.performAction(question.action_id);
                     }
 
                     if (option.package_id){
@@ -97,8 +100,8 @@ export class Dialog{
                     this.updateInventory(this.content[this.count].package_id);
                 }
                 this.destroyDialog();
-                if (question.action){
-                    this.performAction(question.action);
+                if (question.action_id){
+                    this.performAction(question.action_id);
                 }
                 this.count++;
                 if (this.count<this.content.length){
@@ -153,20 +156,20 @@ export class Dialog{
                 game.collisionHappened=false;
                 this.game.checkNarrator();
                 this.game.spawnNpc();
-                this.game.physics.add.overlap(this.game.player, this.game.npcList, this.game.showTalk, null, this);
             }
         });
     }
 
     performAction(action){
         let actionDetail = this.game.action[action];
+        console.log(actionDetail);
         if (actionDetail.type === "move"){
             this.game.moveNpcTo(actionDetail.npc, actionDetail.endPosition.x, actionDetail.endPosition.y, actionDetail.speed);
         }else if (actionDetail.type === "spawn"){
             let npcs = actionDetail.npc
             let positions = actionDetail.position
             for (let i=0; i<npcs.length; i++){
-                this.game.npc[npcs[i]] = new Npc(this, positions.x, positions.y, npcs[i], "", "");
+                this.game.npc[npcs[i]] = new Npc(this.game, positions[i].x, positions[i].y, npcs[i], "", "");
             }
         }else if (actionDetail.type === "remove"){
             let npcs = actionDetail.npc

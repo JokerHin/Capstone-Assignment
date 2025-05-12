@@ -303,7 +303,7 @@
         },
         "initialFrame": 0
     },
-    "generalbot":{
+    "GENERAL ROBOT":{
         "name": "Bot",
         "type": "spritesheet",
         "img": "generalbot_spritesheet.png",

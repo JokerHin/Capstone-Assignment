@@ -742,7 +742,7 @@ class MainScene extends Phaser.Scene {
             {
                 fill: '#000000',
                 align: 'center',
-                // wordWrap: { width: this.guideBg.displayWidth * 0.8 },
+                wordWrap: { width: this.guideBg.displayWidth * 0.7 },
                 font: `${this.guideBg.displayWidth*0.03}px 'VT323'`
             }).setOrigin(0.5);
         this.guideContent.setScrollFactor(0);
@@ -770,10 +770,11 @@ class MainScene extends Phaser.Scene {
         this.uistatus = 0;
     }
 
-    openInventory(){
+   async openInventory(){
         if (this.uistatus!=0 || this.collisionHappened){
             return;
         }
+
         this.uistatus=1;
         this.collisionHappened = true;
         let displayCat = 0;
@@ -877,12 +878,14 @@ class MainScene extends Phaser.Scene {
             this.closeInventory(); // Close the inventory UI
         });
         this.closeButton.setScrollFactor(0);
+
+        await this.refreshInventory();
     }
 
     showCatItem(catType=0){
         let catItemType = [];
         if (catType==0){
-            catItemType = ['quest'];
+            catItemType = ['quest','point'];
         }else{
             catItemType = ['badge'];
         }
@@ -956,6 +959,19 @@ class MainScene extends Phaser.Scene {
         this.inventoryButton.setVisible(true);
         this.collisionHappened = false;
         this.uistatus=0;
+    }
+
+    async refreshInventory() {
+        try {
+            const response = await fetch("https://capstone-assignment-36lq.vercel.app/inventory");
+            if (!response.ok) {
+                throw new Error("Failed to fetch inventory");
+            }
+            const inventory = await response.json();
+            this.inventory = inventory;
+        } catch (error) {
+            console.error("Error fetching inventory:", error);
+        }
     }
 
     openMenu() {

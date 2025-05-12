@@ -569,10 +569,11 @@ closeGuide() {
     this.uistatus = 0;
 }
 
-openInventory(){
+async openInventory(){
     if (this.uistatus!=0 || this.collisionHappened){
         return;
     }
+
     this.uistatus=1;
     this.collisionHappened = true;
     let displayCat = 0;
@@ -676,12 +677,15 @@ openInventory(){
         this.closeInventory(); // Close the inventory UI
     });
     this.closeButton.setScrollFactor(0);
+
+    await this.refreshInventory();
+
 }
 
 showCatItem(catType=0){
     let catItemType = [];
     if (catType==0){
-        catItemType = ['quest'];
+        catItemType = ['quest','point'];
     }else{
         catItemType = ['badge'];
     }
@@ -753,6 +757,19 @@ closeInventory() {
     this.collisionHappened = false;
     this.uistatus=0;
 }
+
+  async refreshInventory() {
+        try {
+            const response = await fetch("https://capstone-assignment-36lq.vercel.app/inventory");
+            if (!response.ok) {
+                throw new Error("Failed to fetch inventory");
+            }
+            const inventory = await response.json();
+            this.inventory = inventory;
+        } catch (error) {
+            console.error("Error fetching inventory:", error);
+        }
+    }
 
 openMenu() {
     if (this.uistatus!=0 || this.collisionHappened){

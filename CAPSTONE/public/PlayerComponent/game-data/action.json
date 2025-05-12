@@ -41,5 +41,13 @@
             "y": 100
         },
         "speed": 10
+    },
+    "spawn_general_robot":{
+        "type":"spawn",
+        "npc":["GENERAL ROBOT"],
+        "location_id":"3",
+        "position":[
+            {"x":395,"y":110}
+        ]
     }
 }
