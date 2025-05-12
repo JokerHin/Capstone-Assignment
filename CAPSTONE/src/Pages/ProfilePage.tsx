@@ -209,8 +209,6 @@ const ProfilePage = () => {
       questSubquestCounts[questId].total++;
     });
 
-    // Calculate completed subquests based on current progress
-    // Important: We consider all subquests from previous realms as "completed"
     for (let questId = 1; questId < currentQuestId; questId++) {
       if (questSubquestCounts[questId]) {
         // Add all subquests from previous realms to completedSubquests
@@ -283,9 +281,9 @@ const ProfilePage = () => {
     // Calculate points (10 per completed subquest)
     const totalPoints = completedSubquests * 10;
 
-    // Calculate overall progress percentage (based on quest progress, max 6 quests)
+    const completedRealms = highestQuestId - 1;
     const progressPercent = Math.min(
-      Math.round((highestQuestId / 6) * 100),
+      Math.round((completedRealms / 6) * 100),
       100
     );
 
@@ -398,7 +396,9 @@ const ProfilePage = () => {
           (item) => Number(item.item_id) === badge.id
         );
 
-        const unlocked = badge.requiredQuest <= gameStats.highestQuestId;
+        // A badge is unlocked only if the player has COMPLETED the realm
+        // That means the badge's requiredQuest must be LESS THAN the player's current quest
+        const unlocked = badge.requiredQuest < gameStats.highestQuestId;
 
         console.log(
           `Badge ${badge.id} (${badge.name}): Required Quest = ${badge.requiredQuest}, Player Quest = ${gameStats.highestQuestId}, Unlocked = ${unlocked}`
@@ -417,7 +417,7 @@ const ProfilePage = () => {
     // If no badge items yet, use defaults with same unlocking logic
     return defaultBadges.map((badge) => ({
       ...badge,
-      unlocked: badge.requiredQuest <= gameStats.highestQuestId,
+      unlocked: badge.requiredQuest < gameStats.highestQuestId,
     }));
   }, [badgeItems, gameStats.highestQuestId]);
 
