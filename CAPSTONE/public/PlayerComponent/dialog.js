@@ -241,7 +241,6 @@ export class Dialog{
                     });
                     console.log("update player progress");
                 }
-                return true;
             }
             fetch("https://capstone-assignment-36lq.vercel.app/inventory", {
                 method: "POST",
@@ -254,6 +253,7 @@ export class Dialog{
                 amount: item.amount,
                 }),
             });
+            console.log(item.item_id);
         }
         return true;
     }
