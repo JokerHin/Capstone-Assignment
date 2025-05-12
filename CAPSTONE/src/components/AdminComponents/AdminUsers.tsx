@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
 import { Pencil, Trash, UserPlus, X, Check, Activity } from "lucide-react";
-import questData from "../PlayerComponent/game-data/quest.json";
+import questData from "../../../public/PlayerComponent/game-data/quest.json";
 
 interface User {
   _id: string;

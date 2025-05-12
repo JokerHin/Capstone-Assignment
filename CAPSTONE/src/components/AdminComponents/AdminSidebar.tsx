@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../../assets/logo.png";
+import Logo from "../../../public/logo.png";
 import { AppContent } from "../../context/AppContext";
 import { LogOut, Menu, X } from "lucide-react";
 import axios from "axios";

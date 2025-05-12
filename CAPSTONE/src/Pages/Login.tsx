@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/logo.png";
+import Logo from "../../public/logo.png";
 import { useContext, useState, useEffect } from "react";
 import { AppContent } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import person from "../assets/person_icon.svg";
-import mail from "../assets/mail_icon.svg";
-import lock from "../assets/lock_icon.svg";
-import mc from "../assets/mc.gif";
+import person from "../../public/assets/person_icon.svg";
+import mail from "../../public/assets/mail_icon.svg";
+import lock from "../../public/assets/lock_icon.svg";
+import mc from "../../public/assets/mc.gif";
 import "./Animation.css";
 
 export default function Login() {

@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { AppContent } from "../../context/AppContext";
-import red from "../../assets/red.gif";
-import questData from "../PlayerComponent/game-data/quest.json";
+import red from "../../../public/assets/red.gif";
+import questData from "../../../public/PlayerComponent/game-data/quest.json";
+import points from "../../../public/assets/points.png";
 
 interface PlayerProgress {
   _id: string;
@@ -43,7 +44,7 @@ export default function Games() {
   const realmImages = [
     "https://cdn2.unrealengine.com/s05-keyart-1920x1080-logo-1920x1080-8eefea7d608b.png?resize=1&w=1920",
     "https://www.ji-cloud.cn/ueditor/php/upload/image/20230414/1681454294321103.jpg",
-    "https://p.qpic.cn/mwegame/0/c6057c02143ad52ad201fd1c9a0a1540/",
+    "https://images8.alphacoders.com/131/1316590.jpeg",
     "https://images6.alphacoders.com/125/1250786.jpg",
     "https://wallpapers.com/images/hd/fall-guys-fun-skins-l7pnkwqhyrmtivot.jpg",
     "https://assets.nintendo.com/image/upload/q_auto/f_auto/ncom/software/switch/70010000042975/937afd0c84319831009b44c93369faf0a2c926a454809f73523df9bfb6cf6233",
@@ -52,27 +53,27 @@ export default function Games() {
   // Badge titles and descriptions
   const badgeInfo = [
     {
-      title: "Class Master",
+      title: "Class Badge",
       description: "Mastered the art of creating and using classes",
     },
     {
-      title: "Object Architect",
+      title: "Object Badge",
       description: "Created and manipulated objects with precision",
     },
     {
-      title: "Encapsulation Expert",
+      title: "Encapsulation Badge",
       description: "Protected data through proper encapsulation",
     },
     {
-      title: "Inheritance Leader",
+      title: "Inheritance Badge",
       description: "Carried forward the traits through inheritance",
     },
     {
-      title: "Polymorphism Pro",
+      title: "Polymorphism Badge",
       description: "Mastered the art of many forms",
     },
     {
-      title: "Abstraction Adept",
+      title: "Abstraction Badge",
       description: "Simplified complex systems with abstractions",
     },
   ];
@@ -153,7 +154,6 @@ export default function Games() {
       // Get subquest titles
       const subquestTitles = questSubquests.map((sq) => sq.title);
 
-      // Calculate points based on completed subquests for this player
       const totalPoints = questSubquests.length * 10;
       const completedSubquests = playerProgress.filter((progress) => {
         const subquestId = progress.subquest_id;
@@ -184,7 +184,7 @@ export default function Games() {
         points,
         totalPoints,
         progress: progressPercent,
-        badge: `/src/assets/badges/badge${quest.quest_id}.png`,
+        badge: `/assets/badges/badge${quest.quest_id}.png`,
         badgeTitle:
           badgeInfo[quest.quest_id - 1]?.title ||
           `Realm ${quest.quest_id} Master`,
@@ -361,7 +361,7 @@ export default function Games() {
                     <div className="flex items-center bg-slate-700 p-4 rounded-lg mb-3">
                       <div className="bg-amber-900/60 p-3 rounded-lg mr-4">
                         <img
-                          src="/src/assets/coin.png"
+                          src={points}
                           alt="Points"
                           className="w-10 h-10 object-contain"
                         />

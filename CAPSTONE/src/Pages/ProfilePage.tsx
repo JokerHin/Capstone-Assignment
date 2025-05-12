@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { AppContent } from "../context/AppContext";
 import { ArrowLeft } from "lucide-react";
 import "../Pages/Animation.css";
-import questData from "../components/PlayerComponent/game-data/quest.json";
+import questData from "../../public/PlayerComponent/game-data/quest.json";
 
 interface PlayerProgress {
   _id: string;
@@ -421,10 +421,10 @@ const ProfilePage = () => {
     }));
   }, [badgeItems, gameStats.highestQuestId]);
 
-  // Get badge image based on index
+  // Get badge image based on index - update to use public directory
   const getBadgeImage = (index: number) => {
     const badgeNumber = (index % 6) + 1;
-    return `/src/assets/badges/badge${badgeNumber}.png`;
+    return `/assets/badges/badge${badgeNumber}.png`;
   };
 
   // Get unlocked badges based on quest progress
