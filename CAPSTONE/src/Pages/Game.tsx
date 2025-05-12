@@ -15,7 +15,8 @@ const Game = () => {
 
     // Dynamically load Phaser first
     const phaserScript = document.createElement("script");
-    phaserScript.src = "https://cdn.jsdelivr.net/npm/phaser@v3.88.2/dist/phaser.js";
+    phaserScript.src =
+      "https://cdn.jsdelivr.net/npm/phaser@v3.88.2/dist/phaser.js";
     phaserScript.async = true;
 
     phaserScript.onload = () => {

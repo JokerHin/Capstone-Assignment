@@ -43,14 +43,11 @@ function AppContent() {
         }
       }
 
-      // When admin navigates to home page, log them out automatically
       if (pathname === "/" && localStorage.getItem("isAdmin") === "true") {
-        // Use the logout function from context if available
         if (appContext?.logout) {
           appContext.logout();
           console.log("Admin logged out automatically when visiting home page");
         } else {
-          // Manual logout if context not available
           localStorage.removeItem("adminEmail");
           localStorage.removeItem("adminPassword");
           localStorage.removeItem("token");
@@ -88,7 +85,6 @@ function App() {
       <AdminProvider>
         <AppContextNavigationProvider>
           <AppContent />
-
         </AppContextNavigationProvider>
       </AdminProvider>
     </div>

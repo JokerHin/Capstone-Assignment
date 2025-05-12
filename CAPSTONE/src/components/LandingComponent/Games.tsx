@@ -1,172 +1,227 @@
-import { Lock } from "lucide-react";
-import { useState, useContext } from "react";
+import { Lock, CheckCircle } from "lucide-react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 import { AppContent } from "../../context/AppContext";
 import red from "../../assets/red.gif";
+import questData from "../PlayerComponent/game-data/quest.json";
 
-const realmsData = [
-  {
-    id: 1,
-    title: "Realm 1: The House of Blueprints (Classes)",
-    image:
-      "https://cdn2.unrealengine.com/s05-keyart-1920x1080-logo-1920x1080-8eefea7d608b.png?resize=1&w=1920",
-    mainObjective:
-      "Learn how classes define the structure and rules of entities.",
-    subquests: [
-      "Complete the Blueprint Basics tutorial",
-      "Create your first class structure",
-      "Implement a character class with attributes",
-      "Solve the inheritance puzzle",
-    ],
-    points: 1200,
-    totalPoints: 2000,
-    progress: 60,
-    badge: "/assets/badges/badge1.png",
-    badgeTitle: "Blueprint Master",
-    badgeDescription:
-      "Mastered the art of creating and using class blueprints.",
-  },
-  {
-    id: 2,
-    title: "Realm 2: The Object Outpost (Objects)",
-    image:
-      "https://www.ji-cloud.cn/ueditor/php/upload/image/20230414/1681454294321103.jpg",
-    mainObjective: "Understand that objects are real-world uses of classes.",
-    subquests: [
-      "Create multiple objects from a single class",
-      "Modify object properties during runtime",
-      "Learn about object initialization and destruction",
-      "Implement object communication patterns",
-    ],
-    points: 800,
-    totalPoints: 2000,
-    progress: 40,
-    badge: "/assets/badges/badge2.png",
-    badgeTitle: "Object Architect",
-    badgeDescription:
-      "Created and manipulated objects with precision and skill.",
-  },
-  {
-    id: 3,
-    title: "Realm 3: The Encapsulation Enclave (Encapsulation)",
-    image: "https://p.qpic.cn/mwegame/0/c6057c02143ad52ad201fd1c9a0a1540/",
-    mainObjective:
-      "Discover how information is protected and accessed only through proper channels.",
-    subquests: [
-      "Implement access modifiers (public, private, protected)",
-      "Create getters and setters for controlled access",
-      "Build a secure data handling system",
-      "Debug encapsulation-related issues",
-    ],
-    points: 400,
-    totalPoints: 2000,
-    progress: 20,
-    badge: "/assets/badges/badge3.png",
-    badgeTitle: "Guardian of Secrets",
-    badgeDescription: "Protected data through proper encapsulation techniques.",
-  },
-  {
-    id: 4,
-    title: "Realm 4: House of Abstraction (Abstraction)",
-    image: "https://images6.alphacoders.com/125/1250786.jpg",
-    mainObjective:
-      "Understand how complexity is hidden through simplified interfaces",
-    subquests: [
-      "Design abstract classes and methods",
-      "Implement interfaces to define behavior contracts",
-      "Create simplified APIs for complex systems",
-      "Refactor code to increase abstraction levels",
-    ],
-    points: 0,
-    totalPoints: 2000,
-    progress: 0,
-    badge: "/assets/badges/badge4.png",
-    badgeTitle: "Abstraction Adept",
-    badgeDescription:
-      "Simplified complex systems through powerful abstractions.",
-  },
-  {
-    id: 5,
-    title: "Realm 5: The Polymorphism Plateau (Polymorphism)",
-    image:
-      "https://wallpapers.com/images/hd/fall-guys-fun-skins-l7pnkwqhyrmtivot.jpg",
-    mainObjective:
-      "Discover how objects, despite being created from the same class or interface, can behave differently when they perform the same action.",
-    subquests: [
-      "Implement method overriding for different behaviors",
-      "Use dynamic method binding at runtime",
-      "Create polymorphic collections of objects",
-      "Design extensible systems using polymorphism",
-    ],
-    points: 0,
-    totalPoints: 2000,
-    progress: 0,
-    badge: "/assets/badges/badge5.png",
-    badgeTitle: "Shape Shifter",
-    badgeDescription: "Mastered the art of many forms through polymorphism.",
-  },
-  {
-    id: 6,
-    title: "Realm 6: Inheritance Isle (Inheritance)",
-    image:
-      "https://assets.nintendo.com/image/upload/q_auto/f_auto/ncom/software/switch/70010000042975/937afd0c84319831009b44c93369faf0a2c926a454809f73523df9bfb6cf6233",
-    mainObjective:
-      "Explore how child classes inherit traits from parent classes",
-    subquests: [
-      "Create parent-child class hierarchies",
-      "Override and extend inherited methods",
-      "Implement multi-level inheritance chains",
-      "Understand abstract inheritance and interfaces",
-    ],
-    points: 0,
-    totalPoints: 2000,
-    progress: 0,
-    badge: "/assets/badges/badge6.png",
-    badgeTitle: "Legacy Bearer",
-    badgeDescription:
-      "Carried forward the traits of ancestors through inheritance.",
-  },
-];
+interface PlayerProgress {
+  _id: string;
+  player_id: string;
+  subquest_id: string;
+  status: string;
+}
 
-// Create simplified version for the cards display
-const chaptersData = realmsData.map((realm) => ({
-  id: realm.id,
-  title: `Realm ${realm.id}`,
-  image: realm.image,
-}));
+interface Subquest {
+  _id: string;
+  subquest_id: string;
+  quest_id: string;
+  title: string;
+  description?: string;
+}
 
 export default function Games() {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [playerProgress, setPlayerProgress] = useState<PlayerProgress[]>([]);
+  const [currentQuestId, setCurrentQuestId] = useState<number>(1);
+  const [apiSubquests, setApiSubquests] = useState<Subquest[]>([]);
+  const [loadingSubquests, setLoadingSubquests] = useState(true);
 
-  // Get login state from context
+  // Get login state and user data from context
   const appContext = useContext(AppContent);
   if (!appContext) {
     throw new Error("AppContent context is undefined");
   }
-  const { isLoggedin } = appContext;
+  const { isLoggedin, userData, backendUrl } = appContext;
 
-  const [unlockedChapters] = useState([
-    true, // Chapter 1
-    false, // Chapter 2
-    false, // Chapter 3
-    false, // Chapter 4
-    false, // Chapter 5
-    false, // Chapter 6
-  ]);
+  // Default realm images - use these if you don't have specific images for each realm
+  const realmImages = [
+    "https://cdn2.unrealengine.com/s05-keyart-1920x1080-logo-1920x1080-8eefea7d608b.png?resize=1&w=1920",
+    "https://www.ji-cloud.cn/ueditor/php/upload/image/20230414/1681454294321103.jpg",
+    "https://p.qpic.cn/mwegame/0/c6057c02143ad52ad201fd1c9a0a1540/",
+    "https://images6.alphacoders.com/125/1250786.jpg",
+    "https://wallpapers.com/images/hd/fall-guys-fun-skins-l7pnkwqhyrmtivot.jpg",
+    "https://assets.nintendo.com/image/upload/q_auto/f_auto/ncom/software/switch/70010000042975/937afd0c84319831009b44c93369faf0a2c926a454809f73523df9bfb6cf6233",
+  ];
+
+  // Badge titles and descriptions
+  const badgeInfo = [
+    {
+      title: "Class Master",
+      description: "Mastered the art of creating and using classes",
+    },
+    {
+      title: "Object Architect",
+      description: "Created and manipulated objects with precision",
+    },
+    {
+      title: "Encapsulation Expert",
+      description: "Protected data through proper encapsulation",
+    },
+    {
+      title: "Inheritance Leader",
+      description: "Carried forward the traits through inheritance",
+    },
+    {
+      title: "Polymorphism Pro",
+      description: "Mastered the art of many forms",
+    },
+    {
+      title: "Abstraction Adept",
+      description: "Simplified complex systems with abstractions",
+    },
+  ];
+
+  // Fetch player progress
+  useEffect(() => {
+    const fetchPlayerProgress = async () => {
+      if (!isLoggedin || !userData?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${backendUrl}/player-progress`);
+
+        // Filter progress for current player
+        const userProgressData = response.data.filter(
+          (progress: PlayerProgress) => progress.player_id === userData.id
+        );
+
+        setPlayerProgress(userProgressData);
+
+        // Determine current quest based on progress
+        if (userProgressData.length > 0) {
+          let highestQuestId = 1;
+
+          userProgressData.forEach((progress: PlayerProgress) => {
+            const subquestId = progress.subquest_id;
+
+            const matchingSubquest = apiSubquests.find(
+              (sq) => String(sq.subquest_id) === String(subquestId)
+            );
+
+            if (matchingSubquest) {
+              const questId = Number(matchingSubquest.quest_id);
+              highestQuestId = Math.max(highestQuestId, questId);
+            }
+          });
+
+          setCurrentQuestId(highestQuestId);
+        }
+      } catch (error) {
+        console.error("Error fetching player progress:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayerProgress();
+  }, [isLoggedin, userData, backendUrl, apiSubquests]);
+
+  useEffect(() => {
+    const fetchSubquests = async () => {
+      if (!backendUrl) return;
+
+      setLoadingSubquests(true);
+      try {
+        const response = await axios.get(`${backendUrl}/subquest`);
+        setApiSubquests(response.data);
+      } catch (error) {
+        console.error("Error fetching subquests:", error);
+      } finally {
+        setLoadingSubquests(false);
+      }
+    };
+
+    fetchSubquests();
+  }, [backendUrl]);
+
+  // Enhanced realms data with API subquests
+  const enhancedRealmsData = useMemo(() => {
+    return questData.map((quest) => {
+      // Find subquests for this quest from API
+      const questSubquests = apiSubquests.filter(
+        (sq) => String(sq.quest_id) === String(quest.quest_id)
+      );
+
+      // Get subquest titles
+      const subquestTitles = questSubquests.map((sq) => sq.title);
+
+      // Calculate points based on completed subquests for this player
+      const totalPoints = questSubquests.length * 10;
+      const completedSubquests = playerProgress.filter((progress) => {
+        const subquestId = progress.subquest_id;
+        return (
+          questSubquests.some(
+            (sq) => String(sq.subquest_id) === String(subquestId)
+          ) && progress.status === "completed"
+        );
+      }).length;
+
+      const points = completedSubquests * 10;
+
+      // Calculate progress percentage
+      const progressPercent = questSubquests.length
+        ? Math.round((completedSubquests / questSubquests.length) * 100)
+        : 0;
+
+      // Determine completion status
+      const isCompleted = quest.quest_id < currentQuestId;
+      const isCurrent = quest.quest_id === currentQuestId;
+
+      return {
+        id: quest.quest_id,
+        title: `Realm ${quest.quest_id}: ${quest.title}`,
+        image: realmImages[quest.quest_id - 1] || realmImages[0],
+        subquests:
+          subquestTitles.length > 0 ? subquestTitles : ["No subquests found"],
+        points,
+        totalPoints,
+        progress: progressPercent,
+        badge: `/src/assets/badges/badge${quest.quest_id}.png`,
+        badgeTitle:
+          badgeInfo[quest.quest_id - 1]?.title ||
+          `Realm ${quest.quest_id} Master`,
+        badgeDescription:
+          badgeInfo[quest.quest_id - 1]?.description || "Completed this realm",
+        isCompleted,
+        isCurrent,
+      };
+    });
+  }, [apiSubquests, questData, playerProgress, currentQuestId]);
+
+  // Create simplified version for the cards display
+  const chaptersData = enhancedRealmsData.map((realm) => ({
+    id: realm.id,
+    title: realm.title,
+    image: realm.image,
+    isCompleted: realm.isCompleted,
+    isCurrent: realm.isCurrent,
+  }));
 
   const handleChapterClick = (chapterId: number) => {
-    if (unlockedChapters[chapterId - 1]) {
+    // Find if chapter is unlocked (either completed or current)
+    const chapter = enhancedRealmsData.find((realm) => realm.id === chapterId);
+
+    if (chapter && (chapter.isCurrent || isLoggedin)) {
       setSelectedChapter(chapterId);
       setShowModal(true);
+    } else if (!isLoggedin) {
+      toast.warn("Please log in to view realm details", {
+        position: "top-center",
+        autoClose: 3000,
+      });
     }
   };
 
   const handlePlayNow = () => {
     if (isLoggedin) {
-      // window.location.href = "game.html";
       navigate("/game");
     } else {
       toast.warn("Please log in to play this game", {
@@ -184,40 +239,68 @@ export default function Games() {
   return (
     <div className="flex justify-center items-center flex-col">
       <div className="text-[20pt] md:text-[30pt] text-white font-bold text-center mb-10">
-        Games
+        Game Realms
       </div>
-      <div className="w-[90%] md:w-[70%] h-auto grid grid-flow-row grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-white items-center">
-        {chaptersData.map((chapter, index) => (
-          <div
-            key={chapter.id}
-            className={`w-[100%] bg-[#262b47] h-[300px] md:h-[300px] relative rounded-4xl ${
-              unlockedChapters[index]
-                ? "hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500"
-                : "cursor-not-allowed"
-            }`}
-            onClick={() => handleChapterClick(chapter.id)}
-          >
-            <img
-              src={chapter.image}
-              alt={`${chapter.title} image`}
-              className="w-full rounded-t-4xl"
-            />
-            <p className="text-xl md:text-2xl text-white font-bold text-center mt-4 md:mt-7">
-              {chapter.title}
-            </p>
 
-            {/* Show lock overlay if chapter is locked */}
-            {!unlockedChapters[index] && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-4xl bg-black opacity-60">
-                <Lock size={40} className="text-white opacity-80 mb-2" />
-                <p className="text-white font-bold opacity-80">
-                  Play to Unlock
-                </p>
+      {loading || loadingSubquests ? (
+        <div className="text-white text-center">Loading realms...</div>
+      ) : (
+        <div className="w-[90%] md:w-[70%] h-auto grid grid-flow-row grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-white items-center">
+          {chaptersData.map((chapter, index) => {
+            const realm = enhancedRealmsData[index];
+            const isUnlocked =
+              realm && (realm.isCurrent || realm.isCompleted || !isLoggedin);
+
+            return (
+              <div
+                key={chapter.id}
+                className={`w-[100%] bg-[#262b47] h-[300px] md:h-[300px] relative rounded-4xl ${
+                  isUnlocked
+                    ? "hover:shadow-amber-500 hover:shadow-2xl hover:-translate-y-4 hover:duration-75 cursor-pointer hover:delay-100 hover:inset-shadow-sm hover:inset-shadow-amber-500"
+                    : ""
+                }`}
+                onClick={() => isUnlocked && handleChapterClick(chapter.id)}
+              >
+                <img
+                  src={chapter.image}
+                  alt={`${chapter.title} image`}
+                  className="w-full h-[65%] rounded-t-4xl object-cover"
+                />
+                <div className="p-3">
+                  <p className="text-lg md:text-xl text-white font-bold text-center">
+                    {chapter.title}
+                  </p>
+                  <div className="flex justify-center items-center mt-2">
+                    <span className="text-sm text-amber-300 text-center">
+                      {realm.subquests.length} Subquests
+                    </span>
+                  </div>
+                </div>
+
+                {/* Show semi-transparent lock overlay if chapter is locked */}
+                {!isUnlocked && (
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center rounded-4xl bg-black opacity-40 backdrop-blur-[2px] cursor-not-allowed"
+                    aria-hidden="true"
+                  >
+                    <Lock size={40} className="text-white opacity-90 mb-2" />
+                    <p className="text-white font-bold">
+                      Complete Previous Realm
+                    </p>
+                  </div>
+                )}
+
+                {/* Show completion indicator for completed realms */}
+                {realm.isCompleted && (
+                  <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1">
+                    <CheckCircle size={20} className="text-white" />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <img
         src={red}
@@ -226,103 +309,115 @@ export default function Games() {
       />
 
       {/* Chapter Details Modal */}
-      {showModal && selectedChapter && (
-        <div className="fixed inset-0 bg-black flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1f38] rounded-xl w-full max-w-5xl overflow-hidden shadow-2xl">
-            <div className="flex flex-col md:flex-row">
-              {/* Left Column - Image */}
-              <div className="w-full md:w-2/5">
-                <img
-                  src={realmsData[selectedChapter - 1].image}
-                  alt={realmsData[selectedChapter - 1].title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Right Column - Chapter Info */}
-              <div className="w-full md:w-3/5 p-6 md:p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    {realmsData[selectedChapter - 1].title}
-                  </h2>
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="text-gray-400 hover:text-white text-3xl cursor-pointer"
-                  >
-                    ×
-                  </button>
+      {showModal &&
+        selectedChapter &&
+        enhancedRealmsData[selectedChapter - 1] && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1a1f38] rounded-xl w-full max-w-5xl overflow-hidden shadow-2xl">
+              <div className="flex flex-col md:flex-row">
+                {/* Left Column - Image */}
+                <div className="w-full md:w-2/5">
+                  <img
+                    src={enhancedRealmsData[selectedChapter - 1].image}
+                    alt={enhancedRealmsData[selectedChapter - 1].title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-amber-400 mb-2">
-                    Main Objective
-                  </h3>
-                  <p className="text-gray-200">
-                    {realmsData[selectedChapter - 1].mainObjective}
-                  </p>
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-amber-400 mb-2">
-                    Subquests
-                  </h3>
-                  <ul className="list-disc pl-5 text-gray-200 space-y-1">
-                    {realmsData[selectedChapter - 1].subquests.map(
-                      (quest, index) => (
-                        <li key={index}>{quest}</li>
-                      )
-                    )}
-                  </ul>
-                </div>
-
-                <div className="flex flex-wrap gap-4 mb-6">
-                  {/* Points */}
-                  <div className="bg-[#262b47] p-3 rounded-lg w-[100px] text-center">
-                    <h4 className="text-sm text-gray-400">Points</h4>
-                    <p className="text-xl font-bold text-white">
-                      {realmsData[selectedChapter - 1].points}
-                    </p>
+                {/* Right Column - Chapter Info */}
+                <div className="w-full md:w-3/5 p-6 md:p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-bold text-white">
+                      {enhancedRealmsData[selectedChapter - 1].title}
+                    </h2>
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="text-gray-400 hover:text-white text-3xl cursor-pointer"
+                    >
+                      ×
+                    </button>
                   </div>
 
-                  {/* Badge with tooltip */}
-                  <div className="bg-[#262b47] w-[100px] p-3 rounded-lg flex flex-col justify-center items-center relative group">
-                    <div>
-                      <h4 className="text-sm text-gray-400 text-center">
-                        Badge
-                      </h4>
-                    </div>
-                    <div className="flex justify-center items-center w-full relative">
-                      <img
-                        src={realmsData[selectedChapter - 1].badge}
-                        alt="Badge"
-                        className="w-12 h-12 object-contain transition-transform duration-300 group-hover:scale-110"
-                      />
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-amber-400 mb-2">
+                      Subquests
+                    </h3>
+                    <ul className="list-disc pl-5 text-gray-200 space-y-1">
+                      {enhancedRealmsData[selectedChapter - 1].subquests.map(
+                        (quest, index) => (
+                          <li key={index}>{quest}</li>
+                        )
+                      )}
+                    </ul>
+                  </div>
 
-                      {/* Badge tooltip */}
-                      <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black bg-opacity-80 text-white p-2 rounded text-xs w-48 pointer-events-none z-10 -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full">
-                        <div className="font-bold mb-1">
-                          {realmsData[selectedChapter - 1].badgeTitle}
+                  {/* Completion Rewards - Always show, not grayed out */}
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-amber-400 mb-3">
+                      Completion Rewards
+                    </h3>
+
+                    {/* Points Reward */}
+                    <div className="flex items-center bg-slate-700 p-4 rounded-lg mb-3">
+                      <div className="bg-amber-900/60 p-3 rounded-lg mr-4">
+                        <img
+                          src="/src/assets/coin.png"
+                          alt="Points"
+                          className="w-10 h-10 object-contain"
+                        />
+                      </div>
+                      <div>
+                        <div className="font-bold text-white text-lg">
+                          {enhancedRealmsData[selectedChapter - 1].totalPoints}{" "}
+                          Points
                         </div>
-                        <div>
-                          {realmsData[selectedChapter - 1].badgeDescription}
+                        <div className="text-sm text-gray-300 mt-1">
+                          Complete all subquests to earn points
                         </div>
-                        <div className="absolute left-1/2 transform -translate-x-1/2 top-full border-4 border-transparent border-t-black/80"></div>
+                      </div>
+                    </div>
+
+                    {/* Badge Reward */}
+                    <div className="flex items-center bg-slate-700 p-4 rounded-lg">
+                      <img
+                        src={enhancedRealmsData[selectedChapter - 1].badge}
+                        alt="Badge"
+                        className="w-16 h-16 object-contain mr-4"
+                      />
+                      <div>
+                        <div className="font-bold text-white text-lg">
+                          {enhancedRealmsData[selectedChapter - 1].badgeTitle}
+                        </div>
+                        <div className="text-sm text-gray-300 mt-1">
+                          {
+                            enhancedRealmsData[selectedChapter - 1]
+                              .badgeDescription
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <button
-                  onClick={handlePlayNow}
-                  className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg transition-colors cursor-pointer"
-                >
-                  Play Now
-                </button>
+                  <button
+                    onClick={handlePlayNow}
+                    disabled={
+                      enhancedRealmsData[selectedChapter - 1].isCompleted
+                    }
+                    className={`w-full py-3 font-bold rounded-lg transition-colors cursor-pointer ${
+                      enhancedRealmsData[selectedChapter - 1].isCompleted
+                        ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                        : "bg-amber-500 hover:bg-amber-600 text-white"
+                    }`}
+                  >
+                    {enhancedRealmsData[selectedChapter - 1].isCompleted
+                      ? "Completed"
+                      : "Play Now"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

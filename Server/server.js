@@ -53,6 +53,6 @@ app.use("/position", positionRouter);
 app.use("/subquest", subquestRouter);
 app.use("/package", packageRouter);
 app.use("/choice", choiceRouter);
-app.use("/player_progress", playerProgressRouter);
+app.use("/player-progress", playerProgressRouter);
 
 app.listen(port, () => console.log(`Server is running on port ${port}`));
