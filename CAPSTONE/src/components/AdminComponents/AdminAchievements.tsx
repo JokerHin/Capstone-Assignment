@@ -10,7 +10,7 @@ interface Badge {
   item_id: string;
   name: string;
   description?: string;
-  type: string; // Should be "badge"
+  type: string;
 }
 
 const AdminAchievements: React.FC = () => {
@@ -128,7 +128,7 @@ const AdminAchievements: React.FC = () => {
   // Get badge image based on index
   const getBadgeImage = (index: number) => {
     const badgeNumber = (index % 6) + 1;
-    return `/src/assets/badges/badge${badgeNumber}.png`;
+    return `/assets/badges/badge${badgeNumber}.png`;
   };
 
   return (

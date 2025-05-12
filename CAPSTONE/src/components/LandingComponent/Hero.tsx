@@ -1,4 +1,4 @@
-import mc from "../../assets/mc.gif";
+import mc from "../../../public/assets/mc.gif";
 
 const Hero = () => {
   const scrollToSection = (sectionId: string) => {

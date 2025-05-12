@@ -285,7 +285,7 @@ const AdminOverview: React.FC = () => {
   // Get badge image URL based on index
   const getBadgeImage = (index: number) => {
     const badgeNumber = (index % 6) + 1; // Cycle through badges 1-6
-    return `/src/assets/badges/badge${badgeNumber}.png`;
+    return `/assets/badges/badge${badgeNumber}.png`;
   };
 
   // Process the monthly data from the API response

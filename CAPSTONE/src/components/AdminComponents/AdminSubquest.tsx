@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
 import { ArrowLeft, Check, X, Pencil, MessageSquare } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
-import questData from "../PlayerComponent/game-data/quest.json";
+import questData from "../../../public/PlayerComponent/game-data/quest.json";
 
 interface Subquest {
   _id: string;

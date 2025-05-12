@@ -1,23 +1,23 @@
 import React from "react";
-import Grand from "../../assets/npc/GrandCompiler.png";
-import Auntie from "../../assets/npc/AuntieAng.png";
-import Uncle from "../../assets/npc/UncleChong.png";
-import Ava from "../../assets/npc/ava.png";
-import Gatekeeper from "../../assets/npc/GatekeeperAxion.png";
-import Grandpa from "../../assets/npc/Grandpa.png";
-import Wai from "../../assets/npc/Wai.png";
-import SirBen from "../../assets/npc/BenSir.png";
-import Cipher from "../../assets/npc/Cipher.png";
-import Lina from "../../assets/npc/Lina.png";
-import EarthBot from "../../assets/npc/EarthBot.png";
-import AirBot from "../../assets/npc/AirBot.png";
-import FireBot from "../../assets/npc/FireBot.png";
-import WaterBot from "../../assets/npc/WaterBot.png";
-import LightningBot from "../../assets/npc/LightningBot.png";
-import NaturalBot from "../../assets/npc/NaturalBot.png";
-import IceBot from "../../assets/npc/IceBot.png";
-import Kargie from "../../assets/npc/Kargie.png";
-import Selena from "../../assets/npc/Selena.png";
+import Grand from "../../../public/assets/npc/GrandCompiler.png";
+import Auntie from "../../../public/assets/npc/AuntieAng.png";
+import Uncle from "../../../public/assets/npc/UncleChong.png";
+import Ava from "../../../public/assets/npc/ava.png";
+import Gatekeeper from "../../../public/assets/npc/GatekeeperAxion.png";
+import Grandpa from "../../../public/assets/npc/Grandpa.png";
+import Wai from "../../../public/assets/npc/Wai.png";
+import SirBen from "../../../public/assets/npc/BenSir.png";
+import Cipher from "../../../public/assets/npc/Cipher.png";
+import Lina from "../../../public/assets/npc/Lina.png";
+import EarthBot from "../../../public/assets/npc/EarthBot.png";
+import AirBot from "../../../public/assets/npc/AirBot.png";
+import FireBot from "../../../public/assets/npc/FireBot.png";
+import WaterBot from "../../../public/assets/npc/WaterBot.png";
+import LightningBot from "../../../public/assets/npc/LightningBot.png";
+import NaturalBot from "../../../public/assets/npc/NaturalBot.png";
+import IceBot from "../../../public/assets/npc/IceBot.png";
+import Kargie from "../../../public/assets/npc/Kargie.png";
+import Selena from "../../../public/assets/npc/Selena.png";
 
 interface NPC {
   name: string;
@@ -35,12 +35,12 @@ const npcs: NPC[] = [
   { name: "Ben", image: SirBen },
   { name: "Axel", image: Cipher },
   { name: "Mira", image: Lina },
-  { name: "NatureBot", image: EarthBot },
-  { name: "AirBot", image: AirBot },
-  { name: "FireBot", image: FireBot },
-  { name: "WaterBot", image: WaterBot },
-  { name: "LightningBot", image: LightningBot },
-  { name: "GeneralBot", image: NaturalBot },
+  { name: "Nature Bot", image: EarthBot },
+  { name: "Air Bot", image: AirBot },
+  { name: "Fire Bot", image: FireBot },
+  { name: "Water Bot", image: WaterBot },
+  { name: "Lightning Bot", image: LightningBot },
+  { name: "Bot", image: NaturalBot },
   { name: "IceBot", image: IceBot },
   { name: "Kargie", image: Kargie },
   { name: "Selena", image: Selena },

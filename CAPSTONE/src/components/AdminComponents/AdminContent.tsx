@@ -4,7 +4,8 @@ import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { Pencil, MessageSquare } from "lucide-react";
-import questData from "../PlayerComponent/game-data/quest.json";
+import questData from "../../../public/PlayerComponent/game-data/quest.json";
+import itemDetails from "../../../public/PlayerComponent/game-data/item_detail.json";
 
 interface Subquest {
   _id: string;
@@ -196,13 +197,27 @@ const AdminContent: React.FC = () => {
     setEditForm({ name: "", description: "", type: "" });
   };
 
-  const getItemImage = (type: string, index: number) => {
-    if (type === "quest") return "/src/assets/green_gem.png";
-    if (type === "milestone") return "/src/assets/potion.png";
-    if (type === "currency") return "/src/assets/coin.png";
+  const getItemImage = (type: string, item_id: number) => {
+    // Convert item_id to string for lookup
+    const itemIdStr = item_id.toString();
 
-    const itemNumber = (index % 3) + 1;
-    return `/src/assets/items/item${itemNumber}.png`;
+    // Check if this item ID exists in the details
+    if (itemDetails[itemIdStr as keyof typeof itemDetails]) {
+      const itemDetail = itemDetails[itemIdStr as keyof typeof itemDetails];
+      if (itemDetail && itemDetail.img) {
+        // Use the full path from public directory
+        return `/assets/${itemDetail.img}`;
+      }
+    }
+
+    // Fallback images by type if item is not in our details
+    if (type === "quest") return "/assets/green_gem.png";
+    if (type === "milestone") return "/assets/potion.png";
+    if (type === "currency" || type === "point") return "/assets/coin.png";
+
+    // Default fallback
+    const itemNumber = (item_id % 3) + 1;
+    return `/assets/items/item${itemNumber}.png`;
   };
 
   // Define item type options - updated with only the allowed types
@@ -316,7 +331,7 @@ const AdminContent: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {inventoryItems.map((item, index) => (
+              {inventoryItems.map((item) => (
                 <div
                   key={item._id}
                   className="bg-slate-800 rounded-lg shadow-lg overflow-hidden"
@@ -325,7 +340,7 @@ const AdminContent: React.FC = () => {
                   <div className="p-6">
                     <div className="flex flex-col items-center mb-6">
                       <img
-                        src={getItemImage(item.type, index)}
+                        src={getItemImage(item.type, item.item_id)}
                         alt={item.name}
                         className="w-24 h-24 mb-4 object-contain"
                       />

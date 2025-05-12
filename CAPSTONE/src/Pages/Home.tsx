@@ -4,9 +4,9 @@ import { ContainerScroll } from "../components/LandingComponent/ScrollAnimation"
 import { InfiniteMovingCards } from "../components/LandingComponent/Contributors";
 import Footer from "../components/LandingComponent/Footer";
 import Games from "../components/LandingComponent/Games";
-import Map from "../assets/town_map.jpg";
-import kid from "../assets/kid.gif";
-import bird from "../assets/bird.gif";
+import Map from "../../public/assets/town_map.jpg";
+import kid from "../../public/assets/kid.gif";
+import bird from "../../public/assets/bird.gif";
 import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContent } from "../context/AppContext";
