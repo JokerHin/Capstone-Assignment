@@ -266,7 +266,23 @@ class MainScene extends Phaser.Scene {
             [247, 772, 24, 5],
             [544, 772, 24, 5],
             [952, 774, 24, 5],
-            [0, 784, 1280, 4]
+            [0, 784, 1280, 4],
+            // Additional rectangles (x, y, w, h)
+            [0, 0, 591, 96],
+            [747, 0, 146, 96],
+            [1220, 0, 193, 616],
+            [1080, 240, 140, 100],
+            [1009, 112, 171, 34],
+            [57, 218, 154, 34],
+            [312, 223, 153, 34],
+            [906, 283, 154, 34],
+            [0, 421, 199, 166],
+            [873, 533, 287, 48],
+            [250, 538, 153, 33],
+            [0, 750, 1160, 96],
+            [0,0,20,420],
+            [0,0,30,788],
+            [0,587,120,50]
         ];
 
         // Draw obstacles and add to physics
@@ -461,28 +477,6 @@ class MainScene extends Phaser.Scene {
         this.player.setCollideWorldBounds(true); // Prevent the player from moving outside the bounds
         // this.movementSpeed = this.movementSpeed/zoomFactor;
 
-        // const collisionLayer = this.physics.add.staticImage(0, 0, "town_obstacle");
-        // collisionLayer.setOrigin(0, 0); // Align to the top-left corner
-        // collisionLayer.setScale(this.zoomFactor); // Scale if needed
-        // collisionLayer.body.setSize(
-        //     collisionLayer.displayWidth,
-        //     collisionLayer.displayHeight
-        // ).setOffset(0, 0);
-        // this.physics.add.collider(this.player, collisionLayer);
-
-        //initiate first quest for new user
-        // fetch("https://capstone-assignment-36lq.vercel.app/player_progress", {
-        //     method: "POST",
-        //     headers: {
-        //     "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({
-        //     player_id: this.player_id,
-        //     subquest_id: 1,
-        //     status: "In Progress",
-        //     }),
-        // });
-
         this.removeLoadingScreen();
 
         this.checkNarrator();
@@ -491,6 +485,7 @@ class MainScene extends Phaser.Scene {
     }
 
     update() {
+        console.log("Player Position:", this.player.x/this.zoomFactor, this.player.y/this.zoomFactor);
         let cursors = this.input.keyboard.createCursorKeys();
         let keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
@@ -1360,7 +1355,7 @@ class Game {
       height: this.gameHeight,
       physics: {
         default: "arcade",
-        arcade: { gravity: { y: 0 }, debug: false },
+        arcade: { gravity: { y: 0 }, debug: true },
       },
       scene: [MainScene, IndoorScene],
     };
