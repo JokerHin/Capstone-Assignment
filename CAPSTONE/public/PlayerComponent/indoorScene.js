@@ -541,7 +541,7 @@ export class IndoorScene extends Phaser.Scene {
         {
             fill: '#000000',
             align: 'center',
-            // wordWrap: { width: this.guideBg.displayWidth * 0.8 },
+            wordWrap: { width: this.guideBg.displayWidth * 0.7 },
             font: `${this.guideBg.displayWidth*0.03}px 'VT323'`
         }).setOrigin(0.5);
     this.guideContent.setScrollFactor(0);

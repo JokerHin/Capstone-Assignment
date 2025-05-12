@@ -38,8 +38,8 @@ export const getAmount = async (req, res) => {
     const { player_id, item_id } = req.query;
 
     // Convert inputs to numbers to avoid CastError
-    const playerId = Number(player_id);
-    const itemId = Number(item_id);
+    const playerId = player_id;
+    const itemId = item_id;
 
     if (isNaN(playerId) || isNaN(itemId)) {
       return res.status(400).json({ message: "Invalid player_id or item_id" });

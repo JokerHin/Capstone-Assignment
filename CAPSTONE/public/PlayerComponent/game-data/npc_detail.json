@@ -1,5 +1,5 @@
 {
-    "Merchant David":{
+    "merchant_david":{
         "name": "Merchant David",
         "type": "spritesheet",
         "img": "grandCompiler_spritesheet.png",
@@ -18,7 +18,7 @@
         },
         "initialFrame": 0
     },
-    "Kai":{
+    "kai":{
         "name": "Kai",
         "type": "spritesheet",
         "img": "ang_spritesheet.png",
@@ -37,7 +37,7 @@
         },
         "initialFrame": 0
     },
-    "Chong":{
+    "chong":{
         "name": "Chong",
         "type": "spritesheet",
         "img": "chong_spritesheet.png",
@@ -56,7 +56,7 @@
         },
         "initialFrame": 0
     },
-    "Vera":{
+    "vera":{
         "name": "Vera",
         "type": "spritesheet",
         "img": "ava_spritesheet.png",
@@ -75,7 +75,7 @@
         },
         "initialFrame": 0
     },
-    "Luma":{
+    "luma":{
         "name": "Luma",
         "type": "spritesheet",
         "img": "axion_spritesheet.png",
@@ -94,7 +94,7 @@
         },
         "initialFrame": 0
     },
-    "Kora":{
+    "kora":{
         "name": "Kora",
         "type": "spritesheet",
         "img": "grandpa_spritesheet.png",
@@ -113,7 +113,7 @@
         },
         "initialFrame": 0
     },
-    "Wai":{
+    "wai":{
         "name": "Wai",
         "type": "spritesheet",
         "img": "wai_spritesheet.png",
@@ -132,7 +132,7 @@
         },
         "initialFrame": 0
     },
-    "Ben":{
+    "ben":{
         "name": "Ben",
         "type": "spritesheet",
         "img": "ben_spritesheet.png",
@@ -151,7 +151,7 @@
         },
         "initialFrame": 0
     },
-    "Axel":{
+    "axel":{
         "name": "Axel",
         "type": "spritesheet",
         "img": "cipher_spritesheet.png",
@@ -170,7 +170,7 @@
         },
         "initialFrame": 0
     },
-    "Mira":{
+    "mira":{
         "name": "Mira",
         "type": "spritesheet",
         "img": "lina_spritesheet.png",
@@ -189,7 +189,7 @@
         },
         "initialFrame": 0
     },
-    "WINDBOT":{
+    "windbot":{
         "name": "Wind Bot",
         "type": "spritesheet",
         "img": "windbot_spritesheet.png",
@@ -208,7 +208,7 @@
         },
         "initialFrame": 0
     },
-    "ICEBOT":{
+    "icebot":{
         "name": "Ice Bot",
         "type": "spritesheet",
         "img": "icebot_spritesheet.png",
@@ -227,7 +227,7 @@
         },
         "initialFrame": 0
     },
-    "LIGHTNINGBOT":{
+    "lightningbot":{
         "name": "Lightning Bot",
         "type": "spritesheet",
         "img": "lightningbot_spritesheet.png",
@@ -246,7 +246,7 @@
         },
         "initialFrame": 0
     },
-    "FIREBOT":{
+    "firebot":{
         "name": "Fire Bot",
         "type": "spritesheet",
         "img": "firebot_spritesheet.png",
@@ -265,7 +265,7 @@
         },
         "initialFrame": 0
     },
-    "NATUREBOT":{
+    "naturebot":{
         "name": "Nature Bot",
         "type": "spritesheet",
         "img": "naturebot_spritesheet.png",
@@ -284,7 +284,7 @@
         },
         "initialFrame": 0
     },
-    "WATERBOT":{
+    "waterbot":{
         "name": "Water Bot",
         "type": "spritesheet",
         "img": "waterbot_spritesheet.png",
@@ -303,7 +303,7 @@
         },
         "initialFrame": 0
     },
-    "GENERAL ROBOT":{
+    "generalbot":{
         "name": "Bot",
         "type": "spritesheet",
         "img": "generalbot_spritesheet.png",
@@ -322,7 +322,7 @@
         },
         "initialFrame": 0
     },
-    "Kargie":{
+    "kargie":{
         "name": "Kargie",
         "type": "spritesheet",
         "img": "kargie_spritesheet.png",
@@ -341,7 +341,7 @@
         },
         "initialFrame": 0
     },
-    "Selene":{
+    "selene":{
         "name": "Selene",
         "type": "spritesheet",
         "img": "selene_spritesheet.png",
