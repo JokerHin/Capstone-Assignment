@@ -226,6 +226,66 @@ class MainScene extends Phaser.Scene {
         //background obstacle
         this.backdrop['obstacle'] = new Backdrop(this, 0, 0, 'town_obstacle', this.zoomFactor);
 
+        // Create a static group for barriers
+        this.barrierGroup = this.physics.add.staticGroup();
+
+        // Manual rectangle obstacles (replace collision mask logic)
+        // Format: [x, y, width, height]
+        const manualObstacles = [
+            [0, 0, 1280, 4],
+            [948, 36, 25, 5],
+            [1004, 121, 176, 5],
+            [736, 135, 11, 5],
+            [429, 137, 24, 5],
+            [74, 139, 24, 5],
+            [249, 162, 24, 5],
+            [547, 224, 25, 5],
+            [59, 226, 157, 5],
+            [311, 229, 158, 5],
+            [1118, 252, 25, 5],
+            [494, 266, 133, 5],
+            [717, 266, 133, 5],
+            [906, 289, 158, 5],
+            [256, 296, 11, 5],
+            [724, 359, 25, 5],
+            [1085, 361, 11, 5],
+            [281, 410, 25, 5],
+            [649, 423, 47, 5],
+            [1151, 437, 25, 5],
+            [129, 451, 25, 5],
+            [417, 451, 25, 5],
+            [249, 521, 158, 5],
+            [873, 540, 292, 5],
+            [480, 592, 25, 5],
+            [786, 603, 25, 5],
+            [187, 612, 24, 5],
+            [194, 624, 12, 5],
+            [1179, 624, 11, 5],
+            [419, 625, 208, 10],
+            [731, 625, 133, 10],
+            [247, 772, 24, 5],
+            [544, 772, 24, 5],
+            [952, 774, 24, 5],
+            [0, 784, 1280, 4]
+        ];
+
+        // Draw obstacles and add to physics
+        for (const [x, y, w, h] of manualObstacles) {
+            // Scale all values by zoomFactor
+            const sx = x * this.zoomFactor;
+            const sy = y * this.zoomFactor;
+            const sw = w * this.zoomFactor;
+            const sh = h * this.zoomFactor;
+
+            // Create invisible static body for collision
+            let barrier = this.barrierGroup.create(sx + sw / 2, sy + sh / 2, null);
+            barrier.body.setSize(sw, sh);
+            barrier.setVisible(false);
+        }
+
+        // Add collision between player and barriers
+        this.physics.add.collider(this.player, this.barrierGroup);
+
         this.anims.create({
             key: 'fighter_left',
             frames: this.anims.generateFrameNumbers('fighter', { start: 8, end: 13 }),
@@ -1197,7 +1257,7 @@ class Game {
         "https://capstone-assignment-36lq.vercel.app/subquest",
         "https://capstone-assignment-36lq.vercel.app/package",
         "https://capstone-assignment-36lq.vercel.app/choice",
-        "https://capstone-assignment-36lq.vercel.app/player_progress",
+        "https://capstone-assignment-36lq.vercel.app/player-progress",
         "/PlayerComponent/game-data/npc_detail.json",
         "/PlayerComponent/game-data/location_detail.json",
         "/PlayerComponent/game-data/item_detail.json",
