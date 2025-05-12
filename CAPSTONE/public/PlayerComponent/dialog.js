@@ -89,10 +89,6 @@ export class Dialog{
                 i++;
             }
         }else{
-            // if (choices.animation){
-            //     let npc = this.game.touching.npc;
-            //     this.game.npc[npc.tag].play(choices.animation);
-            // }
             this.graphics.setInteractive(new Phaser.Geom.Rectangle(dialogX, dialogY, dialogWidth, dialogHeight), Phaser.Geom.Rectangle.Contains);
 
             this.graphics.on('pointerdown', () => {
@@ -187,22 +183,6 @@ export class Dialog{
         let package_detail = this.game.packageDetail.filter(packageDetail => packageDetail.package_id === package_id);
         console.log(package_detail);
 
-        // for (let item of package_detail) { //check if item enough for negative amount (giving item)
-        //     if (item.amount<0){
-        //         let response = await fetch(`https://capstone-assignment-36lq.vercel.app/inventory/amount?player_id=${this.game.player_id}&item_id=${item.item_id}`, {
-        //         method: "GET",
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         });
-        //         let amount = await response.json();
-        //         console.log(amount);
-        //         if (amount<item.amount){
-        //             return false;
-        //         }
-        //     }
-        // }
-
         for (let item of package_detail) { //update inventory
             let itemDetail = this.game.item.find(itemDetail => itemDetail.item_id === item.item_id);
             console.log(itemDetail);
@@ -267,7 +247,6 @@ export class Dialog{
                     }),
                 });
             }
-            
         }
         return true;
     }
