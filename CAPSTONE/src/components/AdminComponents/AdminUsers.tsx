@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContent } from "../../context/AppContext";
-import { Pencil, Trash, UserPlus, X, Check } from "lucide-react";
+import { Pencil, Trash, UserPlus, X, Check, Activity } from "lucide-react";
+import questData from "../PlayerComponent/game-data/quest.json";
 
 interface User {
   _id: string;
@@ -10,6 +11,19 @@ interface User {
   email: string;
   userType: string;
   createdAt: string;
+}
+
+interface PlayerProgress {
+  _id: string;
+  player_id: string;
+  subquest_id: string;
+  status: string;
+}
+
+interface SubquestInfo {
+  title: string;
+  quest_id: string | number;
+  quest_title: string;
 }
 
 const AdminUsers: React.FC = () => {
@@ -39,6 +53,14 @@ const AdminUsers: React.FC = () => {
   }
 
   const { backendUrl, userData, isLoggedin } = appContext;
+
+  const [playerProgress, setPlayerProgress] = useState<
+    Record<string, PlayerProgress[]>
+  >({});
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [subquestInfoMap, setSubquestInfoMap] = useState<
+    Record<string, SubquestInfo>
+  >({});
 
   // Create a utility function to get auth headers
   const getAuthHeaders = () => {
@@ -107,6 +129,90 @@ const AdminUsers: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fetch player progress data
+  useEffect(() => {
+    if (isLoggedin && userData?.userType === "admin" && users.length > 0) {
+      fetchPlayerProgress();
+      fetchSubquestInfo();
+    }
+  }, [users, backendUrl, isLoggedin, userData]);
+
+  const fetchPlayerProgress = async () => {
+    setProgressLoading(true);
+    try {
+      // Updated endpoint to match the server route
+      const response = await axios.get(`${backendUrl}/player-progress`, {
+        headers: getAuthHeaders(),
+      });
+
+      // Group progress by player_id
+      const progressByPlayer: Record<string, PlayerProgress[]> = {};
+
+      response.data.forEach((progress: PlayerProgress) => {
+        if (!progressByPlayer[progress.player_id]) {
+          progressByPlayer[progress.player_id] = [];
+        }
+        progressByPlayer[progress.player_id].push(progress);
+      });
+
+      setPlayerProgress(progressByPlayer);
+    } catch (error) {
+      console.error("Error fetching player progress:", error);
+    } finally {
+      setProgressLoading(false);
+    }
+  };
+
+  // Fetch subquest information to display proper titles
+  const fetchSubquestInfo = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/subquest`);
+      const subquests = response.data;
+
+      // Create a map of subquest_id to { title, quest_id, quest_title }
+      const infoMap: Record<string, SubquestInfo> = {};
+
+      subquests.forEach((subquest: any) => {
+        // Find the associated quest title
+        const quest = questData.find(
+          (q: any) => String(q.quest_id) === String(subquest.quest_id)
+        );
+
+        infoMap[String(subquest.subquest_id)] = {
+          title: subquest.title || `Subquest ${subquest.subquest_id}`,
+          quest_id: subquest.quest_id,
+          quest_title: quest ? quest.title : `Quest ${subquest.quest_id}`,
+        };
+      });
+
+      setSubquestInfoMap(infoMap);
+    } catch (error) {
+      console.error("Error fetching subquest info:", error);
+    }
+  };
+
+  // Get latest progress for a user
+  const getLatestProgress = (userId: string) => {
+    const userProgressList = playerProgress[userId] || [];
+    if (userProgressList.length === 0) return null;
+
+    // Return the latest progress entry (assuming the most recent is what we want)
+    return userProgressList[userProgressList.length - 1];
+  };
+
+  // Update getProgressText to show only subquest ID
+  const getProgressText = (progress: PlayerProgress | null) => {
+    if (!progress) return "No progress data";
+
+    // Find quest info if available
+    const subquestInfo = subquestInfoMap[progress.subquest_id];
+    const questTitle = subquestInfo ? subquestInfo.quest_title : "Quest";
+
+    return `${questTitle} - Subquest: ${progress.subquest_id} (${
+      progress.status || "In Progress"
+    })`;
   };
 
   // Function to handle page change
@@ -365,6 +471,12 @@ const AdminUsers: React.FC = () => {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
                     >
+                      Current Progress
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
                       Joined
                     </th>
                     <th
@@ -379,7 +491,7 @@ const AdminUsers: React.FC = () => {
                   {filteredUsers.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5} // Updated column span
                         className="px-6 py-8 text-center text-gray-400"
                       >
                         {isLoggedin
@@ -388,41 +500,64 @@ const AdminUsers: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <tr key={user._id} className="hover:bg-slate-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-white">
-                            {user.name}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-300">
-                            {user.email}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {formatDate(user.createdAt)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            className="text-blue-400 hover:text-blue-300 mr-3"
-                          >
-                            <Pencil size={16} className="inline" />
-                            <span className="ml-1 hidden sm:inline">Edit</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user._id)}
-                            className="text-red-400 hover:text-red-300"
-                          >
-                            <Trash size={16} className="inline" />
-                            <span className="ml-1 hidden sm:inline">
-                              Delete
-                            </span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    filteredUsers.map((user) => {
+                      const latestProgress = getLatestProgress(user._id);
+
+                      return (
+                        <tr key={user._id} className="hover:bg-slate-700">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-white">
+                              {user.name}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-300">
+                              {user.email}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {progressLoading ? (
+                              <div className="text-sm text-gray-400">
+                                Loading...
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-300">
+                                {getProgressText(latestProgress)}
+                                {latestProgress && (
+                                  <Activity
+                                    size={16}
+                                    className="inline ml-2 text-green-400"
+                                  />
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            {formatDate(user.createdAt)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="text-blue-400 hover:text-blue-300 mr-3"
+                            >
+                              <Pencil size={16} className="inline" />
+                              <span className="ml-1 hidden sm:inline">
+                                Edit
+                              </span>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user._id)}
+                              className="text-red-400 hover:text-red-300"
+                            >
+                              <Trash size={16} className="inline" />
+                              <span className="ml-1 hidden sm:inline">
+                                Delete
+                              </span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
