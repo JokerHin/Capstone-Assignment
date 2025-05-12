@@ -68,7 +68,6 @@ class MainScene extends Phaser.Scene {
 
         this.load.image('town_bg', '/assets/town_map.jpg');
         this.load.image('town_obstacle', '/assets/town_map_obstacle.png');
-        this.load.image('collision_mask', '/assets/town_map_barrier.png');
         this.load.spritesheet('fighter', '/assets/mc_spritesheet.png', {
             frameWidth: 640,
             frameHeight: 640
@@ -230,26 +229,58 @@ class MainScene extends Phaser.Scene {
         // Create a static group for barriers
         this.barrierGroup = this.physics.add.staticGroup();
 
-        // Get the mask image as a canvas
-        let maskTexture = this.textures.get('collision_mask');
-        let maskSource = maskTexture.getSourceImage();
-        let maskCanvas = this.textures.createCanvas('maskCanvas', maskSource.width, maskSource.height).draw(0, 0, maskSource);
-        let ctx = maskCanvas.getContext();
-        let imageData = ctx.getImageData(0, 0, maskSource.width, maskSource.height).data;
+        // Manual rectangle obstacles (replace collision mask logic)
+        // Format: [x, y, width, height]
+        const manualObstacles = [
+            [0, 0, 1280, 4],
+            [948, 36, 25, 5],
+            [1004, 121, 176, 5],
+            [736, 135, 11, 5],
+            [429, 137, 24, 5],
+            [74, 139, 24, 5],
+            [249, 162, 24, 5],
+            [547, 224, 25, 5],
+            [59, 226, 157, 5],
+            [311, 229, 158, 5],
+            [1118, 252, 25, 5],
+            [494, 266, 133, 5],
+            [717, 266, 133, 5],
+            [906, 289, 158, 5],
+            [256, 296, 11, 5],
+            [724, 359, 25, 5],
+            [1085, 361, 11, 5],
+            [281, 410, 25, 5],
+            [649, 423, 47, 5],
+            [1151, 437, 25, 5],
+            [129, 451, 25, 5],
+            [417, 451, 25, 5],
+            [249, 521, 158, 5],
+            [873, 540, 292, 5],
+            [480, 592, 25, 5],
+            [786, 603, 25, 5],
+            [187, 612, 24, 5],
+            [194, 624, 12, 5],
+            [1179, 624, 11, 5],
+            [419, 625, 208, 10],
+            [731, 625, 133, 10],
+            [247, 772, 24, 5],
+            [544, 772, 24, 5],
+            [952, 774, 24, 5],
+            [0, 784, 1280, 4]
+        ];
 
-        // Loop through pixels (step by 4 for performance)
-        for (let y = 0; y < maskSource.height; y += 4) {
-            for (let x = 0; x < maskSource.width; x += 4) {
-                let idx = (y * maskSource.width + x) * 4;
-                let r = imageData[idx], g = imageData[idx+1], b = imageData[idx+2], a = imageData[idx+3];
-                // Detect red lines (tweak threshold if needed)
-                if (r > 200 && g < 80 && b < 80 && a > 200) {
-                    // Create a small static body at this position
-                    let barrier = this.barrierGroup.create(x * this.zoomFactor, y * this.zoomFactor, null);
-                    barrier.body.setSize(4 * this.zoomFactor, 4 * this.zoomFactor);
-                    barrier.setVisible(false); // Hide debug body
-                }
-            }
+        // Draw obstacles and add to physics
+        for (const [x, y, w, h] of manualObstacles) {
+            // Scale all values by zoomFactor
+            const sx = x * this.zoomFactor;
+            const sy = y * this.zoomFactor;
+            const sw = w * this.zoomFactor;
+            const sh = h * this.zoomFactor;
+
+            // Create invisible static body for collision
+            let barrier = this.barrierGroup.create(sx + sw / 2, sy + sh / 2, null);
+            barrier.body.setSize(sw, sh);
+            barrier.setVisible(false);
         }
 
         // Add collision between player and barriers
@@ -1226,7 +1257,7 @@ class Game {
         "https://capstone-assignment-36lq.vercel.app/subquest",
         "https://capstone-assignment-36lq.vercel.app/package",
         "https://capstone-assignment-36lq.vercel.app/choice",
-        "https://capstone-assignment-36lq.vercel.app/player_progress",
+        "https://capstone-assignment-36lq.vercel.app/player-progress",
         "/PlayerComponent/game-data/npc_detail.json",
         "/PlayerComponent/game-data/location_detail.json",
         "/PlayerComponent/game-data/item_detail.json",

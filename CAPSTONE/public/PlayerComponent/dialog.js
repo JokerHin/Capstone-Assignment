@@ -207,7 +207,7 @@ export class Dialog{
             let itemDetail = this.game.item.find(itemDetail => itemDetail.item_id === item.item_id);
             console.log(itemDetail);
             if (itemDetail.type === "milestone"){
-                fetch("https://capstone-assignment-36lq.vercel.app/player_progress/update", {
+                fetch("https://capstone-assignment-36lq.vercel.app/player-progress/update", {
                     method: "POST",
                     headers: {
                     "Content-Type": "application/json",
@@ -228,7 +228,7 @@ export class Dialog{
                 if (nextActiveSubquest){
                     let nextQuest = nextActiveSubquest.quest_id;
                     this.game.registry.set("activeQuest", nextQuest);
-                    fetch("https://capstone-assignment-36lq.vercel.app/player_progress/update", {
+                    fetch("https://capstone-assignment-36lq.vercel.app/player-progress/update", {
                         method: "POST",
                         headers: {
                         "Content-Type": "application/json",
