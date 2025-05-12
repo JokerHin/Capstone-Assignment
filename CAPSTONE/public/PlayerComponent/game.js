@@ -68,6 +68,7 @@ class MainScene extends Phaser.Scene {
 
         this.load.image('town_bg', '/assets/town_map.jpg');
         this.load.image('town_obstacle', '/assets/town_map_obstacle.png');
+        this.load.image('collision_mask', '/assets/town_map_barrier.png');
         this.load.spritesheet('fighter', '/assets/mc_spritesheet.png', {
             frameWidth: 640,
             frameHeight: 640
@@ -225,6 +226,34 @@ class MainScene extends Phaser.Scene {
 
         //background obstacle
         this.backdrop['obstacle'] = new Backdrop(this, 0, 0, 'town_obstacle', this.zoomFactor);
+
+        // Create a static group for barriers
+        this.barrierGroup = this.physics.add.staticGroup();
+
+        // Get the mask image as a canvas
+        let maskTexture = this.textures.get('collision_mask');
+        let maskSource = maskTexture.getSourceImage();
+        let maskCanvas = this.textures.createCanvas('maskCanvas', maskSource.width, maskSource.height).draw(0, 0, maskSource);
+        let ctx = maskCanvas.getContext();
+        let imageData = ctx.getImageData(0, 0, maskSource.width, maskSource.height).data;
+
+        // Loop through pixels (step by 4 for performance)
+        for (let y = 0; y < maskSource.height; y += 4) {
+            for (let x = 0; x < maskSource.width; x += 4) {
+                let idx = (y * maskSource.width + x) * 4;
+                let r = imageData[idx], g = imageData[idx+1], b = imageData[idx+2], a = imageData[idx+3];
+                // Detect red lines (tweak threshold if needed)
+                if (r > 200 && g < 80 && b < 80 && a > 200) {
+                    // Create a small static body at this position
+                    let barrier = this.barrierGroup.create(x * this.zoomFactor, y * this.zoomFactor, null);
+                    barrier.body.setSize(4 * this.zoomFactor, 4 * this.zoomFactor);
+                    barrier.setVisible(false); // Hide debug body
+                }
+            }
+        }
+
+        // Add collision between player and barriers
+        this.physics.add.collider(this.player, this.barrierGroup);
 
         this.anims.create({
             key: 'fighter_left',
