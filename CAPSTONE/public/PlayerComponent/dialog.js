@@ -187,17 +187,7 @@ export class Dialog{
             let itemDetail = this.game.item.find(itemDetail => itemDetail.item_id === item.item_id);
             console.log(itemDetail);
             if (itemDetail.type === "milestone"){
-                fetch("https://capstone-assignment-36lq.vercel.app/player-progress/update", {
-                    method: "POST",
-                    headers: {
-                    "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                    player_id: this.game.player_id,
-                    subquest_id: this.game.registry.get("activeSubQuest"),
-                    status: "Completed",
-                    }),
-                });
+                
                 let nextSubQuest = this.game.package.find(packages => packages.package_id === package_id).subquest_id;
                 console.log(nextSubQuest);
                 this.game.registry.set("activeSubQuest", nextSubQuest);
@@ -221,6 +211,18 @@ export class Dialog{
                     });
                     console.log("update player progress");
                     continue;
+                }else{
+                    fetch("https://capstone-assignment-36lq.vercel.app/player-progress/update", {
+                        method: "POST",
+                        headers: {
+                        "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                        player_id: this.game.player_id,
+                        subquest_id: this.game.registry.get("activeSubQuest")+1,
+                        status: "In Progress",
+                        }),
+                    });
                 }
             }
             if (item.amount>0){
